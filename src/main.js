@@ -1,3 +1,11 @@
+import { pipeline, env } from '@huggingface/transformers';
+
+// Configure transformers.js to always download models
+env.allowLocalModels = false;
+env.useBrowserCache = false;
+
+const MAX_IMAGE_DIMENSION = 1024;
+
 // Mock data for the puzzle
 const mockData = {
   Date: "20241228",
@@ -29,21 +37,118 @@ function formatDate(dateStr) {
   return new Date(`${year}-${month}-${day}`).toLocaleDateString();
 }
 
+function resizeImageIfNeeded(canvas, ctx, image) {
+  let width = image.naturalWidth;
+  let height = image.naturalHeight;
+
+  if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+    if (width > height) {
+      height = Math.round((height * MAX_IMAGE_DIMENSION) / width);
+      width = MAX_IMAGE_DIMENSION;
+    } else {
+      width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
+      height = MAX_IMAGE_DIMENSION;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(image, 0, 0, width, height);
+    return true;
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(image, 0, 0);
+  return false;
+}
+
+async function removeBackground(imageElement) {
+  try {
+    console.log('Starting background removal process...');
+    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
+      device: 'webgpu',
+    });
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) throw new Error('Could not get canvas context');
+    
+    const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
+    console.log(`Image ${wasResized ? 'was' : 'was not'} resized`);
+    
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    
+    const result = await segmenter(imageData);
+    
+    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
+      throw new Error('Invalid segmentation result');
+    }
+    
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = canvas.width;
+    outputCanvas.height = canvas.height;
+    const outputCtx = outputCanvas.getContext('2d');
+    
+    if (!outputCtx) throw new Error('Could not get output canvas context');
+    
+    outputCtx.drawImage(canvas, 0, 0);
+    
+    const outputImageData = outputCtx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+    const data = outputImageData.data;
+    
+    for (let i = 0; i < result[0].mask.data.length; i++) {
+      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
+      data[i * 4 + 3] = alpha;
+    }
+    
+    outputCtx.putImageData(outputImageData, 0, 0);
+    
+    return new Promise((resolve, reject) => {
+      outputCanvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to create blob'));
+          }
+        },
+        'image/png',
+        1.0
+      );
+    });
+  } catch (error) {
+    console.error('Error removing background:', error);
+    throw error;
+  }
+}
+
 // Initialize the puzzle
-function initializePuzzle() {
-  // Set puzzle date
+async function initializePuzzle() {
   document.getElementById('puzzle-date').textContent = `Daily Puzzle - ${formatDate(mockData.Date)}`;
-  
-  // Set puzzle caption
   document.getElementById('puzzle-caption').textContent = mockData.Caption.v1;
   
-  // Create jumble words
-  const jumbleWordsContainer = document.getElementById('jumble-words');
+  // Process puzzle image
+  const puzzleImage = document.getElementById('puzzle-image');
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = async () => {
+      try {
+        const processedBlob = await removeBackground(img);
+        puzzleImage.src = URL.createObjectURL(processedBlob);
+      } catch (error) {
+        console.error('Failed to process image:', error);
+      }
+    };
+    img.src = mockData.Image;
+  } catch (error) {
+    console.error('Failed to load image:', error);
+  }
   
-  // Clear existing content
+  const jumbleWordsContainer = document.getElementById('jumble-words');
   jumbleWordsContainer.innerHTML = '';
   
-  // Add jumble words
   for (let i = 1; i <= 4; i++) {
     const wordDiv = document.createElement('div');
     wordDiv.className = 'jumble-word';
@@ -71,7 +176,6 @@ function initializePuzzle() {
     jumbleWordsContainer.appendChild(wordDiv);
   }
   
-  // Set puzzle solution
   document.getElementById('puzzle-solution').textContent = mockData.Solution.s1;
 }
 
