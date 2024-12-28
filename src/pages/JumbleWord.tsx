@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
+import Header from '../components/Header';
 
 const JumbleWord = () => {
   const { word } = useParams();
@@ -47,15 +48,7 @@ const JumbleWord = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-[#f8f9fa] border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
-              JumbleAnswers.com
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
