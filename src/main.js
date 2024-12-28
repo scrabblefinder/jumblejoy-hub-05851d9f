@@ -1,5 +1,6 @@
 import { supabase } from "./integrations/supabase/client";
 import { formatDate } from './utils/dateUtils';
+import { parseJumbleCallback } from './utils/jumbleUtils';
 
 // Initialize search functionality
 function initializeSearch() {
@@ -97,11 +98,36 @@ async function initializePuzzles() {
 
     if (puzzleErrorDec27) throw puzzleErrorDec27;
 
+    // Example of processing the JSON data
+    const sampleData = {
+      "Date": "20241227",
+      "Clues": {
+        "c1": "KAENL", "c2": "LUGTI", "c3": "BLIUFA", "c4": "CONOHH",
+        "a1": "ANKLE", "a2": "GUILT", "a3": "FIBULA", "a4": "HONCHO",
+        "o1": "2,3,5", "o2": "2,4,5", "o3": "2,3,6", "o4": "3,5"
+      },
+      "Caption": {
+        "v1": "Brain transplants might be possible in the future, but for now the idea is —"
+      },
+      "Solution": {
+        "s1": "UNTHINKABLE",
+        "k1": "UNTHINKABLE"
+      },
+      "Image": "https://assets.amuniversal.com/75efe9c09ec0013d8360005056a9545d"
+    };
+
+    const processedData = parseJumbleCallback(sampleData);
+    console.log('Final Jumbled Word:', processedData.finalJumble);
+    
     // Update Dec 28 UI
     updatePuzzleUI(puzzleDec28, 'dec28');
     
-    // Update Dec 27 UI
-    updatePuzzleUI(puzzleDec27, 'dec27');
+    // Update Dec 27 UI with processed data
+    const dec27Data = {
+      ...puzzleDec27,
+      finalJumble: processedData.finalJumble
+    };
+    updatePuzzleUI(dec27Data, 'dec27');
 
   } catch (error) {
     console.error('Failed to initialize puzzles:', error);
@@ -134,7 +160,7 @@ function updatePuzzleUI(puzzle, suffix) {
   }
 
   if (jumbleWordsContainer && puzzle.jumble_words) {
-    jumbleWordsContainer.innerHTML = puzzle.jumble_words
+    let wordsHtml = puzzle.jumble_words
       .map(({ jumbled_word }) => `
         <div class="jumble-word">
           <a 
@@ -146,6 +172,23 @@ function updatePuzzleUI(puzzle, suffix) {
         </div>
       `)
       .join('');
+
+    // Add the final jumbled word if available
+    if (puzzle.finalJumble) {
+      wordsHtml += `
+        <div class="jumble-word mt-4 bg-gray-50">
+          <p class="text-gray-600 text-sm mb-2">Final Jumbled Word:</p>
+          <a 
+            href="/jumble/${puzzle.finalJumble.toLowerCase()}"
+            class="text-[#0275d8] hover:underline cursor-pointer text-lg font-bold"
+          >
+            ${puzzle.finalJumble}
+          </a>
+        </div>
+      `;
+    }
+
+    jumbleWordsContainer.innerHTML = wordsHtml;
   }
 
   if (solutionContainer && puzzleSolution) {
@@ -168,43 +211,4 @@ window.toggleAccordion = function(id) {
 document.addEventListener('DOMContentLoaded', () => {
   initializePuzzles();
   initializeSearch();
-  
-  const showAnswersBtn = document.getElementById('show-answers-btn');
-  const showSolutionBtn = document.getElementById('show-solution-btn');
-  
-  if (showAnswersBtn) {
-    showAnswersBtn.addEventListener('click', toggleAnswers);
-  }
-  if (showSolutionBtn) {
-    showSolutionBtn.addEventListener('click', toggleSolution);
-  }
 });
-
-// Toggle answers visibility
-function toggleAnswers() {
-  const answers = document.querySelectorAll('.jumble-answer');
-  const button = document.getElementById('show-answers-btn');
-  const isHidden = answers[0]?.classList.contains('hidden');
-  
-  answers.forEach(answer => {
-    answer.classList.toggle('hidden');
-  });
-  
-  if (button) {
-    button.textContent = isHidden ? 'Hide Answers' : 'Show Answers';
-  }
-}
-
-// Toggle solution visibility
-function toggleSolution() {
-  const solutionContainers = document.querySelectorAll('[id^="solution-container-"]');
-  const button = document.getElementById('show-solution-btn');
-  
-  if (solutionContainers.length > 0 && button) {
-    const isHidden = solutionContainers[0].classList.contains('hidden');
-    solutionContainers.forEach(container => {
-      container.classList.toggle('hidden');
-    });
-    button.textContent = isHidden ? 'Hide Solution' : 'Show Solution';
-  }
-}
