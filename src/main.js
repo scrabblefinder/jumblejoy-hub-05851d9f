@@ -1,4 +1,4 @@
-// Mock data (same as before)
+// Mock data for the puzzle
 const mockData = {
   Date: "20241228",
   Clues: {
@@ -105,5 +105,3 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('show-answers-btn').addEventListener('click', toggleAnswers);
   document.getElementById('show-solution-btn').addEventListener('click', toggleSolution);
 });
-
-// Image processing will be added in the next iteration

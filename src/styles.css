@@ -26,3 +26,7 @@ body {
 .jumble-solution {
   @apply text-[#9b87f5] font-bold text-xl;
 }
+
+.hidden {
+  display: none;
+}
