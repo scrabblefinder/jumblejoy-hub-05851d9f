@@ -34,9 +34,8 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('.jumble-word a')) {
     e.preventDefault();
     const href = e.target.getAttribute('href');
-    const [, , date, index] = href.split('/');
-    const answer = mockData.Clues[`a${index}`];
-    window.location.href = `/answer.html?date=${date}&word=${answer}`;
+    const word = href.split('/').pop();
+    window.location.href = `/answer.html?word=${word.toUpperCase()}`;
   }
 });
 
