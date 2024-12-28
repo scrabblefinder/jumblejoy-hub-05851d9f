@@ -84,7 +84,12 @@ const JumblePuzzle = ({
                 />
               </div>
               <div className="border-t pt-4 w-full">
-                <p className="text-[#0275d8] text-lg">{caption}</p>
+                <Link 
+                  to={`/caption/${encodeURIComponent(caption)}`}
+                  className="block text-[#0275d8] text-lg hover:underline"
+                >
+                  {caption}
+                </Link>
               </div>
             </div>
           </div>
