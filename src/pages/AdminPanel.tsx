@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
 import PuzzleForm from '@/components/admin/PuzzleForm';
-import PuzzleList from '@/components/admin/PuzzleList';
 
 const AdminPanel = () => {
   const { toast } = useToast();
@@ -52,9 +51,6 @@ const AdminPanel = () => {
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <PuzzleForm />
-        </div>
-        <div>
-          <PuzzleList />
         </div>
       </div>
     </div>

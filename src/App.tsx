@@ -5,6 +5,8 @@ import HomePage from './pages/HomePage';
 import JumbleWord from './pages/JumbleWord';
 import JumbleAnswer from './pages/JumbleAnswer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import AdminPanel from './pages/AdminPanel';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -17,6 +19,14 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/jumble/:word" element={<JumbleAnswer />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster />

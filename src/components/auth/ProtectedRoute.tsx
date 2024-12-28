@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
-import { Navigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
