@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 
@@ -97,8 +98,17 @@ const Sidebar = () => {
                 <p className="text-[#0275d8] font-medium mb-2">{formatDate(latestDate)}</p>
                 <ul className="space-y-2">
                   {latestWords.map((word, index) => (
-                    <li key={index} className="text-gray-700">
-                      {word.jumbled_word}
+                    <li 
+                      key={index} 
+                      className="flex items-center space-x-2"
+                    >
+                      <span className="text-[#0275d8] text-lg">•</span>
+                      <Link 
+                        to={`/jumble/${word.jumbled_word.toLowerCase()}`}
+                        className="text-gray-700 hover:text-[#0275d8] hover:underline transition-colors"
+                      >
+                        {word.jumbled_word}
+                      </Link>
                     </li>
                   ))}
                 </ul>
