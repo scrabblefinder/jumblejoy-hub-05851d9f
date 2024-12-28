@@ -97,11 +97,6 @@
 
   body {
     @apply bg-jumble-background text-jumble-text;
-    background-image: url('https://dailyjumbleanswers.com/bg.png?ezimgfmt=rs%3Adevice%2Frscb1-1%2Fng%3Awebp%2Fngcb1');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
-    background-attachment: fixed;
     min-height: 100vh;
   }
 
