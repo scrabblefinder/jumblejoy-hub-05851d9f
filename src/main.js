@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "./integrations/supabase/client";
 import { formatDate } from './utils/dateUtils';
 
 // Initialize search functionality
@@ -55,7 +55,6 @@ function initializeSearch() {
     await showResults(query);
   }
 
-  // Event listeners
   searchInput.addEventListener('input', handleSearch);
   searchInput.addEventListener('focus', handleSearch);
   searchInput.addEventListener('blur', hideResults);
@@ -107,7 +106,6 @@ async function initializePuzzle() {
             <a 
               href="/jumble/${jumbled_word.toLowerCase()}"
               class="text-[#0275d8] hover:underline cursor-pointer"
-              onclick="window.location.href='/jumble/${jumbled_word.toLowerCase()}'; return false;"
             >
               ${jumbled_word}
             </a>
