@@ -30,13 +30,15 @@ const Answer = () => {
           </div>
         </header>
         <main className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0275d8]"></div>
+          </div>
         </main>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !data) {
     return (
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b">
@@ -47,7 +49,7 @@ const Answer = () => {
           </div>
         </header>
         <main className="container mx-auto px-4 py-8">
-          <div className="text-center text-red-600">Error loading answer</div>
+          <div className="text-center text-red-600">Word not found</div>
         </main>
       </div>
     );
@@ -74,7 +76,10 @@ const Answer = () => {
                 <div className="text-center">
                   <div className="mb-8">
                     <h2 className="text-xl font-semibold text-gray-600 mb-2">Jumbled Word:</h2>
-                    <p className="text-4xl font-bold text-[#0275d8]">{data?.jumbled_word}</p>
+                    <p className="text-4xl font-bold text-[#0275d8]">{data.jumbled_word}</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      This word has {data.jumbled_word.length} letters
+                    </p>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -86,7 +91,10 @@ const Answer = () => {
                   </div>
                   <div className="mt-8">
                     <h2 className="text-xl font-semibold text-gray-600 mb-2">Answer:</h2>
-                    <p className="text-5xl font-bold text-green-600">{data?.answer}</p>
+                    <p className="text-5xl font-bold text-green-600">{data.answer}</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      The answer "{data.answer}" is {data.answer.length} letters long
+                    </p>
                   </div>
                 </div>
                 <div className="text-center mt-8">
