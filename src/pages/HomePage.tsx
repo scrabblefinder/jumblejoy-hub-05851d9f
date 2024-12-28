@@ -6,7 +6,7 @@ import JumblePuzzle from '../components/JumblePuzzle';
 import { supabase } from '../integrations/supabase/client';
 import { format } from 'date-fns';
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
   const [latestPuzzle, setLatestPuzzle] = useState<any>(null);
   const [previousPuzzle, setPreviousPuzzle] = useState<any>(null);
   const [isExpandedPrevious, setIsExpandedPrevious] = useState(false);
@@ -14,7 +14,6 @@ const HomePage = () => {
   useEffect(() => {
     const fetchPuzzles = async () => {
       try {
-        // Fetch the two most recent puzzles
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select(`
