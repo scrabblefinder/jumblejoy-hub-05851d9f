@@ -54,10 +54,10 @@ async function initializePuzzles() {
       const xmlData = {
         date: { v: latestPuzzle.date.replace(/-/g, '') },
         clues: {
-          c1: { j: latestPuzzle.jumble_words[0]?.jumbled_word || "", a: latestPuzzle.jumble_words[0]?.answer || "", circle: "2,5" },
-          c2: { j: latestPuzzle.jumble_words[1]?.jumbled_word || "", a: latestPuzzle.jumble_words[1]?.answer || "", circle: "3,4" },
-          c3: { j: latestPuzzle.jumble_words[2]?.jumbled_word || "", a: latestPuzzle.jumble_words[2]?.answer || "", circle: "2,6" },
-          c4: { j: latestPuzzle.jumble_words[3]?.jumbled_word || "", a: latestPuzzle.jumble_words[3]?.answer || "", circle: "3,5" }
+          c1: { j: latestPuzzle.jumble_words[0]?.jumbled_word || "", a: latestPuzzle.jumble_words[0]?.answer || "", circle: "1,4" },
+          c2: { j: latestPuzzle.jumble_words[1]?.jumbled_word || "", a: latestPuzzle.jumble_words[1]?.answer || "", circle: "2,5" },
+          c3: { j: latestPuzzle.jumble_words[2]?.jumbled_word || "", a: latestPuzzle.jumble_words[2]?.answer || "", circle: "1,3" },
+          c4: { j: latestPuzzle.jumble_words[3]?.jumbled_word || "", a: latestPuzzle.jumble_words[3]?.answer || "", circle: "2,4" }
         },
         caption: { v1: { t: latestPuzzle.caption } },
         solution: { s1: { layout: latestPuzzle.solution, a: latestPuzzle.solution } }
@@ -80,10 +80,10 @@ async function initializePuzzles() {
           "a2": previousPuzzle.jumble_words[1]?.answer || "",
           "a3": previousPuzzle.jumble_words[2]?.answer || "",
           "a4": previousPuzzle.jumble_words[3]?.answer || "",
-          "o1": "2,3,5",
-          "o2": "2,4,5",
-          "o3": "2,3,6",
-          "o4": "3,5"
+          "o1": "1,4",
+          "o2": "2,5",
+          "o3": "1,3",
+          "o4": "2,4"
         },
         "Caption": {
           "v1": previousPuzzle.caption
