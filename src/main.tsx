@@ -24,7 +24,7 @@ declare global {
 
 async function initializePuzzles() {
   try {
-    // Get puzzles for December 27 and 28
+    // Get the latest puzzles
     const { data: puzzles, error: puzzlesError } = await supabase
       .from('daily_puzzles')
       .select(`
@@ -34,64 +34,70 @@ async function initializePuzzles() {
           answer
         )
       `)
-      .in('date', ['2024-12-27', '2024-12-28'])
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .limit(2);
 
     if (puzzlesError) throw puzzlesError;
     
-    if (!puzzles || puzzles.length < 2) {
-      throw new Error('Not enough puzzles found');
+    if (!puzzles || puzzles.length === 0) {
+      console.log('No puzzles found');
+      return;
     }
 
-    // Dec 28 puzzle (latest)
-    const dec28Puzzle = puzzles.find(p => p.date === '2024-12-28');
-    // Dec 27 puzzle (previous)
-    const dec27Puzzle = puzzles.find(p => p.date === '2024-12-27');
+    // Latest puzzle
+    const latestPuzzle = puzzles[0];
+    // Previous puzzle (if available)
+    const previousPuzzle = puzzles.length > 1 ? puzzles[1] : null;
 
-    if (!dec28Puzzle || !dec27Puzzle) {
-      throw new Error('Required puzzles not found');
+    if (latestPuzzle) {
+      // Process latest puzzle XML data
+      const xmlData = {
+        date: { v: latestPuzzle.date.replace(/-/g, '') },
+        clues: {
+          c1: { j: latestPuzzle.jumble_words[0]?.jumbled_word || "", a: latestPuzzle.jumble_words[0]?.answer || "", circle: "2,5" },
+          c2: { j: latestPuzzle.jumble_words[1]?.jumbled_word || "", a: latestPuzzle.jumble_words[1]?.answer || "", circle: "3,4" },
+          c3: { j: latestPuzzle.jumble_words[2]?.jumbled_word || "", a: latestPuzzle.jumble_words[2]?.answer || "", circle: "2,6" },
+          c4: { j: latestPuzzle.jumble_words[3]?.jumbled_word || "", a: latestPuzzle.jumble_words[3]?.answer || "", circle: "3,5" }
+        },
+        caption: { v1: { t: latestPuzzle.caption } },
+        solution: { s1: { layout: latestPuzzle.solution, a: latestPuzzle.solution } }
+      };
+
+      const processedDataLatest = parseJumbleXML(xmlData);
+      updatePuzzleUI({ ...latestPuzzle, finalJumble: processedDataLatest.finalJumble }, 'latest');
     }
-
-    // Process Dec 28 puzzle XML data
-    const xmlData = {
-      date: { v: dec28Puzzle.date.replace(/-/g, '') },
-      clues: {
-        c1: { j: "RUGDO", a: "GOURD", circle: "2,5" },
-        c2: { j: "PWRIE", a: "WIPER", circle: "3,4" },
-        c3: { j: "ACLBTO", a: "COBALT", circle: "2,6" },
-        c4: { j: "LYRURF", a: "FLURRY", circle: "3,5" }
-      },
-      caption: { v1: { t: dec28Puzzle.caption } },
-      solution: { s1: { layout: dec28Puzzle.solution, a: dec28Puzzle.solution } }
-    };
-
-    const processedDataLatest = parseJumbleXML(xmlData);
     
-    // Process Dec 27 puzzle JSON data
-    const sampleData = {
-      "Date": dec27Puzzle.date.replace(/-/g, ''),
-      "Clues": {
-        "c1": "KAENL", "c2": "LUGTI", "c3": "BLIUFA", "c4": "CONOHH",
-        "a1": "ANKLE", "a2": "GUILT", "a3": "FIBULA", "a4": "HONCHO",
-        "o1": "2,3,5", "o2": "2,4,5", "o3": "2,3,6", "o4": "3,5"
-      },
-      "Caption": {
-        "v1": dec27Puzzle.caption
-      },
-      "Solution": {
-        "s1": dec27Puzzle.solution,
-        "k1": dec27Puzzle.solution
-      },
-      "Image": dec27Puzzle.image_url
-    };
+    if (previousPuzzle) {
+      // Process previous puzzle JSON data
+      const sampleData = {
+        "Date": previousPuzzle.date.replace(/-/g, ''),
+        "Clues": {
+          "c1": previousPuzzle.jumble_words[0]?.jumbled_word || "",
+          "c2": previousPuzzle.jumble_words[1]?.jumbled_word || "",
+          "c3": previousPuzzle.jumble_words[2]?.jumbled_word || "",
+          "c4": previousPuzzle.jumble_words[3]?.jumbled_word || "",
+          "a1": previousPuzzle.jumble_words[0]?.answer || "",
+          "a2": previousPuzzle.jumble_words[1]?.answer || "",
+          "a3": previousPuzzle.jumble_words[2]?.answer || "",
+          "a4": previousPuzzle.jumble_words[3]?.answer || "",
+          "o1": "2,3,5",
+          "o2": "2,4,5",
+          "o3": "2,3,6",
+          "o4": "3,5"
+        },
+        "Caption": {
+          "v1": previousPuzzle.caption
+        },
+        "Solution": {
+          "s1": previousPuzzle.solution,
+          "k1": previousPuzzle.solution
+        },
+        "Image": previousPuzzle.image_url
+      };
 
-    const processedDataPrevious = parseJumbleCallback(sampleData);
-    
-    // Update Dec 28 puzzle UI with XML data
-    updatePuzzleUI({ ...dec28Puzzle, finalJumble: processedDataLatest.finalJumble }, 'latest');
-    
-    // Update Dec 27 puzzle UI with JSON data
-    updatePuzzleUI({ ...dec27Puzzle, finalJumble: processedDataPrevious.finalJumble }, 'previous');
+      const processedDataPrevious = parseJumbleCallback(sampleData);
+      updatePuzzleUI({ ...previousPuzzle, finalJumble: processedDataPrevious.finalJumble }, 'previous');
+    }
 
   } catch (error) {
     console.error('Failed to initialize puzzles:', error);
