@@ -19,7 +19,7 @@ const ITEMS_PER_PAGE = 5;
 
 const HomePage: React.FC = () => {
   const [puzzles, setPuzzles] = useState<any[]>([]);
-  const [isExpandedPrevious, setIsExpandedPrevious] = useState(false);
+  const [expandedPuzzles, setExpandedPuzzles] = useState<{ [key: string]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
@@ -62,6 +62,12 @@ const HomePage: React.FC = () => {
         
         if (puzzles) {
           setPuzzles(puzzles);
+          // Initialize expanded state for all puzzles except the first one
+          const newExpandedState = puzzles.reduce((acc, puzzle, index) => {
+            acc[puzzle.id] = index === 0;
+            return acc;
+          }, {});
+          setExpandedPuzzles(newExpandedState);
         }
       } catch (error) {
         console.error('Error fetching puzzles:', error);
@@ -91,6 +97,13 @@ const HomePage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleToggle = (puzzleId: string) => {
+    setExpandedPuzzles(prev => ({
+      ...prev,
+      [puzzleId]: !prev[puzzleId]
+    }));
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -108,8 +121,8 @@ const HomePage: React.FC = () => {
                 caption={puzzle.caption}
                 imageUrl={puzzle.image_url}
                 solution={puzzle.solution}
-                isExpanded={index === 0 || isExpandedPrevious}
-                onToggle={index === 1 ? () => setIsExpandedPrevious(!isExpandedPrevious) : undefined}
+                isExpanded={expandedPuzzles[puzzle.id]}
+                onToggle={index === 0 ? undefined : () => handleToggle(puzzle.id)}
               />
             ))}
 
