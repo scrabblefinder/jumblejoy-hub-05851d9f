@@ -45,23 +45,46 @@ const CaptionAnswer = () => {
             <h1 className="text-2xl font-bold text-center">Caption Solution</h1>
           </div>
           
-          <div className="p-8 space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-600 mb-2">Caption:</h2>
-              <p className="text-2xl font-bold text-[#0275d8]">{puzzle?.caption}</p>
-            </div>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+          <div className="p-8">
+            <div className="flex gap-8">
+              <div className="w-3/4">
+                {/* Caption Section */}
+                <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">Caption:</h2>
+                    <span className="text-sm text-gray-500">
+                      Last seen: {new Date(puzzle?.date).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-xl text-[#0275d8] font-bold mb-4">{puzzle?.caption}</p>
+                </div>
+
+                {/* Solution Section */}
+                <div className="bg-blue-50 p-6 rounded-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-blue-800">Solution:</h2>
+                    <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
+                      {puzzle?.solution?.length || 0} letters
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">{puzzle?.solution}</p>
+                </div>
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-white px-4 text-sm text-gray-500">SOLUTION</span>
+
+              {/* Image Section */}
+              <div className="w-1/4">
+                <div className="sticky top-4">
+                  <img 
+                    src={puzzle?.image_url}
+                    alt="Puzzle Caption"
+                    className="w-full rounded-lg shadow-lg"
+                  />
+                </div>
               </div>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{puzzle?.solution}</p>
             </div>
 
             <div className="text-center mt-8">
