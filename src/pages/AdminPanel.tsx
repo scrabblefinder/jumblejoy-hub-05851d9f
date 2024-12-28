@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PuzzleForm from '@/components/admin/PuzzleForm';
+import AutomaticPuzzleForm from '@/components/admin/AutomaticPuzzleForm';
+import PuzzleList from '@/components/admin/PuzzleList';
 
 const AdminPanel = () => {
   const { toast } = useToast();
@@ -50,7 +53,21 @@ const AdminPanel = () => {
       
       <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <PuzzleForm />
+          <Tabs defaultValue="manual" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+              <TabsTrigger value="automatic">JSON Entry</TabsTrigger>
+            </TabsList>
+            <TabsContent value="manual">
+              <PuzzleForm />
+            </TabsContent>
+            <TabsContent value="automatic">
+              <AutomaticPuzzleForm />
+            </TabsContent>
+          </Tabs>
+        </div>
+        <div>
+          <PuzzleList />
         </div>
       </div>
     </div>
