@@ -16,6 +16,10 @@ const createSlug = (text: string) => {
     .trim();
 };
 
+const countLetters = (word: string) => {
+  return word.replace(/\s/g, '').length;
+};
+
 const CaptionAnswer = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -118,7 +122,7 @@ const CaptionAnswer = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-blue-800">Solution:</h2>
                     <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
-                      {puzzle?.solution?.length || 0} letters
+                      {countLetters(puzzle?.solution || '')} letters
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-green-600">{puzzle?.solution}</p>
