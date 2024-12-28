@@ -55,13 +55,13 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-jumble-background">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <h1 className="text-3xl font-bold text-jumble-text mb-6">Latest Daily Jumble Answers</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Latest Daily Jumble Answers</h1>
             
             {puzzleDec28 && (
               <JumblePuzzle 
