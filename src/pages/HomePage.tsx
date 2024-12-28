@@ -60,8 +60,6 @@ const HomePage: React.FC = () => {
           return;
         }
         
-        console.log('Fetched puzzles:', puzzles);
-        
         if (puzzles) {
           setPuzzles(puzzles);
         }
@@ -116,7 +114,7 @@ const HomePage: React.FC = () => {
             ))}
 
             {totalPages > 1 && (
-              <div className="mt-8">
+              <div className="mt-8 flex justify-center">
                 <Pagination>
                   <PaginationContent>
                     {currentPage > 1 && (
