@@ -68,21 +68,26 @@
       </div>
     </main>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
+      const supabase = supabase.createClient(
+        'https://jznccczfjmatdxdrvszk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6bmNjY3pmam1hdGR4ZHJ2c3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU0MDcxODMsImV4cCI6MjA1MDk4MzE4M30.5XbT0q22t2i2WWCY45_5R249C9NeucorSnpGPXn8LEo'
+      );
+
+      document.addEventListener('DOMContentLoaded', async () => {
         const path = window.location.pathname;
         const jumbledWord = path.split('/').pop()?.toUpperCase() || '';
         
-        // Get the answer from mockData in main.js
-        const mockData = {
-          RUGDO: 'GOURD',
-          PWRIE: 'WIPER',
-          ACLBTO: 'COBALT',
-          LYRURF: 'FLURRY'
-        };
+        // Get the answer from the database
+        const { data, error } = await supabase
+          .from('jumble_words')
+          .select('answer')
+          .eq('jumbled_word', jumbledWord)
+          .single();
         
         document.getElementById('jumbled-word').textContent = jumbledWord;
-        document.getElementById('answer').textContent = mockData[jumbledWord] || 'Not Found';
+        document.getElementById('answer').textContent = data ? data.answer : 'Not Found';
         
         // Update page title
         document.title = `${jumbledWord} - JumbleAnswers.com`;

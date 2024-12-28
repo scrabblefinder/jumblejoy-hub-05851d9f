@@ -9,7 +9,65 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      daily_puzzles: {
+        Row: {
+          caption: string
+          created_at: string
+          date: string
+          id: string
+          image_url: string
+          solution: string
+        }
+        Insert: {
+          caption: string
+          created_at?: string
+          date: string
+          id?: string
+          image_url: string
+          solution: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          date?: string
+          id?: string
+          image_url?: string
+          solution?: string
+        }
+        Relationships: []
+      }
+      jumble_words: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          jumbled_word: string
+          puzzle_id: string | null
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          jumbled_word: string
+          puzzle_id?: string | null
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          jumbled_word?: string
+          puzzle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jumble_words_puzzle_id_fkey"
+            columns: ["puzzle_id"]
+            isOneToOne: false
+            referencedRelation: "daily_puzzles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

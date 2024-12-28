@@ -1,11 +1,5 @@
-import { pipeline, env } from '@huggingface/transformers';
-import { mockData, jumbleWords } from './utils/mockData';
+import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from './utils/dateUtils';
-import { resizeImageIfNeeded } from './utils/imageUtils';
-
-// Configure transformers.js
-env.allowLocalModels = false;
-env.useBrowserCache = false;
 
 // Handle jumble word clicks
 document.addEventListener('click', (e) => {
@@ -25,15 +19,26 @@ function initializeSearch() {
   resultsContainer.className = 'absolute w-full bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto hidden';
   searchInput.parentNode.appendChild(resultsContainer);
 
-  function showResults(results) {
-    if (results.length === 0) {
+  async function showResults(query) {
+    const { data: words, error } = await supabase
+      .from('jumble_words')
+      .select('jumbled_word, answer')
+      .ilike('jumbled_word', `%${query}%`)
+      .limit(10);
+
+    if (error) {
+      console.error('Error fetching results:', error);
+      return;
+    }
+
+    if (!words || words.length === 0) {
       resultsContainer.innerHTML = '<div class="p-3 text-gray-500">No matches found</div>';
     } else {
-      resultsContainer.innerHTML = results
-        .map(([jumbled, answer]) => `
-          <a href="/jumble/${jumbled.toLowerCase()}" 
+      resultsContainer.innerHTML = words
+        .map(({ jumbled_word, answer }) => `
+          <a href="/jumble/${jumbled_word.toLowerCase()}" 
              class="block p-3 hover:bg-gray-100 border-b last:border-b-0">
-            <span class="text-[#0275d8] font-semibold">${jumbled}</span>
+            <span class="text-[#0275d8] font-semibold">${jumbled_word}</span>
             <span class="text-gray-500 ml-2">→</span>
             <span class="text-green-600 font-semibold ml-2">${answer}</span>
           </a>
@@ -49,19 +54,13 @@ function initializeSearch() {
     }, 200);
   }
 
-  function handleSearch() {
+  async function handleSearch() {
     const query = searchInput.value.toUpperCase();
     if (query.length === 0) {
       hideResults();
       return;
     }
-
-    const results = Object.entries(jumbleWords)
-      .filter(([jumbled, answer]) => 
-        jumbled.includes(query) || answer.includes(query)
-      );
-
-    showResults(results);
+    await showResults(query);
   }
 
   // Event listeners
@@ -76,27 +75,53 @@ function initializeSearch() {
 
 // Initialize the puzzle
 async function initializePuzzle() {
-  document.getElementById('puzzle-date').textContent = `Daily Puzzle - ${formatDate(mockData.Date)}`;
-  document.getElementById('puzzle-caption').textContent = mockData.Caption.v1;
-  
-  // Process puzzle image
-  const puzzleImage = document.getElementById('puzzle-image');
-  if (puzzleImage) {
-    try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = async () => {
-        try {
-          const processedBlob = await removeBackground(img);
-          puzzleImage.src = URL.createObjectURL(processedBlob);
-        } catch (error) {
-          console.error('Failed to process image:', error);
-        }
-      };
-      img.src = mockData.Image;
-    } catch (error) {
-      console.error('Failed to load image:', error);
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Fetch today's puzzle
+    const { data: puzzle, error: puzzleError } = await supabase
+      .from('daily_puzzles')
+      .select(`
+        *,
+        jumble_words (
+          jumbled_word,
+          answer
+        )
+      `)
+      .eq('date', today)
+      .single();
+
+    if (puzzleError) throw puzzleError;
+
+    // Update the UI with puzzle data
+    document.getElementById('puzzle-date').textContent = `Daily Puzzle - ${formatDate(puzzle.date)}`;
+    document.getElementById('puzzle-caption').textContent = puzzle.caption;
+
+    // Update jumble words
+    const jumbleWordsContainer = document.getElementById('jumble-words');
+    if (jumbleWordsContainer && puzzle.jumble_words) {
+      jumbleWordsContainer.innerHTML = puzzle.jumble_words
+        .map(({ jumbled_word }) => `
+          <div class="jumble-word">
+            <a href="/jumble/${jumbled_word.toLowerCase()}" class="text-[#0275d8] hover:underline">
+              ${jumbled_word}
+            </a>
+          </div>
+        `)
+        .join('');
     }
+
+    // Update solution
+    const solutionContainer = document.getElementById('solution-container');
+    if (solutionContainer) {
+      const puzzleSolution = document.getElementById('puzzle-solution');
+      if (puzzleSolution) {
+        puzzleSolution.textContent = puzzle.solution;
+      }
+    }
+
+  } catch (error) {
+    console.error('Failed to initialize puzzle:', error);
   }
 }
 
