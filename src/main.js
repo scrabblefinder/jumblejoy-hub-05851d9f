@@ -96,7 +96,11 @@ async function initializePuzzle() {
     }
     
     if (puzzleCaptionEl) {
-      puzzleCaptionEl.textContent = puzzle.caption;
+      puzzleCaptionEl.innerHTML = `
+        <a href="/jumble/caption" class="text-[#0275d8] hover:underline cursor-pointer">
+          ${puzzle.caption}
+        </a>
+      `;
     }
 
     if (jumbleWordsContainer && puzzle.jumble_words) {
