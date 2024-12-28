@@ -12,11 +12,21 @@ interface JumblePuzzleProps {
   caption: string;
   imageUrl: string;
   solution?: string;
+  finalJumble?: string;
   isExpanded?: boolean;
   onToggle?: () => void;
 }
 
-const JumblePuzzle = ({ date, words, caption, imageUrl, solution, isExpanded, onToggle }: JumblePuzzleProps) => {
+const JumblePuzzle = ({ 
+  date, 
+  words, 
+  caption, 
+  imageUrl, 
+  solution, 
+  finalJumble,
+  isExpanded, 
+  onToggle 
+}: JumblePuzzleProps) => {
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
       <div className="bg-[#0275d8] text-white p-4 text-xl flex justify-between items-center">
@@ -49,6 +59,21 @@ const JumblePuzzle = ({ date, words, caption, imageUrl, solution, isExpanded, on
                   </div>
                 </Link>
               ))}
+              {finalJumble && (
+                <Link 
+                  to={`/jumble/${finalJumble.toLowerCase()}`}
+                  className="block bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-[#0275d8]">
+                      {finalJumble}
+                    </span>
+                    <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
+                      Final Jumble
+                    </span>
+                  </div>
+                </Link>
+              )}
             </div>
             <div className="w-1/4 flex flex-col items-center space-y-4">
               <div className="w-[74%]">
