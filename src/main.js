@@ -92,8 +92,22 @@ window.toggleAccordion = function(id) {
   }
 };
 
+// Handle client-side navigation
+function handleNavigation() {
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-link]');
+    if (link) {
+      e.preventDefault();
+      const path = link.getAttribute('href');
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  });
+}
+
 // Add event listeners
 document.addEventListener('DOMContentLoaded', () => {
   initializePuzzles();
   initializeSearch();
+  handleNavigation();
 });
