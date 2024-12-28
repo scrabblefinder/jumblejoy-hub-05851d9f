@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,38 +12,56 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      checkAdminStatus(session?.user?.id);
+      if (session?.user?.id) {
+        checkAdminStatus(session.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      checkAdminStatus(session?.user?.id);
+      if (session?.user?.id) {
+        checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminStatus = async (userId: string | undefined) => {
-    if (!userId) {
-      setIsAdmin(false);
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data: adminData, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      setIsAdmin(!!adminData);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify admin status",
+        variant: "destructive"
+      });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const { data: adminData } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    setIsAdmin(!!adminData);
-    setLoading(false);
   };
 
   if (loading) {
@@ -67,7 +86,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
             },
           }}
           providers={[]}
-          view="sign_up"
         />
       </div>
     );
@@ -76,8 +94,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!isAdmin) {
     return (
       <div className="container mx-auto p-4">
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-          <p>You need admin privileges to access this page.</p>
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative">
+          <strong className="font-bold">Access Denied!</strong>
+          <p className="mt-2">You need admin privileges to access this page.</p>
           <p className="text-sm mt-2">Your User ID: {session.user.id}</p>
           <p className="text-sm">Share this ID with the system administrator to get access.</p>
         </div>
