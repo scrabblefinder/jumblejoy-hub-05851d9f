@@ -91,7 +91,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_admin_user: {
+        Args: {
+          email_param: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

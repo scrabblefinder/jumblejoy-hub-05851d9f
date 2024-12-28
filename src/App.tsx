@@ -60,8 +60,15 @@ const App = () => {
           <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
           <Auth 
             supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
+            appearance={{ 
+              theme: ThemeSupa,
+              style: {
+                button: { background: '#0284c7', color: 'white' },
+                anchor: { color: '#0284c7' },
+              },
+            }}
             providers={[]}
+            view="sign_up"
           />
         </div>
       );
