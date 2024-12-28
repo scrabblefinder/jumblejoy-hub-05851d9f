@@ -25,17 +25,13 @@ export const createFinalJumble = (clues: any): string => {
     ).join('');
   } else {
     // December 28 format - XML style
-    // Extract only the clue objects (c1, c2, c3, c4)
-    const clueEntries = Object.entries(clues)
-      .filter(([key]) => key.startsWith('c'))
-      .map(([_, clue]: [string, any]) => ({
-        word: clue.j,
-        circle: clue.circle
-      }));
+    const orderedClues = ['c1', 'c2', 'c3', 'c4'].map(key => clues[key]);
     
-    // Process each clue to extract the circled letters in order
-    return clueEntries
-      .map(clue => extractCircledLetters(clue.word, clue.circle))
+    return orderedClues
+      .map(clue => {
+        const circledPositions = clue.circle.split(',').map(Number);
+        return circledPositions.map(pos => clue.j[pos - 1]).join('');
+      })
       .join('');
   }
 };
