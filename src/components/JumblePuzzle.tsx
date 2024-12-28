@@ -88,11 +88,6 @@ const JumblePuzzle = ({
               </div>
             </div>
           </div>
-          {solution && (
-            <div className="border-t pt-4">
-              <p className="text-[#0275d8] font-bold">Answer: {solution}</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
