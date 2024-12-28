@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import AdminPanel from './pages/AdminPanel';
+import JumbleAnswer from './pages/JumbleAnswer';
 
 const App = () => {
   return (

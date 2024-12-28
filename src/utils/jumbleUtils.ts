@@ -10,13 +10,13 @@ export const formatDate = (date: string) => {
 };
 
 export const initializeSearch = () => {
-  const searchInput = document.querySelector('input[type="text"]');
+  const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
   if (!searchInput) return;
   
   const searchButton = searchInput.nextElementSibling;
   const resultsContainer = document.createElement('div');
   resultsContainer.className = 'absolute w-full bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto hidden';
-  searchInput.parentNode.appendChild(resultsContainer);
+  searchInput.parentNode?.appendChild(resultsContainer);
 
   async function showResults(query: string) {
     const { data: words, error } = await supabase
@@ -59,10 +59,12 @@ export const initializeSearch = () => {
   searchInput.addEventListener('blur', () => {
     setTimeout(() => resultsContainer.classList.add('hidden'), 200);
   });
-  searchButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    handleSearch(searchInput.value);
-  });
+  if (searchButton) {
+    searchButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleSearch(searchInput.value);
+    });
+  }
 };
 
 export const updatePuzzleUI = (puzzle: any, suffix: string) => {
