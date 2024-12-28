@@ -7,16 +7,19 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 
 const CaptionAnswer = () => {
-  const { caption } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   
   const { data: puzzle, isLoading } = useQuery({
-    queryKey: ['puzzle', caption],
+    queryKey: ['puzzle', slug],
     queryFn: async () => {
+      // Convert slug back to a searchable format
+      const searchText = slug?.replace(/-/g, ' ') || '';
+      
       const { data, error } = await supabase
         .from('daily_puzzles')
         .select('*')
-        .eq('caption', decodeURIComponent(caption || ''))
+        .ilike('caption', `%${searchText}%`)
         .single();
       
       if (error) throw error;

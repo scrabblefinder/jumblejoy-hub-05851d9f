@@ -27,6 +27,15 @@ const JumblePuzzle = ({
   isExpanded, 
   onToggle 
 }: JumblePuzzleProps) => {
+  const createSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .trim();
+  };
+
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
       <div className="bg-[#0275d8] text-white p-4 text-xl flex justify-between items-center">
@@ -85,7 +94,7 @@ const JumblePuzzle = ({
               </div>
               <div className="border-t pt-4 w-full">
                 <Link 
-                  to={`/caption/${encodeURIComponent(caption)}`}
+                  to={`/caption/${createSlug(caption)}`}
                   className="block text-[#0275d8] text-lg hover:underline"
                 >
                   {caption}
