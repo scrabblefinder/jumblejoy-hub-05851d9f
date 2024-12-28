@@ -6,17 +6,37 @@ import JumblePuzzle from '../components/JumblePuzzle';
 import { supabase } from '../integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 2;
 
 const HomePage: React.FC = () => {
-  const [latestPuzzle, setLatestPuzzle] = useState<any>(null);
-  const [previousPuzzle, setPreviousPuzzle] = useState<any>(null);
+  const [puzzles, setPuzzles] = useState<any[]>([]);
   const [isExpandedPrevious, setIsExpandedPrevious] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchPuzzles = async () => {
       try {
-        console.log('Fetching puzzles...');
+        // First, get the total count of puzzles
+        const { count } = await supabase
+          .from('daily_puzzles')
+          .select('*', { count: 'exact', head: true });
+
+        if (count !== null) {
+          setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+        }
+
+        // Then fetch the puzzles for the current page
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select(`
@@ -28,7 +48,7 @@ const HomePage: React.FC = () => {
             )
           `)
           .order('date', { ascending: false })
-          .limit(2);
+          .range((currentPage - 1) * ITEMS_PER_PAGE, (currentPage * ITEMS_PER_PAGE) - 1);
 
         if (puzzlesError) {
           console.error('Error fetching puzzles:', puzzlesError);
@@ -42,11 +62,8 @@ const HomePage: React.FC = () => {
         
         console.log('Fetched puzzles:', puzzles);
         
-        if (puzzles && puzzles.length > 0) {
-          setLatestPuzzle(puzzles[0]);
-          if (puzzles.length > 1) {
-            setPreviousPuzzle(puzzles[1]);
-          }
+        if (puzzles) {
+          setPuzzles(puzzles);
         }
       } catch (error) {
         console.error('Error fetching puzzles:', error);
@@ -59,7 +76,7 @@ const HomePage: React.FC = () => {
     };
 
     fetchPuzzles();
-  }, []);
+  }, [currentPage]); // Add currentPage as dependency
 
   const formatPuzzleDate = (dateString: string) => {
     try {
@@ -71,6 +88,11 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -80,27 +102,55 @@ const HomePage: React.FC = () => {
           <div className="md:col-span-2">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Latest Daily Jumble Answers</h1>
             
-            {latestPuzzle && (
+            {puzzles.map((puzzle, index) => (
               <JumblePuzzle 
-                date={formatPuzzleDate(latestPuzzle.date)}
-                words={latestPuzzle.jumble_words}
-                caption={latestPuzzle.caption}
-                imageUrl={latestPuzzle.image_url}
-                solution={latestPuzzle.solution}
-                isExpanded={true}
+                key={puzzle.id}
+                date={formatPuzzleDate(puzzle.date)}
+                words={puzzle.jumble_words}
+                caption={puzzle.caption}
+                imageUrl={puzzle.image_url}
+                solution={puzzle.solution}
+                isExpanded={index === 0 || isExpandedPrevious}
+                onToggle={index === 1 ? () => setIsExpandedPrevious(!isExpandedPrevious) : undefined}
               />
-            )}
-            
-            {previousPuzzle && (
-              <JumblePuzzle 
-                date={formatPuzzleDate(previousPuzzle.date)}
-                words={previousPuzzle.jumble_words}
-                caption={previousPuzzle.caption}
-                imageUrl={previousPuzzle.image_url}
-                solution={previousPuzzle.solution}
-                isExpanded={isExpandedPrevious}
-                onToggle={() => setIsExpandedPrevious(!isExpandedPrevious)}
-              />
+            ))}
+
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    {currentPage > 1 && (
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          className="cursor-pointer"
+                        />
+                      </PaginationItem>
+                    )}
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    {currentPage < totalPages && (
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          className="cursor-pointer"
+                        />
+                      </PaginationItem>
+                    )}
+                  </PaginationContent>
+                </Pagination>
+              </div>
             )}
           </div>
           
