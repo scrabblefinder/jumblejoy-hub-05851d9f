@@ -62,7 +62,7 @@ const HomePage: React.FC = () => {
             {latestPuzzle && (
               <JumblePuzzle 
                 date={formatPuzzleDate(latestPuzzle.date)}
-                words={latestPuzzle.jumble_words}
+                words={latestPuzzle.jumble_words || []}
                 caption={latestPuzzle.caption}
                 imageUrl={latestPuzzle.image_url}
                 solution={latestPuzzle.solution}
@@ -73,7 +73,7 @@ const HomePage: React.FC = () => {
             {previousPuzzle && (
               <JumblePuzzle 
                 date={formatPuzzleDate(previousPuzzle.date)}
-                words={previousPuzzle.jumble_words}
+                words={previousPuzzle.jumble_words || []}
                 caption={previousPuzzle.caption}
                 imageUrl={previousPuzzle.image_url}
                 solution={previousPuzzle.solution}
