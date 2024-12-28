@@ -104,9 +104,11 @@ async function initializePuzzle() {
       jumbleWordsContainer.innerHTML = puzzle.jumble_words
         .map(({ jumbled_word }) => `
           <div class="jumble-word">
-            <a href="/jumble/${jumbled_word.toLowerCase()}" 
-               onclick="window.location.href='/jumble/${jumbled_word.toLowerCase()}'; return false;" 
-               class="text-[#0275d8] hover:underline">
+            <a 
+              href="/jumble/${jumbled_word.toLowerCase()}"
+              class="text-[#0275d8] hover:underline cursor-pointer"
+              onclick="window.location.href='/jumble/${jumbled_word.toLowerCase()}'; return false;"
+            >
               ${jumbled_word}
             </a>
           </div>
