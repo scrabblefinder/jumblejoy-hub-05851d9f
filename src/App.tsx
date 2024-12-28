@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import JumbleWord from './pages/JumbleWord';
 import HomePage from './pages/HomePage';
+import JumbleWord from './pages/JumbleWord';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 
 const App = () => {

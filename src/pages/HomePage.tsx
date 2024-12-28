@@ -1,9 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import JumblePuzzle from '../components/JumblePuzzle';
+import Sidebar from '../components/Sidebar';
 
 const HomePage = () => {
+  const [expandedPuzzle, setExpandedPuzzle] = useState<string | null>('dec28');
+
   const { data: puzzles, isLoading } = useQuery({
     queryKey: ['daily-puzzles'],
     queryFn: async () => {
@@ -14,7 +19,7 @@ const HomePage = () => {
           jumble_words (*)
         `)
         .order('date', { ascending: false })
-        .limit(5);
+        .limit(2);
       
       if (error) throw error;
       return data;
@@ -26,47 +31,39 @@ const HomePage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Latest Daily Jumble Answers</h1>
-      {puzzles?.map((puzzle) => (
-        <div key={puzzle.id} className="bg-white rounded-lg shadow-lg mb-8">
-          <div className="bg-[#0275d8] text-white p-4">
-            <h2 className="text-xl">
-              Daily Jumble {new Date(puzzle.date).toLocaleDateString()}
-            </h2>
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
+      
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Latest Daily Jumble Answers</h1>
+            
+            {puzzles?.map((puzzle) => (
+              <JumblePuzzle
+                key={puzzle.id}
+                date={new Date(puzzle.date).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+                words={puzzle.jumble_words}
+                caption={puzzle.caption}
+                imageUrl={puzzle.image_url}
+                solution={puzzle.solution}
+                isExpanded={expandedPuzzle === puzzle.id}
+                onToggle={() => setExpandedPuzzle(expandedPuzzle === puzzle.id ? null : puzzle.id)}
+              />
+            ))}
           </div>
-          <div className="p-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                {puzzle.jumble_words?.map((word) => (
-                  <Link
-                    key={word.id}
-                    to={`/jumble/${word.jumbled_word.toLowerCase()}`}
-                    className="block bg-gray-50 p-4 rounded-lg mb-4 hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-[#0275d8]">
-                        {word.jumbled_word}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {word.jumbled_word.length} letters
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <div>
-                <img
-                  src={puzzle.image_url}
-                  alt="Daily Jumble Puzzle"
-                  className="w-full rounded-lg shadow-md"
-                />
-                <p className="mt-4 text-[#0275d8]">{puzzle.caption}</p>
-              </div>
-            </div>
+          
+          <div className="md:col-span-1">
+            <Sidebar />
           </div>
         </div>
-      ))}
+      </main>
+
+      <Footer />
     </div>
   );
 };
