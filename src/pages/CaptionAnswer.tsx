@@ -10,7 +10,7 @@ const CaptionAnswer = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   
-  const { data: puzzle, isLoading } = useQuery({
+  const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['puzzle', slug],
     queryFn: async () => {
       // Convert slug back to a searchable format
@@ -20,9 +20,10 @@ const CaptionAnswer = () => {
         .from('daily_puzzles')
         .select('*')
         .ilike('caption', `%${searchText}%`)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) return null;
       return data;
     },
   });
@@ -31,6 +32,30 @@ const CaptionAnswer = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0275d8]"></div>
+      </div>
+    );
+  }
+
+  if (!puzzle) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="container mx-auto px-4 py-8 flex-grow">
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="text-[#0275d8] hover:text-[#025aa5]"
+            >
+              ← Go Back
+            </Button>
+          </div>
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
+            <p className="text-gray-600">Sorry, we couldn't find the puzzle you're looking for.</p>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
