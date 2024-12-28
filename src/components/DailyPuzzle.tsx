@@ -49,6 +49,10 @@ const DailyPuzzle = () => {
     );
   }
 
+  const handleWordClick = (word: string) => {
+    window.location.href = `/jumble/${word.toLowerCase()}`;
+  };
+
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
       <div className="bg-[#0275d8] text-white p-4 text-xl">
@@ -59,12 +63,12 @@ const DailyPuzzle = () => {
           <div className="w-3/4 space-y-4">
             {puzzle.jumble_words.map((word) => (
               <div key={word.jumbled_word} className="jumble-word">
-                <a
-                  href={`/jumble/${word.jumbled_word.toLowerCase()}`}
-                  className="text-[#0275d8] hover:underline"
+                <button
+                  onClick={() => handleWordClick(word.jumbled_word)}
+                  className="text-[#0275d8] hover:underline text-left"
                 >
                   {word.jumbled_word}
-                </a>
+                </button>
               </div>
             ))}
           </div>
