@@ -14,6 +14,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchPuzzles = async () => {
       try {
+        console.log('Fetching puzzles...');
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select(`
@@ -27,13 +28,20 @@ const HomePage: React.FC = () => {
           .in('date', ['2024-12-27', '2024-12-28'])
           .order('date', { ascending: false });
 
-        if (puzzlesError) throw puzzlesError;
+        if (puzzlesError) {
+          console.error('Error fetching puzzles:', puzzlesError);
+          throw puzzlesError;
+        }
+        
+        console.log('Fetched puzzles:', puzzles);
         
         if (puzzles && puzzles.length >= 2) {
           const dec28Puzzle = puzzles.find(p => p.date === '2024-12-28');
           const dec27Puzzle = puzzles.find(p => p.date === '2024-12-27');
           
           if (dec28Puzzle && dec27Puzzle) {
+            console.log('Dec 28 puzzle:', dec28Puzzle);
+            console.log('Dec 27 puzzle:', dec27Puzzle);
             setLatestPuzzle(dec28Puzzle);
             setPreviousPuzzle(dec27Puzzle);
           }
@@ -62,7 +70,7 @@ const HomePage: React.FC = () => {
             {latestPuzzle && (
               <JumblePuzzle 
                 date={formatPuzzleDate(latestPuzzle.date)}
-                words={latestPuzzle.jumble_words || []}
+                words={latestPuzzle.jumble_words}
                 caption={latestPuzzle.caption}
                 imageUrl={latestPuzzle.image_url}
                 solution={latestPuzzle.solution}
@@ -73,7 +81,7 @@ const HomePage: React.FC = () => {
             {previousPuzzle && (
               <JumblePuzzle 
                 date={formatPuzzleDate(previousPuzzle.date)}
-                words={previousPuzzle.jumble_words || []}
+                words={previousPuzzle.jumble_words}
                 caption={previousPuzzle.caption}
                 imageUrl={previousPuzzle.image_url}
                 solution={previousPuzzle.solution}
