@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { format, parseISO } from 'date-fns';
 
 const PuzzleList = () => {
   const { toast } = useToast();
@@ -36,6 +37,7 @@ const PuzzleList = () => {
         .order('date', { ascending: false });
 
       if (error) throw error;
+      console.log('Fetched puzzles:', data); // Debug log
       return data;
     },
   });
@@ -75,6 +77,16 @@ const PuzzleList = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'EEEE, MMMM d, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return dateString;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -86,12 +98,7 @@ const PuzzleList = () => {
             <div key={puzzle.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-medium">
-                  {new Date(puzzle.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {formatDate(puzzle.date)}
                 </h3>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -103,14 +110,14 @@ const PuzzleList = () => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Puzzle</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete the puzzle for {new Date(puzzle.date).toLocaleDateString()}? 
+                        Are you sure you want to delete the puzzle for {formatDate(puzzle.date)}? 
                         This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction 
-                        onClick={() => handleDelete(puzzle.id, puzzle.date)}
+                        onClick={() => handleDelete(puzzle.id, formatDate(puzzle.date))}
                         className="bg-red-600 hover:bg-red-700"
                       >
                         Delete
