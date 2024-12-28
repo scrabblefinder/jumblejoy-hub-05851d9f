@@ -2,10 +2,18 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { supabase } from '@/integrations/supabase/client';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import Sidebar from '../components/Sidebar';
 
 interface DailyPuzzle {
   date: string;
   caption: string;
+  jumble_words: {
+    id: string;
+    jumbled_word: string;
+    answer: string;
+  }[];
 }
 
 interface JumbleData {
@@ -39,7 +47,6 @@ const JumbleAnswer = () => {
 
         if (result) {
           setData(result);
-          // Update page title
           document.title = `${result.jumbled_word} - JumbleAnswers.com`;
         } else {
           setError('Word not found');
@@ -73,7 +80,6 @@ const JumbleAnswer = () => {
 
   const formatPuzzleDate = (dateString: string) => {
     const puzzleDate = new Date(dateString);
-    // Ensure the date is interpreted in the local timezone
     puzzleDate.setMinutes(puzzleDate.getMinutes() + puzzleDate.getTimezoneOffset());
     
     return puzzleDate.toLocaleDateString('en-US', {
@@ -84,29 +90,25 @@ const JumbleAnswer = () => {
     });
   };
 
+  const relatedWords = data.daily_puzzles?.jumble_words?.filter(
+    (w) => w.jumbled_word !== data.jumbled_word
+  ) || [];
+
   return (
     <>
       <Helmet>
         <title>{`${data.jumbled_word} - JumbleAnswers.com`}</title>
       </Helmet>
 
-      <div className="min-h-screen bg-white text-gray-800">
-        <header className="bg-[#f8f9fa] border-b">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
-                JumbleAnswers.com
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        <main className="container mx-auto px-4 py-8">
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8 flex-grow">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
               <div className="bg-white rounded-lg overflow-hidden">
                 <div className="bg-[#0275d8] text-white p-4 text-xl">
-                  Jumble Answer
+                  <h1 className="text-center">Jumble Answer</h1>
                 </div>
                 <div className="p-8 space-y-6 border-x border-b">
                   <div className="text-center">
@@ -126,40 +128,61 @@ const JumbleAnswer = () => {
                       <h2 className="text-xl font-semibold text-gray-600 mb-2">Answer:</h2>
                       <p className="text-5xl font-bold text-green-600">{data.answer}</p>
                     </div>
+                    
                     {data.daily_puzzles && (
-                      <div className="mt-8 text-left">
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">From Puzzle:</h3>
-                        <p className="text-gray-600">{formatPuzzleDate(data.daily_puzzles.date)}</p>
-                        <p className="text-[#0275d8] mt-2">{data.daily_puzzles.caption}</p>
-                      </div>
+                      <>
+                        <div className="mt-8 text-left">
+                          <h3 className="text-lg font-semibold text-gray-600 mb-2">From Puzzle:</h3>
+                          <p className="text-gray-600">{formatPuzzleDate(data.daily_puzzles.date)}</p>
+                          <p className="text-[#0275d8] mt-2">{data.daily_puzzles.caption}</p>
+                        </div>
+
+                        {relatedWords.length > 0 && (
+                          <div className="mt-8 text-left">
+                            <h3 className="text-lg font-semibold text-gray-600 mb-4">Other Words from this Puzzle:</h3>
+                            <div className="grid gap-4">
+                              {relatedWords.map((relatedWord) => (
+                                <Link
+                                  key={relatedWord.jumbled_word}
+                                  to={`/jumble/${relatedWord.jumbled_word.toLowerCase()}`}
+                                  className="block bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xl font-bold text-[#0275d8]">
+                                      {relatedWord.jumbled_word}
+                                    </span>
+                                    <span className="text-green-600 font-semibold">
+                                      {relatedWord.answer}
+                                    </span>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
-                  <div className="text-center mt-8">
-                    <Link
-                      to="/"
-                      className="inline-block bg-[#0275d8] text-white px-6 py-3 rounded hover:bg-[#025aa5] transition-colors"
-                    >
-                      Back to Daily Puzzle
-                    </Link>
-                  </div>
                 </div>
+              </div>
+              
+              <div className="mt-8 ml-4">
+                <Link
+                  to="/"
+                  className="inline-block bg-[#0275d8] text-white px-6 py-3 rounded hover:bg-[#025aa5] transition-colors"
+                >
+                  Back to Daily Puzzle
+                </Link>
               </div>
             </div>
             
             <div className="md:col-span-1">
-              <div className="bg-white rounded-lg overflow-hidden mb-8">
-                <div className="bg-gray-100 p-4">
-                  <h2 className="text-xl font-bold text-gray-800">About the Game</h2>
-                </div>
-                <div className="p-4">
-                  <p className="text-gray-600">
-                    Daily Jumble is one of the most popular word games which has maintained top rankings on both iOS and Android stores and the web. In case you haven't downloaded yet the game and would like to do so you can click the respective images below and you will be redirected to the download page.
-                  </p>
-                </div>
-              </div>
+              <Sidebar />
             </div>
           </div>
         </main>
+
+        <Footer />
       </div>
     </>
   );
