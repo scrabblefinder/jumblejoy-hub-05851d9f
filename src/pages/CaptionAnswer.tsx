@@ -12,7 +12,7 @@ const createSlug = (text: string) => {
     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
     .replace(/\s+/g, '-') // Replace spaces with hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-    .replace(/-+$/, '') // Remove trailing hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading and trailing hyphens
     .trim();
 };
 
@@ -29,20 +29,25 @@ const CaptionAnswer = () => {
       
       if (error) throw error;
 
-      // Clean up the incoming slug by removing any trailing hyphens
-      const cleanSlug = (slug || '').replace(/-+$/, '');
-      console.log('Clean slug:', cleanSlug);
+      // Clean up the incoming slug
+      const cleanSlug = createSlug(slug || '');
+      console.log('URL slug:', cleanSlug);
 
-      // Find the puzzle where the slugified caption matches the URL slug
+      // Find the matching puzzle
       const matchingPuzzle = data?.find(puzzle => {
         const puzzleSlug = createSlug(puzzle.caption);
-        console.log('Comparing slugs:', {
+        console.log('Comparing:', {
+          urlSlug: cleanSlug,
           puzzleSlug,
           caption: puzzle.caption,
           matches: puzzleSlug === cleanSlug
         });
         return puzzleSlug === cleanSlug;
       });
+
+      if (!matchingPuzzle) {
+        console.log('No matching puzzle found');
+      }
 
       return matchingPuzzle || null;
     },
