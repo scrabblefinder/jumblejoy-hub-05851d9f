@@ -94,8 +94,8 @@ const Sidebar = () => {
         <div className="p-4">
           <div className="space-y-4">
             {latestDate && (
-              <div className="bg-gray-100 p-4 rounded">
-                <p className="text-[#0275d8] font-medium mb-2">{formatDate(latestDate)}</p>
+              <div className="bg-white p-4 rounded border">
+                <p className="text-[#0275d8] font-medium mb-2 text-right">{formatDate(latestDate)}</p>
                 <ul className="space-y-2">
                   {latestWords.map((word, index) => (
                     <li 
