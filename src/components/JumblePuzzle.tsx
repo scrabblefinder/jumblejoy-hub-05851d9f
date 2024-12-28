@@ -38,6 +38,10 @@ const JumblePuzzle = ({
       .trim();
   };
 
+  const countLetters = (word: string) => {
+    return word.replace(/\s/g, '').length;
+  };
+
   const handleCaptionClick = () => {
     const slug = createSlug(caption);
     navigate(`/caption/${slug}`);
@@ -70,7 +74,7 @@ const JumblePuzzle = ({
                       {word.jumbled_word}
                     </span>
                     <span className="text-sm text-gray-500">
-                      {word.jumbled_word.length} letters
+                      {countLetters(word.jumbled_word)} letters
                     </span>
                   </div>
                 </Link>
@@ -85,7 +89,7 @@ const JumblePuzzle = ({
                       {finalJumble}
                     </span>
                     <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
-                      Final Jumble
+                      {countLetters(finalJumble)} letters
                     </span>
                   </div>
                 </Link>
