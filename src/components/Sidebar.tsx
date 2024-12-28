@@ -1,7 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { format, parseISO } from 'date-fns';
 
 const Sidebar = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [latestWords, setLatestWords] = useState<any[]>([]);
+  const [latestDate, setLatestDate] = useState<string>('');
+
+  useEffect(() => {
+    const fetchLatestWords = async () => {
+      try {
+        // First get the latest puzzle
+        const { data: latestPuzzle } = await supabase
+          .from('daily_puzzles')
+          .select('id, date')
+          .order('date', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (latestPuzzle) {
+          setLatestDate(latestPuzzle.date);
+          
+          // Then get all jumbled words for this puzzle
+          const { data: words } = await supabase
+            .from('jumble_words')
+            .select('jumbled_word')
+            .eq('puzzle_id', latestPuzzle.id)
+            .order('created_at', { ascending: true });
+
+          if (words) {
+            setLatestWords(words);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching latest words:', error);
+      }
+    };
+
+    fetchLatestWords();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), 'MMMM dd yyyy');
+    } catch (error) {
+      return dateString;
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -43,13 +88,22 @@ const Sidebar = () => {
       
       <div className="bg-white rounded-lg overflow-hidden">
         <div className="bg-gray-100 p-4">
-          <h2 className="text-xl font-bold text-gray-800">Jumble Clues</h2>
+          <h2 className="text-xl font-bold text-gray-800">Latest Jumble</h2>
         </div>
         <div className="p-4">
           <div className="space-y-4">
-            <div className="bg-gray-100 p-4 rounded">
-              <p className="text-[#0275d8]" id="puzzle-date"></p>
-            </div>
+            {latestDate && (
+              <div className="bg-gray-100 p-4 rounded">
+                <p className="text-[#0275d8] font-medium mb-2">{formatDate(latestDate)}</p>
+                <ul className="space-y-2">
+                  {latestWords.map((word, index) => (
+                    <li key={index} className="text-gray-700">
+                      {word.jumbled_word}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
