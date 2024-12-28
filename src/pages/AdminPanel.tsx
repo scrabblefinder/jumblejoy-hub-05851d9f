@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
 
 interface JumbleData {
   Date: string;
@@ -34,12 +36,44 @@ interface JumbleData {
 
 const AdminPanel = () => {
   const [jsonInput, setJsonInput] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: adminData, error: adminError } = await supabase
+      .from('admin_users')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (adminError) {
+      console.error('Error checking admin status:', adminError);
+      toast({
+        title: "Error",
+        description: "Failed to verify admin status",
+        variant: "destructive"
+      });
+    }
+
+    setIsAdmin(!!adminData);
+    setLoading(false);
+  };
+
   const parseJsonCallback = (input: string): JumbleData | null => {
     try {
-      // Remove the jsonCallback wrapper
       const jsonStr = input.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1');
       return JSON.parse(jsonStr);
     } catch (error) {
@@ -60,7 +94,6 @@ const AdminPanel = () => {
     }
 
     try {
-      // First insert the daily puzzle
       const { data: puzzleData, error: puzzleError } = await supabase
         .from('daily_puzzles')
         .insert({
@@ -74,7 +107,6 @@ const AdminPanel = () => {
 
       if (puzzleError) throw puzzleError;
 
-      // Then insert the jumble words
       const jumbleWords = [
         { jumbled_word: data.Clues.c1, answer: data.Clues.a1, puzzle_id: puzzleData.id },
         { jumbled_word: data.Clues.c2, answer: data.Clues.a2, puzzle_id: puzzleData.id },
@@ -103,6 +135,37 @@ const AdminPanel = () => {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-8">
+            <div className="text-center">Loading...</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Login</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Auth 
+              supabaseClient={supabase}
+              appearance={{ theme: ThemeSupa }}
+              providers={['google']}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
