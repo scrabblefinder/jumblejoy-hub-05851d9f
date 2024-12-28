@@ -24,15 +24,19 @@ const HomePage: React.FC = () => {
               answer
             )
           `)
-          .order('date', { ascending: false })
-          .limit(2);
+          .in('date', ['2024-12-27', '2024-12-28'])
+          .order('date', { ascending: false });
 
         if (puzzlesError) throw puzzlesError;
         
         if (puzzles && puzzles.length >= 2) {
-          const [latest, previous] = puzzles;
-          setLatestPuzzle(latest);
-          setPreviousPuzzle(previous);
+          const dec28Puzzle = puzzles.find(p => p.date === '2024-12-28');
+          const dec27Puzzle = puzzles.find(p => p.date === '2024-12-27');
+          
+          if (dec28Puzzle && dec27Puzzle) {
+            setLatestPuzzle(dec28Puzzle);
+            setPreviousPuzzle(dec27Puzzle);
+          }
         }
       } catch (error) {
         console.error('Error fetching puzzles:', error);

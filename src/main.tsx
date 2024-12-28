@@ -24,8 +24,8 @@ declare global {
 
 async function initializePuzzles() {
   try {
-    // Get the two most recent puzzles
-    const { data: recentPuzzles, error: puzzlesError } = await supabase
+    // Get puzzles for December 27 and 28
+    const { data: puzzles, error: puzzlesError } = await supabase
       .from('daily_puzzles')
       .select(`
         *,
@@ -34,57 +34,64 @@ async function initializePuzzles() {
           answer
         )
       `)
-      .order('date', { ascending: false })
-      .limit(2);
+      .in('date', ['2024-12-27', '2024-12-28'])
+      .order('date', { ascending: false });
 
     if (puzzlesError) throw puzzlesError;
     
-    if (!recentPuzzles || recentPuzzles.length < 2) {
+    if (!puzzles || puzzles.length < 2) {
       throw new Error('Not enough puzzles found');
     }
 
-    const [latestPuzzle, previousPuzzle] = recentPuzzles;
+    // Dec 28 puzzle (latest)
+    const dec28Puzzle = puzzles.find(p => p.date === '2024-12-28');
+    // Dec 27 puzzle (previous)
+    const dec27Puzzle = puzzles.find(p => p.date === '2024-12-27');
 
-    // Process latest puzzle XML data
+    if (!dec28Puzzle || !dec27Puzzle) {
+      throw new Error('Required puzzles not found');
+    }
+
+    // Process Dec 28 puzzle XML data
     const xmlData = {
-      date: { v: latestPuzzle.date.replace(/-/g, '') },
+      date: { v: dec28Puzzle.date.replace(/-/g, '') },
       clues: {
         c1: { j: "RUGDO", a: "GOURD", circle: "2,5" },
         c2: { j: "PWRIE", a: "WIPER", circle: "3,4" },
         c3: { j: "ACLBTO", a: "COBALT", circle: "2,6" },
         c4: { j: "LYRURF", a: "FLURRY", circle: "3,5" }
       },
-      caption: { v1: { t: latestPuzzle.caption } },
-      solution: { s1: { layout: latestPuzzle.solution, a: latestPuzzle.solution } }
+      caption: { v1: { t: dec28Puzzle.caption } },
+      solution: { s1: { layout: dec28Puzzle.solution, a: dec28Puzzle.solution } }
     };
 
     const processedDataLatest = parseJumbleXML(xmlData);
     
-    // Process previous puzzle JSON data
+    // Process Dec 27 puzzle JSON data
     const sampleData = {
-      "Date": previousPuzzle.date.replace(/-/g, ''),
+      "Date": dec27Puzzle.date.replace(/-/g, ''),
       "Clues": {
         "c1": "KAENL", "c2": "LUGTI", "c3": "BLIUFA", "c4": "CONOHH",
         "a1": "ANKLE", "a2": "GUILT", "a3": "FIBULA", "a4": "HONCHO",
         "o1": "2,3,5", "o2": "2,4,5", "o3": "2,3,6", "o4": "3,5"
       },
       "Caption": {
-        "v1": previousPuzzle.caption
+        "v1": dec27Puzzle.caption
       },
       "Solution": {
-        "s1": previousPuzzle.solution,
-        "k1": previousPuzzle.solution
+        "s1": dec27Puzzle.solution,
+        "k1": dec27Puzzle.solution
       },
-      "Image": previousPuzzle.image_url
+      "Image": dec27Puzzle.image_url
     };
 
     const processedDataPrevious = parseJumbleCallback(sampleData);
     
-    // Update latest puzzle UI with XML data
-    updatePuzzleUI({ ...latestPuzzle, finalJumble: processedDataLatest.finalJumble }, 'latest');
+    // Update Dec 28 puzzle UI with XML data
+    updatePuzzleUI({ ...dec28Puzzle, finalJumble: processedDataLatest.finalJumble }, 'latest');
     
-    // Update previous puzzle UI with JSON data
-    updatePuzzleUI({ ...previousPuzzle, finalJumble: processedDataPrevious.finalJumble }, 'previous');
+    // Update Dec 27 puzzle UI with JSON data
+    updatePuzzleUI({ ...dec27Puzzle, finalJumble: processedDataPrevious.finalJumble }, 'previous');
 
   } catch (error) {
     console.error('Failed to initialize puzzles:', error);
