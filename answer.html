@@ -92,7 +92,11 @@
             document.getElementById('answer').textContent = data.answer;
             
             if (data.daily_puzzles) {
-              document.getElementById('puzzle-date').textContent = new Date(data.daily_puzzles.date).toLocaleDateString('en-US', {
+              const puzzleDate = new Date(data.daily_puzzles.date);
+              // Ensure the date is interpreted in the local timezone
+              puzzleDate.setMinutes(puzzleDate.getMinutes() + puzzleDate.getTimezoneOffset());
+              
+              document.getElementById('puzzle-date').textContent = puzzleDate.toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
