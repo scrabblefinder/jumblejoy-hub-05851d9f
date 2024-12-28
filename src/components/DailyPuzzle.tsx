@@ -30,7 +30,7 @@ const mockData: JumbleData = {
     a4: "FLURRY"
   },
   Caption: {
-    v1: "As "The Wave" went around the stadium, whole sections of fans were —"
+    v1: "As \"The Wave\" went around the stadium, whole sections of fans were —"
   },
   Solution: {
     s1: "UPROOTED",
