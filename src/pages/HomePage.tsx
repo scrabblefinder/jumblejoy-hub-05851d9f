@@ -5,11 +5,13 @@ import Sidebar from '../components/Sidebar';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { supabase } from '../integrations/supabase/client';
 import { format } from 'date-fns';
+import { useToast } from "@/components/ui/use-toast";
 
 const HomePage: React.FC = () => {
   const [latestPuzzle, setLatestPuzzle] = useState<any>(null);
   const [previousPuzzle, setPreviousPuzzle] = useState<any>(null);
   const [isExpandedPrevious, setIsExpandedPrevious] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchPuzzles = async () => {
@@ -25,29 +27,34 @@ const HomePage: React.FC = () => {
               answer
             )
           `)
-          .in('date', ['2024-12-27', '2024-12-28'])
-          .order('date', { ascending: false });
+          .order('date', { ascending: false })
+          .limit(2);
 
         if (puzzlesError) {
           console.error('Error fetching puzzles:', puzzlesError);
-          throw puzzlesError;
+          toast({
+            title: "Error",
+            description: "Failed to load puzzles. Please try again later.",
+            variant: "destructive",
+          });
+          return;
         }
         
         console.log('Fetched puzzles:', puzzles);
         
-        if (puzzles && puzzles.length >= 2) {
-          const dec28Puzzle = puzzles.find(p => p.date === '2024-12-28');
-          const dec27Puzzle = puzzles.find(p => p.date === '2024-12-27');
-          
-          if (dec28Puzzle && dec27Puzzle) {
-            console.log('Dec 28 puzzle:', dec28Puzzle);
-            console.log('Dec 27 puzzle:', dec27Puzzle);
-            setLatestPuzzle(dec28Puzzle);
-            setPreviousPuzzle(dec27Puzzle);
+        if (puzzles && puzzles.length > 0) {
+          setLatestPuzzle(puzzles[0]);
+          if (puzzles.length > 1) {
+            setPreviousPuzzle(puzzles[1]);
           }
         }
       } catch (error) {
         console.error('Error fetching puzzles:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again later.",
+          variant: "destructive",
+        });
       }
     };
 
