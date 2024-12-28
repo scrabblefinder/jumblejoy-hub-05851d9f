@@ -64,6 +64,22 @@ const AutomaticPuzzleForm = () => {
       const callbackData = parseCallbackFormat(data.jsonData);
       const puzzleData = transformToDbFormat(callbackData);
       
+      // Check if puzzle already exists for this date
+      const { data: existingPuzzle } = await supabase
+        .from('daily_puzzles')
+        .select()
+        .eq('date', puzzleData.date)
+        .maybeSingle();
+
+      if (existingPuzzle) {
+        toast({
+          title: "Error",
+          description: `A puzzle for ${puzzleData.date} already exists`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       // First insert the puzzle
       const { data: newPuzzle, error: puzzleError } = await supabase
         .from('daily_puzzles')
