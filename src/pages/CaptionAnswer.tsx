@@ -96,16 +96,16 @@ const CaptionAnswer = () => {
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-[#0275d8] text-white p-4">
-            <h1 className="text-2xl font-bold text-center">Caption Solution</h1>
+            <h1 className="text-2xl font-bold text-center">Clue Solution</h1>
           </div>
           
           <div className="p-8">
             <div className="flex gap-8">
               <div className="w-3/4">
-                {/* Caption Section */}
+                {/* Clue Section */}
                 <div className="bg-gray-50 p-6 rounded-lg mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">Caption:</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Clue:</h2>
                     <span className="text-sm text-gray-500">
                       Last seen: {new Date(puzzle?.date).toLocaleDateString('en-US', {
                         month: 'long',
@@ -134,7 +134,7 @@ const CaptionAnswer = () => {
                 <div className="sticky top-4">
                   <img 
                     src={puzzle?.image_url}
-                    alt="Puzzle Caption"
+                    alt="Puzzle Clue"
                     className="w-full rounded-lg shadow-lg"
                   />
                 </div>
