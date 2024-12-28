@@ -47,7 +47,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         .from('admin_users')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
