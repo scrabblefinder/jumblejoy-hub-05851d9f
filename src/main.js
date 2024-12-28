@@ -173,14 +173,13 @@ function updatePuzzleUI(puzzle, suffix) {
       `)
       .join('');
 
-    // Add the final jumbled word if available
+    // Add the final jumbled word if available, with the same styling
     if (puzzle.finalJumble) {
       wordsHtml += `
-        <div class="jumble-word mt-4 bg-gray-50">
-          <p class="text-gray-600 text-sm mb-2">Final Jumbled Word:</p>
+        <div class="jumble-word">
           <a 
             href="/jumble/${puzzle.finalJumble.toLowerCase()}"
-            class="text-[#0275d8] hover:underline cursor-pointer text-lg font-bold"
+            class="text-[#0275d8] hover:underline cursor-pointer"
           >
             ${puzzle.finalJumble}
           </a>
