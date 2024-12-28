@@ -25,3 +25,8 @@
 .hidden {
   display: none;
 }
+
+/* Add smooth transition for accordion */
+[id^="accordion-content-"] {
+  transition: all 0.3s ease-in-out;
+}

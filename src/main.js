@@ -153,6 +153,17 @@ function updatePuzzleUI(puzzle, suffix) {
   }
 }
 
+// Toggle accordion functionality
+window.toggleAccordion = function(id) {
+  const content = document.getElementById(`accordion-content-${id}`);
+  const icon = document.getElementById(`accordion-icon-${id}`);
+  
+  if (content && icon) {
+    content.classList.toggle('hidden');
+    icon.textContent = content.classList.contains('hidden') ? '+' : '-';
+  }
+};
+
 // Add event listeners
 document.addEventListener('DOMContentLoaded', () => {
   initializePuzzles();

@@ -84,30 +84,33 @@
 
           <!-- December 27 Puzzle -->
           <div class="bg-white rounded-lg overflow-hidden mb-8">
-            <div class="bg-[#0275d8] text-white p-4 text-xl">
+            <div class="bg-[#0275d8] text-white p-4 text-xl flex justify-between items-center cursor-pointer" onclick="toggleAccordion('dec27')">
               <a href="#" class="hover:underline">Daily Jumble December 27 2024 Answers</a>
+              <span id="accordion-icon-dec27" class="text-2xl">+</span>
             </div>
-            <div class="p-4 space-y-4 border-x border-b">
-              <div class="flex gap-8">
-                <div id="jumble-words-dec27" class="w-3/4 space-y-4">
-                  <!-- Jumble words will be inserted here by JavaScript -->
+            <div id="accordion-content-dec27" class="hidden">
+              <div class="p-4 space-y-4 border-x border-b">
+                <div class="flex gap-8">
+                  <div id="jumble-words-dec27" class="w-3/4 space-y-4">
+                    <!-- Jumble words will be inserted here by JavaScript -->
+                  </div>
+                  
+                  <div class="w-1/4">
+                    <img 
+                      src="https://assets.amuniversal.com/75efe9c09ec0013d8360005056a9545d" 
+                      alt="Daily Jumble Puzzle" 
+                      class="w-full rounded-lg shadow-lg"
+                    />
+                  </div>
                 </div>
                 
-                <div class="w-1/4">
-                  <img 
-                    src="https://assets.amuniversal.com/75efe9c09ec0013d8360005056a9545d" 
-                    alt="Daily Jumble Puzzle" 
-                    class="w-full rounded-lg shadow-lg"
-                  />
+                <div class="border-t pt-4">
+                  <p id="puzzle-caption-dec27" class="text-[#0275d8] text-lg"></p>
                 </div>
-              </div>
-              
-              <div class="border-t pt-4">
-                <p id="puzzle-caption-dec27" class="text-[#0275d8] text-lg"></p>
-              </div>
-              
-              <div id="solution-container-dec27" class="hidden border-t pt-4">
-                <p id="puzzle-solution-dec27" class="text-[#0275d8] font-bold"></p>
+                
+                <div id="solution-container-dec27" class="hidden border-t pt-4">
+                  <p id="puzzle-solution-dec27" class="text-[#0275d8] font-bold"></p>
+                </div>
               </div>
             </div>
           </div>
