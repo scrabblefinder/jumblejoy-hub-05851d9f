@@ -3,9 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 
 const CaptionAnswer = () => {
   const { caption } = useParams();
+  const navigate = useNavigate();
   
   const { data: puzzle, isLoading } = useQuery({
     queryKey: ['puzzle', caption],
@@ -34,6 +37,16 @@ const CaptionAnswer = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="text-[#0275d8] hover:text-[#025aa5]"
+          >
+            ← Go Back
+          </Button>
+        </div>
+
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-[#0275d8] text-white p-4">
             <h1 className="text-2xl font-bold text-center">Caption Solution</h1>
