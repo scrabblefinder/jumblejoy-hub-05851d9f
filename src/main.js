@@ -14,6 +14,8 @@ document.addEventListener('click', (e) => {
 // Initialize search functionality
 function initializeSearch() {
   const searchInput = document.querySelector('input[type="text"]');
+  if (!searchInput) return;
+  
   const searchButton = searchInput.nextElementSibling;
   const resultsContainer = document.createElement('div');
   resultsContainer.className = 'absolute w-full bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto hidden';
@@ -94,11 +96,20 @@ async function initializePuzzle() {
     if (puzzleError) throw puzzleError;
 
     // Update the UI with puzzle data
-    document.getElementById('puzzle-date').textContent = `Daily Puzzle - ${formatDate(puzzle.date)}`;
-    document.getElementById('puzzle-caption').textContent = puzzle.caption;
-
-    // Update jumble words
+    const puzzleDateEl = document.getElementById('puzzle-date');
+    const puzzleCaptionEl = document.getElementById('puzzle-caption');
     const jumbleWordsContainer = document.getElementById('jumble-words');
+    const solutionContainer = document.getElementById('solution-container');
+    const puzzleSolution = document.getElementById('puzzle-solution');
+
+    if (puzzleDateEl) {
+      puzzleDateEl.textContent = `Daily Puzzle - ${formatDate(puzzle.date)}`;
+    }
+    
+    if (puzzleCaptionEl) {
+      puzzleCaptionEl.textContent = puzzle.caption;
+    }
+
     if (jumbleWordsContainer && puzzle.jumble_words) {
       jumbleWordsContainer.innerHTML = puzzle.jumble_words
         .map(({ jumbled_word }) => `
@@ -111,13 +122,8 @@ async function initializePuzzle() {
         .join('');
     }
 
-    // Update solution
-    const solutionContainer = document.getElementById('solution-container');
-    if (solutionContainer) {
-      const puzzleSolution = document.getElementById('puzzle-solution');
-      if (puzzleSolution) {
-        puzzleSolution.textContent = puzzle.solution;
-      }
+    if (solutionContainer && puzzleSolution) {
+      puzzleSolution.textContent = puzzle.solution;
     }
 
   } catch (error) {
@@ -145,21 +151,25 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleAnswers() {
   const answers = document.querySelectorAll('.jumble-answer');
   const button = document.getElementById('show-answers-btn');
-  const isHidden = answers[0].classList.contains('hidden');
+  const isHidden = answers[0]?.classList.contains('hidden');
   
   answers.forEach(answer => {
     answer.classList.toggle('hidden');
   });
   
-  button.textContent = isHidden ? 'Hide Answers' : 'Show Answers';
+  if (button) {
+    button.textContent = isHidden ? 'Hide Answers' : 'Show Answers';
+  }
 }
 
 // Toggle solution visibility
 function toggleSolution() {
   const solutionContainer = document.getElementById('solution-container');
   const button = document.getElementById('show-solution-btn');
-  const isHidden = solutionContainer.classList.contains('hidden');
   
-  solutionContainer.classList.toggle('hidden');
-  button.textContent = isHidden ? 'Hide Solution' : 'Show Solution';
+  if (solutionContainer && button) {
+    const isHidden = solutionContainer.classList.contains('hidden');
+    solutionContainer.classList.toggle('hidden');
+    button.textContent = isHidden ? 'Hide Solution' : 'Show Solution';
+  }
 }
