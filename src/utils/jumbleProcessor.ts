@@ -12,7 +12,7 @@ export const createFinalJumble = (clues: any): string => {
   const dec27Format = clues.c1 && typeof clues.c1 === 'string';
   
   if (dec27Format) {
-    // December 27 format
+    // December 27 format - NKEULTIBANH
     const words: CircledLetters[] = [
       { word: clues.c1, positions: clues.o1.split(',').map(Number) },
       { word: clues.c2, positions: clues.o2.split(',').map(Number) },
@@ -24,13 +24,16 @@ export const createFinalJumble = (clues: any): string => {
       positions.map(pos => word[pos - 1]).join('')
     ).join('');
   } else {
-    // December 28 format - XML style
-    const orderedClues = ['c1', 'c2', 'c3', 'c4'].map(key => clues[key]);
+    // December 28 format - ODPEOTUR
+    const orderedClues = ['c1', 'c2', 'c3', 'c4'].map(key => ({
+      word: clues[key].j,
+      circle: clues[key].circle
+    }));
     
     return orderedClues
       .map(clue => {
         const circledPositions = clue.circle.split(',').map(Number);
-        return circledPositions.map(pos => clue.j[pos - 1]).join('');
+        return circledPositions.map(pos => clue.word[pos - 1]).join('');
       })
       .join('');
   }
