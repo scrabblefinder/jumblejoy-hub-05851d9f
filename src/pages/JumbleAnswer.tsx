@@ -66,8 +66,8 @@ const JumbleAnswer = () => {
           <div className="p-8 space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-600 mb-2">Jumbled Word:</h2>
-              <p className="text-4xl font-bold text-[#0275d8]">{data.jumbled_word}</p>
-              <p className="mt-2 text-gray-500">({data.jumbled_word.length} letters)</p>
+              <p className="text-4xl font-bold text-[#0275d8]">{word?.toUpperCase()}</p>
+              <p className="mt-2 text-gray-500">({word?.length} letters)</p>
             </div>
             
             <div className="relative">
