@@ -15,7 +15,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 5;
 
 const HomePage: React.FC = () => {
   const [puzzles, setPuzzles] = useState<any[]>([]);
