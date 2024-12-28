@@ -1,32 +1,51 @@
-interface JumbleClue {
-  jumbledWord: string;
-  positions: number[];
+export interface JumbleData {
+  Date: string;
+  Clues: {
+    c1: string;
+    c2: string;
+    c3: string;
+    c4: string;
+    a1: string;
+    a2: string;
+    a3: string;
+    a4: string;
+    o1: string;
+    o2: string;
+    o3: string;
+    o4: string;
+  };
+  Caption: {
+    v1: string;
+  };
+  Solution: {
+    s1: string;
+    k1: string;
+  };
+  Image: string;
 }
 
-export const extractLetters = (word: string, positions: number[]): string => {
-  return positions.map(pos => word[pos - 1]).join('');
+export const parseJumbleCallback = (input: string): JumbleData | null => {
+  try {
+    const jsonStr = input.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1');
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return null;
+  }
 };
 
-export const createFinalJumble = (clues: JumbleClue[]): string => {
-  return clues.map(clue => extractLetters(clue.jumbledWord, clue.positions)).join('');
+export const extractCircledLetters = (word: string, positions: string): string => {
+  const posArray = positions.split(',').map(Number);
+  return posArray.map(pos => word[pos - 1]).join('');
 };
 
-export const parseJumbleCallback = (data: any) => {
-  const clues = [
-    { jumbledWord: data.Clues.c1, answer: data.Clues.a1, positions: data.Clues.o1.split(',').map(Number) },
-    { jumbledWord: data.Clues.c2, answer: data.Clues.a2, positions: data.Clues.o2.split(',').map(Number) },
-    { jumbledWord: data.Clues.c3, answer: data.Clues.a3, positions: data.Clues.o3.split(',').map(Number) },
-    { jumbledWord: data.Clues.c4, answer: data.Clues.a4, positions: data.Clues.o4.split(',').map(Number) }
+export const createFinalJumble = (data: JumbleData): string => {
+  const circledLetters = [
+    extractCircledLetters(data.Clues.c1, data.Clues.o1),
+    extractCircledLetters(data.Clues.c2, data.Clues.o2),
+    extractCircledLetters(data.Clues.c3, data.Clues.o3),
+    extractCircledLetters(data.Clues.c4, data.Clues.o4)
   ];
-
-  const finalJumble = createFinalJumble(clues);
-
-  return {
-    date: data.Date,
-    clues: clues,
-    caption: data.Caption.v1,
-    solution: data.Solution.s1,
-    imageUrl: data.Image,
-    finalJumble
-  };
+  
+  return circledLetters.join('');
 };
