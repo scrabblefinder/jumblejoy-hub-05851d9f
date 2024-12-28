@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
@@ -6,7 +5,7 @@ import { supabase } from '../integrations/supabase/client';
 const JumbleAnswer = () => {
   const { word } = useParams();
   
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['jumble', word],
     queryFn: async () => {
       if (!word) throw new Error('No word provided');
@@ -25,6 +24,7 @@ const JumbleAnswer = () => {
         .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Word not found');
       return data;
     },
   });
@@ -37,10 +37,10 @@ const JumbleAnswer = () => {
     );
   }
 
-  if (!data) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">Word not found</div>
+        <div className="text-red-500">Error: {error.message}</div>
       </div>
     );
   }
