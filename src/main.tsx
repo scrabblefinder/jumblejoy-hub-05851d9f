@@ -4,7 +4,7 @@ import App from './App';
 import './index.css';
 
 // Create root and render app
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
@@ -14,6 +14,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 import { supabase } from "./integrations/supabase/client";
 import { parseJumbleCallback, parseJumbleXML } from './utils/parseUtils';
 import { initializeSearch, updatePuzzleUI } from './utils/jumbleUtils';
+
+// Declare the global toggleAccordion function type
+declare global {
+  interface Window {
+    toggleAccordion: (id: string) => void;
+  }
+}
 
 async function initializePuzzles() {
   try {
@@ -107,7 +114,8 @@ window.toggleAccordion = function(id) {
 // Handle client-side navigation
 function handleNavigation() {
   document.addEventListener('click', (e) => {
-    const link = e.target.closest('[data-link]');
+    const target = e.target as HTMLElement;
+    const link = target.closest('[data-link]');
     if (link) {
       e.preventDefault();
       const path = link.getAttribute('href');
