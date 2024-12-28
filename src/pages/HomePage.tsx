@@ -7,8 +7,8 @@ import { supabase } from '../integrations/supabase/client';
 
 const HomePage = () => {
   const [puzzleDec28, setPuzzleDec28] = useState<any>(null);
-  const [puzzleDec27, setPuzzleDec27] = useState<any>(null);
-  const [isExpanded27, setIsExpanded27] = useState(false);
+  const [puzzleDec26, setPuzzleDec26] = useState<any>(null);
+  const [isExpanded26, setIsExpanded26] = useState(false);
 
   useEffect(() => {
     const fetchPuzzles = async () => {
@@ -25,13 +25,13 @@ const HomePage = () => {
             )
           `)
           .eq('date', '2024-12-28')
-          .single();
+          .maybeSingle();
 
         if (dec28Error) throw dec28Error;
         setPuzzleDec28(dec28Data);
 
-        // Fetch Dec 27 puzzle
-        const { data: dec27Data, error: dec27Error } = await supabase
+        // Fetch Dec 26 puzzle
+        const { data: dec26Data, error: dec26Error } = await supabase
           .from('daily_puzzles')
           .select(`
             *,
@@ -41,11 +41,11 @@ const HomePage = () => {
               answer
             )
           `)
-          .eq('date', '2024-12-27')
-          .single();
+          .eq('date', '2024-12-26')
+          .maybeSingle();
 
-        if (dec27Error) throw dec27Error;
-        setPuzzleDec27(dec27Data);
+        if (dec26Error) throw dec26Error;
+        setPuzzleDec26(dec26Data);
       } catch (error) {
         console.error('Error fetching puzzles:', error);
       }
@@ -74,15 +74,15 @@ const HomePage = () => {
               />
             )}
             
-            {puzzleDec27 && (
+            {puzzleDec26 && (
               <JumblePuzzle 
-                date="December 27 2024"
-                words={puzzleDec27.jumble_words}
-                caption={puzzleDec27.caption}
-                imageUrl={puzzleDec27.image_url}
-                solution={puzzleDec27.solution}
-                isExpanded={isExpanded27}
-                onToggle={() => setIsExpanded27(!isExpanded27)}
+                date="December 26 2024"
+                words={puzzleDec26.jumble_words}
+                caption={puzzleDec26.caption}
+                imageUrl={puzzleDec26.image_url}
+                solution={puzzleDec26.solution}
+                isExpanded={isExpanded26}
+                onToggle={() => setIsExpanded26(!isExpanded26)}
               />
             )}
           </div>

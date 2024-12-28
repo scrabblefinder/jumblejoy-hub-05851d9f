@@ -35,12 +35,12 @@ async function initializePuzzles() {
         )
       `)
       .eq('date', '2024-12-28')
-      .single();
+      .maybeSingle();
 
     if (puzzleErrorDec28) throw puzzleErrorDec28;
 
-    // Fetch Dec 27 puzzle
-    const { data: puzzleDec27, error: puzzleErrorDec27 } = await supabase
+    // Fetch Dec 26 puzzle
+    const { data: puzzleDec26, error: puzzleErrorDec26 } = await supabase
       .from('daily_puzzles')
       .select(`
         *,
@@ -49,10 +49,10 @@ async function initializePuzzles() {
           answer
         )
       `)
-      .eq('date', '2024-12-27')
-      .single();
+      .eq('date', '2024-12-26')
+      .maybeSingle();
 
-    if (puzzleErrorDec27) throw puzzleErrorDec27;
+    if (puzzleErrorDec26) throw puzzleErrorDec26;
 
     // Process Dec 28 XML data
     const xmlData = {
@@ -69,9 +69,9 @@ async function initializePuzzles() {
 
     const processedDataDec28 = parseJumbleXML(xmlData);
     
-    // Process Dec 27 JSON data
+    // Process Dec 26 JSON data
     const sampleData = {
-      "Date": "20241227",
+      "Date": "20241226",
       "Clues": {
         "c1": "KAENL", "c2": "LUGTI", "c3": "BLIUFA", "c4": "CONOHH",
         "a1": "ANKLE", "a2": "GUILT", "a3": "FIBULA", "a4": "HONCHO",
@@ -87,13 +87,13 @@ async function initializePuzzles() {
       "Image": "https://assets.amuniversal.com/75efe9c09ec0013d8360005056a9545d"
     };
 
-    const processedDataDec27 = parseJumbleCallback(sampleData);
+    const processedDataDec26 = parseJumbleCallback(sampleData);
     
     // Update Dec 28 UI with XML data
     updatePuzzleUI({ ...puzzleDec28, finalJumble: processedDataDec28.finalJumble }, 'dec28');
     
-    // Update Dec 27 UI with JSON data
-    updatePuzzleUI({ ...puzzleDec27, finalJumble: processedDataDec27.finalJumble }, 'dec27');
+    // Update Dec 26 UI with JSON data
+    updatePuzzleUI({ ...puzzleDec26, finalJumble: processedDataDec26.finalJumble }, 'dec26');
 
   } catch (error) {
     console.error('Failed to initialize puzzles:', error);
