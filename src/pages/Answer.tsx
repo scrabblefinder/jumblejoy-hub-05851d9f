@@ -1,17 +1,19 @@
-import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const Answer = () => {
-  const { word } = useParams();
+  // Get word from URL
+  const word = window.location.pathname.split('/').pop()?.toUpperCase();
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['jumbleWord', word],
     queryFn: async () => {
+      if (!word) throw new Error('No word provided');
+      
       const { data, error } = await supabase
         .from('jumble_words')
         .select('jumbled_word, answer')
-        .eq('jumbled_word', word?.toUpperCase())
+        .eq('jumbled_word', word)
         .single();
         
       if (error) throw error;
@@ -24,9 +26,9 @@ const Answer = () => {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b">
           <div className="container mx-auto px-4 py-6">
-            <Link to="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
+            <a href="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
               JumbleAnswers.com
-            </Link>
+            </a>
           </div>
         </header>
         <main className="container mx-auto px-4 py-8">
@@ -43,9 +45,9 @@ const Answer = () => {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b">
           <div className="container mx-auto px-4 py-6">
-            <Link to="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
+            <a href="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
               JumbleAnswers.com
-            </Link>
+            </a>
           </div>
         </header>
         <main className="container mx-auto px-4 py-8">
@@ -59,9 +61,9 @@ const Answer = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-6">
-          <Link to="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
+          <a href="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
             JumbleAnswers.com
-          </Link>
+          </a>
         </div>
       </header>
 
@@ -98,12 +100,12 @@ const Answer = () => {
                   </div>
                 </div>
                 <div className="text-center mt-8">
-                  <Link 
-                    to="/" 
+                  <a 
+                    href="/" 
                     className="inline-block bg-[#0275d8] text-white px-6 py-3 rounded hover:bg-[#025aa5] transition-colors"
                   >
                     Back to Daily Puzzle
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
