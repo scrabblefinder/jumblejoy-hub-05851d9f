@@ -29,6 +29,17 @@ const mockData = {
   Image: "https://assets.amuniversal.com/786dc2f09ec0013d8360005056a9545d"
 };
 
+// Handle jumble word clicks
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.jumble-word a')) {
+    e.preventDefault();
+    const href = e.target.getAttribute('href');
+    const [, , date, index] = href.split('/');
+    const answer = mockData.Clues[`a${index}`];
+    window.location.href = `/answer.html?date=${date}&word=${answer}`;
+  }
+});
+
 // Format date helper
 function formatDate(dateStr) {
   const year = dateStr.slice(0, 4);

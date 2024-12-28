@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jumble Answer - JumbleAnswers.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="bg-white text-gray-800">
+    <header class="bg-[#f8f9fa] border-b">
+      <div class="container mx-auto px-4 py-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <a href="/" class="text-3xl font-bold text-[#0275d8] hover:opacity-80">JumbleAnswers.com</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg overflow-hidden">
+          <div class="bg-[#0275d8] text-white p-4 text-xl">
+            Jumble Answer
+          </div>
+          <div class="p-8 space-y-6 border-x border-b">
+            <div id="answer-container" class="text-center">
+              <h2 class="text-2xl font-bold text-[#0275d8] mb-4">The answer is:</h2>
+              <p id="answer" class="text-4xl font-bold"></p>
+            </div>
+            <div class="text-center">
+              <a href="/" class="inline-block bg-[#0275d8] text-white px-6 py-3 rounded hover:bg-[#025aa5] transition-colors">
+                Back to Daily Puzzle
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const answer = params.get('word');
+        if (answer) {
+          document.getElementById('answer').textContent = answer;
+        }
+      });
+    </script>
+  </body>
+</html>
