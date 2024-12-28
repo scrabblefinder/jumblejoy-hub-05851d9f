@@ -88,27 +88,43 @@ export const updatePuzzleUI = (puzzle: any, suffix: string) => {
 
   if (jumbleWordsContainer && puzzle.jumble_words) {
     let wordsHtml = puzzle.jumble_words
-      .map(({ jumbled_word }: { jumbled_word: string }) => `
-        <div class="jumble-word flex justify-between items-center">
-          <a href="/jumble/${jumbled_word.toLowerCase()}" class="flex-1">
-            <div class="text-lg text-gray-800 hover:text-[#0275d8] transition-colors">
-              ${jumbled_word}
+      .map(({ jumbled_word, answer }: { jumbled_word: string; answer: string }) => `
+        <div class="jumble-word bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+          <div class="flex justify-between items-center mb-2">
+            <a href="/jumble/${jumbled_word.toLowerCase()}" class="flex-1">
+              <div class="text-xl font-semibold text-gray-800 hover:text-[#0275d8] transition-colors">
+                ${jumbled_word}
+              </div>
+            </a>
+            <div class="text-sm text-gray-500 bg-white px-3 py-1 rounded-full">
+              ${jumbled_word.length} Letters
             </div>
-          </a>
-          <div class="text-sm text-gray-500">${jumbled_word.length} Letters</div>
+          </div>
+          <div class="flex items-center gap-2 text-green-600">
+            <span class="text-gray-400">→</span>
+            <span class="font-medium">${answer}</span>
+          </div>
         </div>
       `)
       .join('');
 
     if (puzzle.finalJumble) {
       wordsHtml += `
-        <div class="jumble-word flex justify-between items-center">
-          <a href="/jumble/${puzzle.finalJumble.toLowerCase()}" class="flex-1">
-            <div class="text-lg text-gray-800 hover:text-[#0275d8] transition-colors">
-              ${puzzle.finalJumble}
+        <div class="jumble-word bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors mt-4">
+          <div class="flex justify-between items-center mb-2">
+            <a href="/jumble/${puzzle.finalJumble.toLowerCase()}" class="flex-1">
+              <div class="text-xl font-semibold text-[#0275d8] hover:opacity-80 transition-colors">
+                ${puzzle.finalJumble}
+              </div>
+            </a>
+            <div class="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
+              ${puzzle.finalJumble.length} Letters
             </div>
-          </a>
-          <div class="text-sm text-gray-500">${puzzle.finalJumble.length} Letters</div>
+          </div>
+          <div class="flex items-center gap-2 text-blue-600">
+            <span class="text-blue-300">→</span>
+            <span class="font-medium">${puzzle.solution}</span>
+          </div>
         </div>
       `;
     }
