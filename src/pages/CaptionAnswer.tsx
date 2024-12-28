@@ -6,6 +6,15 @@ import Footer from '../components/Footer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 
+const createSlug = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .trim();
+};
+
 const CaptionAnswer = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -13,18 +22,15 @@ const CaptionAnswer = () => {
   const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['puzzle', slug],
     queryFn: async () => {
-      // Convert slug back to a searchable format
-      const searchText = slug?.replace(/-/g, ' ') || '';
-      
       const { data, error } = await supabase
         .from('daily_puzzles')
-        .select('*')
-        .ilike('caption', `%${searchText}%`)
-        .maybeSingle();
+        .select('*');
       
       if (error) throw error;
-      if (!data) return null;
-      return data;
+
+      // Find the puzzle where the slugified caption matches the URL slug
+      const matchingPuzzle = data?.find(puzzle => createSlug(puzzle.caption) === slug);
+      return matchingPuzzle || null;
     },
   });
 
