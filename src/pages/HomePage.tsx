@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { supabase } from '../integrations/supabase/client';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useToast } from "@/components/ui/use-toast";
 
 const HomePage: React.FC = () => {
@@ -62,7 +62,13 @@ const HomePage: React.FC = () => {
   }, []);
 
   const formatPuzzleDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMMM dd yyyy');
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'MMMM dd yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
   };
 
   return (
