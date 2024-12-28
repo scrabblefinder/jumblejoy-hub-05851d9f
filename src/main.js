@@ -1,6 +1,6 @@
 import { supabase } from "./integrations/supabase/client";
 import { formatDate } from './utils/dateUtils';
-import { parseJumbleCallback } from './utils/jumbleUtils';
+import { parseJumbleCallback, parseJumbleXML } from './utils/parseUtils';
 
 // Initialize search functionality
 function initializeSearch() {
@@ -24,45 +24,39 @@ function initializeSearch() {
       return;
     }
 
-    if (!words || words.length === 0) {
-      resultsContainer.innerHTML = '<div class="p-3 text-gray-500">No matches found</div>';
-    } else {
-      resultsContainer.innerHTML = words
-        .map(({ jumbled_word, answer }) => `
-          <a href="/jumble/${jumbled_word.toLowerCase()}" 
-             class="block p-3 hover:bg-gray-100 border-b last:border-b-0">
-            <span class="text-[#0275d8] font-semibold">${jumbled_word}</span>
-            <span class="text-gray-500 ml-2">→</span>
-            <span class="text-green-600 font-semibold ml-2">${answer}</span>
-          </a>
-        `)
-        .join('');
-    }
+    resultsContainer.innerHTML = !words || words.length === 0
+      ? '<div class="p-3 text-gray-500">No matches found</div>'
+      : words
+          .map(({ jumbled_word, answer }) => `
+            <a href="/jumble/${jumbled_word.toLowerCase()}" 
+               class="block p-3 hover:bg-gray-100 border-b last:border-b-0">
+              <span class="text-[#0275d8] font-semibold">${jumbled_word}</span>
+              <span class="text-gray-500 ml-2">→</span>
+              <span class="text-green-600 font-semibold ml-2">${answer}</span>
+            </a>
+          `)
+          .join('');
+    
     resultsContainer.classList.remove('hidden');
   }
 
-  function hideResults() {
-    setTimeout(() => {
-      resultsContainer.classList.add('hidden');
-    }, 200);
-  }
-
-  async function handleSearch() {
-    const query = searchInput.value.toUpperCase();
-    if (query.length === 0) {
-      hideResults();
-      return;
-    }
-    await showResults(query);
-  }
-
-  searchInput.addEventListener('input', handleSearch);
-  searchInput.addEventListener('focus', handleSearch);
-  searchInput.addEventListener('blur', hideResults);
+  searchInput.addEventListener('input', () => handleSearch(searchInput.value));
+  searchInput.addEventListener('focus', () => handleSearch(searchInput.value));
+  searchInput.addEventListener('blur', () => {
+    setTimeout(() => resultsContainer.classList.add('hidden'), 200);
+  });
   searchButton.addEventListener('click', (e) => {
     e.preventDefault();
-    handleSearch();
+    handleSearch(searchInput.value);
   });
+
+  async function handleSearch(query) {
+    if (query.length === 0) {
+      resultsContainer.classList.add('hidden');
+      return;
+    }
+    await showResults(query.toUpperCase());
+  }
 }
 
 // Initialize the puzzles
@@ -98,7 +92,22 @@ async function initializePuzzles() {
 
     if (puzzleErrorDec27) throw puzzleErrorDec27;
 
-    // Example of processing the JSON data
+    // Process Dec 28 XML data
+    const xmlData = {
+      date: { v: "20241228" },
+      clues: {
+        c1: { j: "RUGDO", a: "GOURD", circle: "2,5" },
+        c2: { j: "PWRIE", a: "WIPER", circle: "3,4" },
+        c3: { j: "ACLBTO", a: "COBALT", circle: "2,6" },
+        c4: { j: "LYRURF", a: "FLURRY", circle: "3,5" }
+      },
+      caption: { v1: { t: "As "The Wave" went around the stadium, whole sections of fans were —" } },
+      solution: { s1: { layout: "UPROOTED", a: "UPROOTED" } }
+    };
+
+    const processedDataDec28 = parseJumbleXML(xmlData);
+    
+    // Process Dec 27 JSON data
     const sampleData = {
       "Date": "20241227",
       "Clues": {
@@ -116,18 +125,13 @@ async function initializePuzzles() {
       "Image": "https://assets.amuniversal.com/75efe9c09ec0013d8360005056a9545d"
     };
 
-    const processedData = parseJumbleCallback(sampleData);
-    console.log('Final Jumbled Word:', processedData.finalJumble);
+    const processedDataDec27 = parseJumbleCallback(sampleData);
     
-    // Update Dec 28 UI
-    updatePuzzleUI(puzzleDec28, 'dec28');
+    // Update Dec 28 UI with XML data
+    updatePuzzleUI({ ...puzzleDec28, finalJumble: processedDataDec28.finalJumble }, 'dec28');
     
-    // Update Dec 27 UI with processed data
-    const dec27Data = {
-      ...puzzleDec27,
-      finalJumble: processedData.finalJumble
-    };
-    updatePuzzleUI(dec27Data, 'dec27');
+    // Update Dec 27 UI with JSON data
+    updatePuzzleUI({ ...puzzleDec27, finalJumble: processedDataDec27.finalJumble }, 'dec27');
 
   } catch (error) {
     console.error('Failed to initialize puzzles:', error);
