@@ -166,13 +166,9 @@ function updatePuzzleUI(puzzle, suffix) {
   if (jumbleWordsContainer && puzzle.jumble_words) {
     let wordsHtml = puzzle.jumble_words
       .map(({ jumbled_word }) => `
-        <div class="jumble-word">
-          <a 
-            href="/jumble/${jumbled_word.toLowerCase()}"
-            class="text-[#0275d8] hover:underline cursor-pointer"
-          >
-            ${jumbled_word}
-          </a>
+        <div class="jumble-word flex justify-between items-center">
+          <div class="text-lg text-gray-800">${jumbled_word}</div>
+          <div class="text-sm text-gray-500">${jumbled_word.length} Letters</div>
         </div>
       `)
       .join('');
@@ -180,13 +176,9 @@ function updatePuzzleUI(puzzle, suffix) {
     // Add the final jumbled word if available, with the same styling
     if (puzzle.finalJumble) {
       wordsHtml += `
-        <div class="jumble-word">
-          <a 
-            href="/jumble/${puzzle.finalJumble.toLowerCase()}"
-            class="text-[#0275d8] hover:underline cursor-pointer"
-          >
-            ${puzzle.finalJumble}
-          </a>
+        <div class="jumble-word flex justify-between items-center">
+          <div class="text-lg text-gray-800">${puzzle.finalJumble}</div>
+          <div class="text-sm text-gray-500">${puzzle.finalJumble.length} Letters</div>
         </div>
       `;
     }
