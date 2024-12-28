@@ -44,7 +44,7 @@ const JumblePuzzle = ({
 
   const handleCaptionClick = () => {
     const slug = createSlug(caption);
-    navigate(`/caption/${slug}`);
+    navigate(`/clue/${slug}`);
   };
 
   return (

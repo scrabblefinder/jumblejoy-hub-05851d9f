@@ -33,27 +33,29 @@ const CaptionAnswer = () => {
       
       if (error) throw error;
 
-      // Clean up the incoming slug
       const cleanSlug = createSlug(slug || '');
-      console.log('URL slug:', cleanSlug);
-
-      // Find the matching puzzle
       const matchingPuzzle = data?.find(puzzle => {
         const puzzleSlug = createSlug(puzzle.caption);
-        console.log('Comparing:', {
-          urlSlug: cleanSlug,
-          puzzleSlug,
-          caption: puzzle.caption,
-          matches: puzzleSlug === cleanSlug
-        });
         return puzzleSlug === cleanSlug;
       });
 
-      if (!matchingPuzzle) {
-        console.log('No matching puzzle found');
-      }
-
       return matchingPuzzle || null;
+    },
+  });
+
+  const { data: relatedPuzzles } = useQuery({
+    queryKey: ['related_puzzles', puzzle?.date],
+    enabled: !!puzzle?.date,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('daily_puzzles')
+        .select('*')
+        .eq('date', puzzle.date)
+        .neq('id', puzzle.id)
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -127,9 +129,31 @@ const CaptionAnswer = () => {
                   </div>
                   <p className="text-2xl font-bold text-green-600">{puzzle?.solution}</p>
                 </div>
+
+                {/* Related Posts Section */}
+                {relatedPuzzles && relatedPuzzles.length > 0 && (
+                  <div className="mt-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">More Clues from {new Date(puzzle.date).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}</h2>
+                    <div className="grid gap-4">
+                      {relatedPuzzles.map((relatedPuzzle) => (
+                        <button
+                          key={relatedPuzzle.id}
+                          onClick={() => navigate(`/clue/${createSlug(relatedPuzzle.caption)}`)}
+                          className="block text-left w-full bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <p className="text-[#0275d8] font-semibold">{relatedPuzzle.caption}</p>
+                          <p className="text-green-600 text-sm mt-1">{relatedPuzzle.solution}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Image Section */}
               <div className="w-1/4">
                 <div className="sticky top-4">
                   <img 
