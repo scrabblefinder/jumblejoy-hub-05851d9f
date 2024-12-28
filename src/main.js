@@ -1,33 +1,11 @@
 import { pipeline, env } from '@huggingface/transformers';
+import { mockData, jumbleWords } from './utils/mockData';
+import { formatDate } from './utils/dateUtils';
+import { resizeImageIfNeeded } from './utils/imageUtils';
 
-// Configure transformers.js to always download models
+// Configure transformers.js
 env.allowLocalModels = false;
 env.useBrowserCache = false;
-
-const MAX_IMAGE_DIMENSION = 1024;
-
-// Mock data for the puzzle
-const mockData = {
-  Date: "20241228",
-  Clues: {
-    c1: "RUGDO",
-    c2: "PWRIE",
-    c3: "ACLBTO",
-    c4: "LYRURF",
-    a1: "GOURD",
-    a2: "WIPER",
-    a3: "COBALT",
-    a4: "FLURRY"
-  },
-  Caption: {
-    v1: "As \"The Wave\" went around the stadium, whole sections of fans were —"
-  },
-  Solution: {
-    s1: "UPROOTED",
-    k1: "UPROOTED"
-  },
-  Image: "https://assets.amuniversal.com/786dc2f09ec0013d8360005056a9545d"
-};
 
 // Handle jumble word clicks
 document.addEventListener('click', (e) => {
@@ -35,102 +13,65 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     const href = e.target.getAttribute('href');
     const word = href.split('/').pop();
-    window.location.href = `/answer.html?word=${word.toUpperCase()}`;
+    window.location.href = `/jumble/${word}`;
   }
 });
 
-// Format date helper
-function formatDate(dateStr) {
-  const year = dateStr.slice(0, 4);
-  const month = dateStr.slice(4, 6);
-  const day = dateStr.slice(6, 8);
-  return new Date(`${year}-${month}-${day}`).toLocaleDateString();
-}
+// Initialize search functionality
+function initializeSearch() {
+  const searchInput = document.querySelector('input[type="text"]');
+  const searchButton = searchInput.nextElementSibling;
+  const resultsContainer = document.createElement('div');
+  resultsContainer.className = 'absolute w-full bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto hidden';
+  searchInput.parentNode.appendChild(resultsContainer);
 
-function resizeImageIfNeeded(canvas, ctx, image) {
-  let width = image.naturalWidth;
-  let height = image.naturalHeight;
-
-  if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
-    if (width > height) {
-      height = Math.round((height * MAX_IMAGE_DIMENSION) / width);
-      width = MAX_IMAGE_DIMENSION;
+  function showResults(results) {
+    if (results.length === 0) {
+      resultsContainer.innerHTML = '<div class="p-3 text-gray-500">No matches found</div>';
     } else {
-      width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
-      height = MAX_IMAGE_DIMENSION;
+      resultsContainer.innerHTML = results
+        .map(([jumbled, answer]) => `
+          <a href="/jumble/${jumbled.toLowerCase()}" 
+             class="block p-3 hover:bg-gray-100 border-b last:border-b-0">
+            <span class="text-[#0275d8] font-semibold">${jumbled}</span>
+            <span class="text-gray-500 ml-2">→</span>
+            <span class="text-green-600 font-semibold ml-2">${answer}</span>
+          </a>
+        `)
+        .join('');
     }
-
-    canvas.width = width;
-    canvas.height = height;
-    ctx.drawImage(image, 0, 0, width, height);
-    return true;
+    resultsContainer.classList.remove('hidden');
   }
 
-  canvas.width = width;
-  canvas.height = height;
-  ctx.drawImage(image, 0, 0);
-  return false;
-}
+  function hideResults() {
+    setTimeout(() => {
+      resultsContainer.classList.add('hidden');
+    }, 200);
+  }
 
-async function removeBackground(imageElement) {
-  try {
-    console.log('Starting background removal process...');
-    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-      device: 'webgpu',
-    });
-    
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) throw new Error('Could not get canvas context');
-    
-    const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
-    console.log(`Image ${wasResized ? 'was' : 'was not'} resized`);
-    
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    
-    const result = await segmenter(imageData);
-    
-    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
-      throw new Error('Invalid segmentation result');
+  function handleSearch() {
+    const query = searchInput.value.toUpperCase();
+    if (query.length === 0) {
+      hideResults();
+      return;
     }
-    
-    const outputCanvas = document.createElement('canvas');
-    outputCanvas.width = canvas.width;
-    outputCanvas.height = canvas.height;
-    const outputCtx = outputCanvas.getContext('2d');
-    
-    if (!outputCtx) throw new Error('Could not get output canvas context');
-    
-    outputCtx.drawImage(canvas, 0, 0);
-    
-    const outputImageData = outputCtx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-    const data = outputImageData.data;
-    
-    for (let i = 0; i < result[0].mask.data.length; i++) {
-      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
-      data[i * 4 + 3] = alpha;
-    }
-    
-    outputCtx.putImageData(outputImageData, 0, 0);
-    
-    return new Promise((resolve, reject) => {
-      outputCanvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        },
-        'image/png',
-        1.0
+
+    const results = Object.entries(jumbleWords)
+      .filter(([jumbled, answer]) => 
+        jumbled.includes(query) || answer.includes(query)
       );
-    });
-  } catch (error) {
-    console.error('Error removing background:', error);
-    throw error;
+
+    showResults(results);
   }
+
+  // Event listeners
+  searchInput.addEventListener('input', handleSearch);
+  searchInput.addEventListener('focus', handleSearch);
+  searchInput.addEventListener('blur', hideResults);
+  searchButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleSearch();
+  });
 }
 
 // Initialize the puzzle
@@ -140,54 +81,40 @@ async function initializePuzzle() {
   
   // Process puzzle image
   const puzzleImage = document.getElementById('puzzle-image');
-  try {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = async () => {
-      try {
-        const processedBlob = await removeBackground(img);
-        puzzleImage.src = URL.createObjectURL(processedBlob);
-      } catch (error) {
-        console.error('Failed to process image:', error);
-      }
-    };
-    img.src = mockData.Image;
-  } catch (error) {
-    console.error('Failed to load image:', error);
+  if (puzzleImage) {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = async () => {
+        try {
+          const processedBlob = await removeBackground(img);
+          puzzleImage.src = URL.createObjectURL(processedBlob);
+        } catch (error) {
+          console.error('Failed to process image:', error);
+        }
+      };
+      img.src = mockData.Image;
+    } catch (error) {
+      console.error('Failed to load image:', error);
+    }
   }
-  
-  const jumbleWordsContainer = document.getElementById('jumble-words');
-  jumbleWordsContainer.innerHTML = '';
-  
-  for (let i = 1; i <= 4; i++) {
-    const wordDiv = document.createElement('div');
-    wordDiv.className = 'jumble-word';
-    
-    const wordText = document.createElement('p');
-    wordText.className = 'jumble-text';
-    wordText.textContent = mockData.Clues[`c${i}`];
-    
-    const answerDiv = document.createElement('div');
-    answerDiv.className = 'jumble-answer hidden';
-    
-    const arrow = document.createElement('span');
-    arrow.className = 'jumble-arrow';
-    arrow.innerHTML = '→';
-    
-    const answer = document.createElement('p');
-    answer.className = 'jumble-solution';
-    answer.textContent = mockData.Clues[`a${i}`];
-    
-    answerDiv.appendChild(arrow);
-    answerDiv.appendChild(answer);
-    wordDiv.appendChild(wordText);
-    wordDiv.appendChild(answerDiv);
-    
-    jumbleWordsContainer.appendChild(wordDiv);
-  }
-  
-  document.getElementById('puzzle-solution').textContent = mockData.Solution.s1;
 }
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  initializePuzzle();
+  initializeSearch();
+  
+  const showAnswersBtn = document.getElementById('show-answers-btn');
+  const showSolutionBtn = document.getElementById('show-solution-btn');
+  
+  if (showAnswersBtn) {
+    showAnswersBtn.addEventListener('click', toggleAnswers);
+  }
+  if (showSolutionBtn) {
+    showSolutionBtn.addEventListener('click', toggleSolution);
+  }
+});
 
 // Toggle answers visibility
 function toggleAnswers() {
@@ -211,11 +138,3 @@ function toggleSolution() {
   solutionContainer.classList.toggle('hidden');
   button.textContent = isHidden ? 'Hide Solution' : 'Show Solution';
 }
-
-// Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  initializePuzzle();
-  
-  document.getElementById('show-answers-btn').addEventListener('click', toggleAnswers);
-  document.getElementById('show-solution-btn').addEventListener('click', toggleSolution);
-});
