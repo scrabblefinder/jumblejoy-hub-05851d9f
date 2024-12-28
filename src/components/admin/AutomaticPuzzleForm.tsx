@@ -10,13 +10,59 @@ interface AutomaticPuzzleFormData {
   jsonData: string;
 }
 
+interface JumbleCallback {
+  Date: string;
+  Clues: {
+    c1: string;
+    c2: string;
+    c3: string;
+    c4: string;
+    a1: string;
+    a2: string;
+    a3: string;
+    a4: string;
+  };
+  Caption: {
+    v1: string;
+  };
+  Solution: {
+    s1: string;
+  };
+  Image: string;
+}
+
 const AutomaticPuzzleForm = () => {
   const { register, handleSubmit, reset } = useForm<AutomaticPuzzleFormData>();
   const { toast } = useToast();
 
+  const parseCallbackFormat = (input: string): JumbleCallback => {
+    // Remove the jsonCallback wrapper if present
+    const cleanJson = input.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1');
+    return JSON.parse(cleanJson);
+  };
+
+  const transformToDbFormat = (callback: JumbleCallback) => {
+    // Format date from YYYYMMDD to YYYY-MM-DD
+    const formattedDate = `${callback.Date.slice(0, 4)}-${callback.Date.slice(4, 6)}-${callback.Date.slice(6, 8)}`;
+    
+    return {
+      date: formattedDate,
+      caption: callback.Caption.v1,
+      image_url: callback.Image,
+      solution: callback.Solution.s1,
+      jumbled_words: [
+        { jumbled_word: callback.Clues.c1, answer: callback.Clues.a1 },
+        { jumbled_word: callback.Clues.c2, answer: callback.Clues.a2 },
+        { jumbled_word: callback.Clues.c3, answer: callback.Clues.a3 },
+        { jumbled_word: callback.Clues.c4, answer: callback.Clues.a4 }
+      ]
+    };
+  };
+
   const onSubmit = async (data: AutomaticPuzzleFormData) => {
     try {
-      const puzzleData = JSON.parse(data.jsonData);
+      const callbackData = parseCallbackFormat(data.jsonData);
+      const puzzleData = transformToDbFormat(callbackData);
       
       // First insert the puzzle
       const { data: newPuzzle, error: puzzleError } = await supabase
@@ -33,7 +79,7 @@ const AutomaticPuzzleForm = () => {
       if (puzzleError) throw puzzleError;
 
       // Then insert the jumbled words
-      const jumbleWords = puzzleData.jumbled_words.map((word: any) => ({
+      const jumbleWords = puzzleData.jumbled_words.map(word => ({
         puzzle_id: newPuzzle.id,
         jumbled_word: word.jumbled_word,
         answer: word.answer
@@ -73,18 +119,16 @@ const AutomaticPuzzleForm = () => {
             <Textarea 
               {...register('jsonData')} 
               required 
-              placeholder={`{
-  "date": "2024-01-01",
-  "caption": "Puzzle caption",
-  "image_url": "https://example.com/image.jpg",
-  "solution": "SOLUTION",
-  "jumbled_words": [
-    {"jumbled_word": "WORD1", "answer": "ANSWER1"},
-    {"jumbled_word": "WORD2", "answer": "ANSWER2"},
-    {"jumbled_word": "WORD3", "answer": "ANSWER3"},
-    {"jumbled_word": "WORD4", "answer": "ANSWER4"}
-  ]
-}`}
+              placeholder={`/**/jsonCallback({
+  "Date": "20241228",
+  "Clues": {
+    "c1": "RUGDO", "c2": "PWRIE", "c3": "ACLBTO", "c4": "LYRURF",
+    "a1": "GOURD", "a2": "WIPER", "a3": "COBALT", "a4": "FLURRY"
+  },
+  "Caption": { "v1": "Puzzle caption here" },
+  "Solution": { "s1": "SOLUTION" },
+  "Image": "https://example.com/image.jpg"
+})`}
               className="h-64 font-mono"
             />
           </div>
