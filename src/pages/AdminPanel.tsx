@@ -54,7 +54,7 @@ const AdminPanel = () => {
       return;
     }
 
-    setUserId(session.user.id); // Store the user ID
+    setUserId(session.user.id);
 
     const { data: adminData, error: adminError } = await supabase
       .from('admin_users')
@@ -168,7 +168,8 @@ const AdminPanel = () => {
             <Auth 
               supabaseClient={supabase}
               appearance={{ theme: ThemeSupa }}
-              providers={['google']}
+              providers={[]}
+              view="sign_in"
             />
           </CardContent>
         </Card>
