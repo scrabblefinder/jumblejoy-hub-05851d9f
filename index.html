@@ -3,82 +3,110 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JumbleAnswers.com - Daily Jumble Puzzle Solutions</title>
+    <title>Daily Jumble Answers - All Dates</title>
     <meta name="description" content="Get daily solutions for the Jumble word puzzle game. Unscramble words and solve the daily cartoon caption." />
     <meta name="keywords" content="jumble answers, word puzzle, daily jumble, jumble solution" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
-  <body class="bg-[#1A1F2C] text-white">
-    <header class="bg-[#1A1F2C] p-6 shadow-lg">
-      <div class="container mx-auto flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9b87f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain">
-            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
-            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
-          </svg>
-          <h1 class="text-2xl font-bold">JumbleAnswers.com</h1>
+  <body class="bg-white text-gray-800">
+    <header class="bg-[#f8f9fa] border-b">
+      <div class="container mx-auto px-4 py-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <img src="/public/lovable-uploads/669e5ed3-6971-48ed-a630-ac5f9c287b17.png" alt="Daily Jumble Answers" class="h-16" />
+          </div>
+          <div class="flex gap-2">
+            <a href="#" class="p-2 hover:opacity-80">
+              <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/facebook.png" alt="Facebook" class="h-8 w-8" />
+            </a>
+            <a href="#" class="p-2 hover:opacity-80">
+              <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/twitter.png" alt="Twitter" class="h-8 w-8" />
+            </a>
+            <a href="#" class="p-2 hover:opacity-80">
+              <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/google.png" alt="Google" class="h-8 w-8" />
+            </a>
+            <a href="#" class="p-2 hover:opacity-80">
+              <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/pinterest.png" alt="Pinterest" class="h-8 w-8" />
+            </a>
+            <a href="#" class="p-2 hover:opacity-80">
+              <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/email.png" alt="Email" class="h-8 w-8" />
+            </a>
+          </div>
         </div>
-        <nav>
-          <ul class="flex gap-6">
-            <li>
-              <a href="#daily" class="text-white hover:text-[#9b87f5] transition-colors">Daily Puzzle</a>
-            </li>
-            <li>
-              <a href="#how-to-play" class="text-white hover:text-[#9b87f5] transition-colors">How to Play</a>
-            </li>
-          </ul>
-        </nav>
+        
+        <div class="mt-8">
+          <div class="relative">
+            <input 
+              type="text" 
+              placeholder="Letters of the game" 
+              class="w-full p-3 border rounded-md pr-24"
+            />
+            <button class="absolute right-0 top-0 h-full px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]">
+              SEARCH
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <main class="py-8">
-      <section id="daily" class="container mx-auto py-12">
-        <div class="bg-[#1A1F2C]/95 rounded-lg p-8 shadow-xl backdrop-blur-lg border border-[#9b87f5]/20">
-          <div class="flex items-center gap-2 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9b87f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
-              <path d="M12 9v6"/>
-              <path d="m15 12-3 3-3-3"/>
-            </svg>
-            <h2 class="text-2xl font-bold" id="puzzle-date">Daily Puzzle - Loading...</h2>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-8">
-            <div class="relative group">
-              <img 
-                id="puzzle-image"
-                src="https://assets.amuniversal.com/786dc2f09ec0013d8360005056a9545d" 
-                alt="Daily Jumble Puzzle" 
-                class="rounded-lg shadow-2xl w-full transition-transform duration-300 group-hover:scale-105"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-[#1A1F2C]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <main class="container mx-auto px-4 py-8">
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="md:col-span-2">
+          <h1 class="text-3xl font-bold text-gray-800 mb-6">Daily Jumble Answers All Dates</h1>
+          
+          <div class="bg-white rounded-lg overflow-hidden mb-8">
+            <div class="bg-[#0275d8] text-white p-4 text-xl">
+              Daily Jumble December 28 2024 Answers
             </div>
-
-            <div class="space-y-8">
-              <div class="grid grid-cols-2 gap-6" id="jumble-words">
+            <div class="p-4 space-y-4 border-x border-b">
+              <div id="jumble-words" class="space-y-4">
                 <!-- Jumble words will be inserted here by JavaScript -->
               </div>
-
-              <div class="space-y-6">
-                <div class="bg-[#9b87f5]/10 p-6 rounded-xl border border-[#9b87f5]/30">
-                  <p class="text-lg font-medium" id="puzzle-caption">Loading caption...</p>
+              
+              <div class="border-t pt-4">
+                <p id="puzzle-caption" class="text-[#0275d8] text-lg"></p>
+              </div>
+              
+              <div id="solution-container" class="hidden border-t pt-4">
+                <p id="puzzle-solution" class="text-[#0275d8] font-bold"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="md:col-span-1">
+          <div class="bg-white rounded-lg overflow-hidden mb-8">
+            <div class="bg-gray-100 p-4">
+              <h2 class="text-xl font-bold text-gray-800">About the Game</h2>
+            </div>
+            <div class="p-4">
+              <img src="/public/lovable-uploads/669e5ed3-6971-48ed-a630-ac5f9c287b17.png" alt="Jumble Logo" class="w-24 mb-4" />
+              <p class="text-gray-600">
+                Daily Jumble is one of the most popular word games which has maintained top rankings on both iOS and Android stores and the web. In case you haven't downloaded yet the game and would like to do so you can click the respective images below and you will be redirected to the download page.
+              </p>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg overflow-hidden">
+            <div class="bg-gray-100 p-4">
+              <h2 class="text-xl font-bold text-gray-800">Jumble Clues</h2>
+            </div>
+            <div class="p-4">
+              <div class="space-y-4">
+                <div class="bg-gray-100 p-4 rounded">
+                  <p class="text-[#0275d8]" id="puzzle-date"></p>
                 </div>
-                
-                <div id="solution-container" class="hidden bg-[#9b87f5]/20 p-6 rounded-xl border-2 border-[#9b87f5]/40 transform transition-all duration-300 hover:scale-105">
-                  <p class="text-[#9b87f5] font-bold text-2xl tracking-wide" id="puzzle-solution"></p>
-                </div>
-
                 <div class="flex gap-4">
                   <button
                     id="show-answers-btn"
-                    class="flex-1 bg-[#9b87f5]/20 text-white hover:bg-[#9b87f5]/30 text-lg py-6 px-4 rounded transition-colors"
+                    class="flex-1 bg-[#0275d8] text-white hover:bg-[#025aa5] py-2 px-4 rounded transition-colors"
                   >
                     Show Answers
                   </button>
                   <button
                     id="show-solution-btn"
-                    class="flex-1 bg-[#9b87f5]/20 text-white hover:bg-[#9b87f5]/30 text-lg py-6 px-4 rounded transition-colors"
+                    class="flex-1 bg-[#0275d8] text-white hover:bg-[#025aa5] py-2 px-4 rounded transition-colors"
                   >
                     Show Solution
                   </button>
@@ -87,45 +115,7 @@
             </div>
           </div>
         </div>
-      </section>
-
-      <section id="how-to-play" class="container mx-auto py-12">
-        <div class="bg-white/5 rounded-lg p-8 backdrop-blur-sm">
-          <div class="flex items-center gap-2 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b87f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-            </svg>
-            <h2 class="text-xl font-bold">How to Play</h2>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-8">
-            <div class="space-y-4">
-              <div class="bg-[#1A1F2C] p-6 rounded-lg border border-[#9b87f5]/20">
-                <h3 class="text-lg font-bold mb-2">Basic Rules</h3>
-                <ul class="list-disc list-inside space-y-2 text-white/80">
-                  <li>Unscramble the four jumbled words</li>
-                  <li>Each jumble has only one correct solution</li>
-                  <li>All letters must be used exactly once</li>
-                  <li>Solutions are always common English words</li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <div class="bg-[#1A1F2C] p-6 rounded-lg border border-[#9b87f5]/20">
-                <h3 class="text-lg font-bold mb-2">Final Solution</h3>
-                <ul class="list-disc list-inside space-y-2 text-white/80">
-                  <li>After solving all jumbles, tackle the final puzzle</li>
-                  <li>Use the circled letters from each solved word</li>
-                  <li>Arrange them to solve the cartoon caption</li>
-                  <li>The solution relates to the cartoon image</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </main>
 
     <script src="/src/main.js"></script>
