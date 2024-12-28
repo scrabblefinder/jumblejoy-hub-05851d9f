@@ -1,16 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from './utils/dateUtils';
 
-// Handle jumble word clicks
-document.addEventListener('click', (e) => {
-  if (e.target.closest('.jumble-word a')) {
-    e.preventDefault();
-    const href = e.target.getAttribute('href');
-    const word = href.split('/').pop();
-    window.location.href = `/jumble/${word}`;
-  }
-});
-
 // Initialize search functionality
 function initializeSearch() {
   const searchInput = document.querySelector('input[type="text"]');
@@ -114,7 +104,9 @@ async function initializePuzzle() {
       jumbleWordsContainer.innerHTML = puzzle.jumble_words
         .map(({ jumbled_word }) => `
           <div class="jumble-word">
-            <a href="/jumble/${jumbled_word.toLowerCase()}" class="text-[#0275d8] hover:underline">
+            <a href="/jumble/${jumbled_word.toLowerCase()}" 
+               onclick="window.location.href='/jumble/${jumbled_word.toLowerCase()}'; return false;" 
+               class="text-[#0275d8] hover:underline">
               ${jumbled_word}
             </a>
           </div>
