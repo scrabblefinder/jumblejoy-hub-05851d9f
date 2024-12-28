@@ -64,13 +64,11 @@ function initializeSearch() {
   });
 }
 
-// Initialize the puzzle
-async function initializePuzzle() {
+// Initialize the puzzles
+async function initializePuzzles() {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Fetch today's puzzle
-    const { data: puzzle, error: puzzleError } = await supabase
+    // Fetch Dec 28 puzzle
+    const { data: puzzleDec28, error: puzzleErrorDec28 } = await supabase
       .from('daily_puzzles')
       .select(`
         *,
@@ -79,62 +77,85 @@ async function initializePuzzle() {
           answer
         )
       `)
-      .eq('date', today)
+      .eq('date', '2024-12-28')
       .single();
 
-    if (puzzleError) throw puzzleError;
+    if (puzzleErrorDec28) throw puzzleErrorDec28;
 
-    // Update the UI with puzzle data
-    const puzzleDateEl = document.getElementById('puzzle-date');
-    const puzzleCaptionEl = document.getElementById('puzzle-caption');
-    const jumbleWordsContainer = document.getElementById('jumble-words');
-    const solutionContainer = document.getElementById('solution-container');
-    const puzzleSolution = document.getElementById('puzzle-solution');
+    // Fetch Dec 27 puzzle
+    const { data: puzzleDec27, error: puzzleErrorDec27 } = await supabase
+      .from('daily_puzzles')
+      .select(`
+        *,
+        jumble_words (
+          jumbled_word,
+          answer
+        )
+      `)
+      .eq('date', '2024-12-27')
+      .single();
 
-    if (puzzleDateEl) {
-      puzzleDateEl.textContent = `Daily Puzzle - ${formatDate(puzzle.date)}`;
-    }
+    if (puzzleErrorDec27) throw puzzleErrorDec27;
+
+    // Update Dec 28 UI
+    updatePuzzleUI(puzzleDec28, 'dec28');
     
-    if (puzzleCaptionEl) {
-      const captionSlug = puzzle.caption
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-');
-        
-      puzzleCaptionEl.innerHTML = `
-        <a href="/jumble/${captionSlug}" class="text-[#0275d8] hover:underline cursor-pointer">
-          ${puzzle.caption}
-        </a>
-      `;
-    }
-
-    if (jumbleWordsContainer && puzzle.jumble_words) {
-      jumbleWordsContainer.innerHTML = puzzle.jumble_words
-        .map(({ jumbled_word }) => `
-          <div class="jumble-word">
-            <a 
-              href="/jumble/${jumbled_word.toLowerCase()}"
-              class="text-[#0275d8] hover:underline cursor-pointer"
-            >
-              ${jumbled_word}
-            </a>
-          </div>
-        `)
-        .join('');
-    }
-
-    if (solutionContainer && puzzleSolution) {
-      puzzleSolution.textContent = puzzle.solution;
-    }
+    // Update Dec 27 UI
+    updatePuzzleUI(puzzleDec27, 'dec27');
 
   } catch (error) {
-    console.error('Failed to initialize puzzle:', error);
+    console.error('Failed to initialize puzzles:', error);
+  }
+}
+
+// Helper function to update puzzle UI
+function updatePuzzleUI(puzzle, suffix) {
+  const puzzleDateEl = document.getElementById(`puzzle-date-${suffix}`);
+  const puzzleCaptionEl = document.getElementById(`puzzle-caption-${suffix}`);
+  const jumbleWordsContainer = document.getElementById(`jumble-words-${suffix}`);
+  const solutionContainer = document.getElementById(`solution-container-${suffix}`);
+  const puzzleSolution = document.getElementById(`puzzle-solution-${suffix}`);
+
+  if (puzzleDateEl) {
+    puzzleDateEl.textContent = `Daily Puzzle - ${formatDate(puzzle.date)}`;
+  }
+  
+  if (puzzleCaptionEl) {
+    const captionSlug = puzzle.caption
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-');
+      
+    puzzleCaptionEl.innerHTML = `
+      <a href="/jumble/${captionSlug}" class="text-[#0275d8] hover:underline cursor-pointer">
+        ${puzzle.caption}
+      </a>
+    `;
+  }
+
+  if (jumbleWordsContainer && puzzle.jumble_words) {
+    jumbleWordsContainer.innerHTML = puzzle.jumble_words
+      .map(({ jumbled_word }) => `
+        <div class="jumble-word">
+          <a 
+            href="/jumble/${jumbled_word.toLowerCase()}"
+            class="text-[#0275d8] hover:underline cursor-pointer"
+          >
+            ${jumbled_word}
+          </a>
+        </div>
+      `)
+      .join('');
+  }
+
+  if (solutionContainer && puzzleSolution) {
+    puzzleSolution.textContent = puzzle.solution;
   }
 }
 
 // Add event listeners
 document.addEventListener('DOMContentLoaded', () => {
-  initializePuzzle();
+  initializePuzzles();
   initializeSearch();
   
   const showAnswersBtn = document.getElementById('show-answers-btn');
@@ -165,12 +186,14 @@ function toggleAnswers() {
 
 // Toggle solution visibility
 function toggleSolution() {
-  const solutionContainer = document.getElementById('solution-container');
+  const solutionContainers = document.querySelectorAll('[id^="solution-container-"]');
   const button = document.getElementById('show-solution-btn');
   
-  if (solutionContainer && button) {
-    const isHidden = solutionContainer.classList.contains('hidden');
-    solutionContainer.classList.toggle('hidden');
+  if (solutionContainers.length > 0 && button) {
+    const isHidden = solutionContainers[0].classList.contains('hidden');
+    solutionContainers.forEach(container => {
+      container.classList.toggle('hidden');
+    });
     button.textContent = isHidden ? 'Hide Solution' : 'Show Solution';
   }
 }
