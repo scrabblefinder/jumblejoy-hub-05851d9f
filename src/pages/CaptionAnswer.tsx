@@ -66,7 +66,11 @@ const CaptionAnswer = () => {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
-          <div className="mb-4">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
+            <p className="text-gray-600">Sorry, we couldn't find the puzzle you're looking for.</p>
+          </div>
+          <div className="mt-4">
             <Button
               variant="outline"
               onClick={() => navigate(-1)}
@@ -74,10 +78,6 @@ const CaptionAnswer = () => {
             >
               ← Go Back
             </Button>
-          </div>
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
-            <p className="text-gray-600">Sorry, we couldn't find the puzzle you're looking for.</p>
           </div>
         </main>
         <Footer />
@@ -90,16 +90,6 @@ const CaptionAnswer = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="mb-4">
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="text-[#0275d8] hover:text-[#025aa5]"
-          >
-            ← Go Back
-          </Button>
-        </div>
-
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-[#0275d8] text-white p-4">
             <h1 className="text-2xl font-bold text-center">Caption Solution</h1>
@@ -147,6 +137,16 @@ const CaptionAnswer = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="text-[#0275d8] hover:text-[#025aa5]"
+          >
+            ← Go Back
+          </Button>
         </div>
       </main>
 
