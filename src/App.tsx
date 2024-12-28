@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from './pages/HomePage';
 import JumbleWord from './pages/JumbleWord';
+import JumbleAnswer from './pages/JumbleAnswer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Create a client
@@ -14,7 +15,7 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/jumble/:word" element={<JumbleWord />} />
+          <Route path="/jumble/:word" element={<JumbleAnswer />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
