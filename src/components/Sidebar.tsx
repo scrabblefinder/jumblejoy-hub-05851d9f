@@ -30,6 +30,11 @@ const Sidebar = () => {
           <h2 className="text-xl font-bold text-gray-800">About the Game</h2>
         </div>
         <div className="p-4">
+          <img 
+            src="https://dailyjumbleanswers.com/assets/img/game-icon.png?ezimgfmt=ng%3Awebp%2Fngcb1%2Frs%3Adevice%2Frscb1-1"
+            alt="Daily Jumble Game Icon"
+            className="float-left mr-4 mb-2 w-16 h-16"
+          />
           <p className="text-gray-600">
             Daily Jumble is one of the most popular word games which has maintained top rankings on both iOS and Android stores and the web. In case you haven't downloaded yet the game and would like to do so you can click the respective images below and you will be redirected to the download page.
           </p>
