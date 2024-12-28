@@ -41,6 +41,11 @@ const AutomaticPuzzleForm = () => {
     return JSON.parse(cleanJson);
   };
 
+  const formatSolution = (solution: string): string => {
+    // Remove any existing { } and extra spaces
+    return solution.replace(/{\s*}/g, ' ').trim();
+  };
+
   const transformToDbFormat = (callback: JumbleCallback) => {
     // Format date from YYYYMMDD to YYYY-MM-DD
     const formattedDate = `${callback.Date.slice(0, 4)}-${callback.Date.slice(4, 6)}-${callback.Date.slice(6, 8)}`;
@@ -49,7 +54,7 @@ const AutomaticPuzzleForm = () => {
       date: formattedDate,
       caption: callback.Caption.v1,
       image_url: callback.Image,
-      solution: callback.Solution.s1,
+      solution: formatSolution(callback.Solution.s1),
       jumbled_words: [
         { jumbled_word: callback.Clues.c1, answer: callback.Clues.a1 },
         { jumbled_word: callback.Clues.c2, answer: callback.Clues.a2 },

@@ -26,8 +26,16 @@ const PuzzleForm = () => {
   });
   const { toast } = useToast();
 
+  const formatSolution = (solution: string): string => {
+    // Remove any existing { } and extra spaces
+    return solution.replace(/{\s*}/g, ' ').trim();
+  };
+
   const onSubmit = async (data: PuzzleFormData) => {
     try {
+      // Format the solution before saving
+      const formattedSolution = formatSolution(data.solution);
+
       // First insert the puzzle
       const { data: puzzleData, error: puzzleError } = await supabase
         .from('daily_puzzles')
@@ -35,7 +43,7 @@ const PuzzleForm = () => {
           date: data.date,
           caption: data.caption,
           image_url: data.imageUrl,
-          solution: data.solution
+          solution: formattedSolution
         })
         .select()
         .single();
