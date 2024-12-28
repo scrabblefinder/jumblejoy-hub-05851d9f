@@ -96,6 +96,10 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-jumble-background text-jumble-text;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
