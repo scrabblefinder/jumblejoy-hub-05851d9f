@@ -7,14 +7,15 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const url = new URL(req.url)
-    const word = url.searchParams.get('word')?.toUpperCase()
-
+    // Parse the request body
+    const { word } = await req.json();
+    
     if (!word) {
       return new Response(
         JSON.stringify({ error: 'Word parameter is required' }),
@@ -44,10 +45,11 @@ serve(async (req) => {
           solution
         )
       `)
-      .eq('jumbled_word', word)
+      .eq('jumbled_word', word.toUpperCase())
       .single()
 
     if (error) {
+      console.error('Database query error:', error);
       return new Response(
         JSON.stringify({ error: error.message }),
         { 
@@ -76,6 +78,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Edge function error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DailyPuzzle {
   date: string;
@@ -28,15 +29,20 @@ const JumbleAnswer = () => {
       }
 
       try {
-        const response = await fetch(`https://jznccczfjmatdxdrvszk.supabase.co/functions/v1/get-jumble?word=${word}`);
-        const result = await response.json();
+        const { data: result, error: functionError } = await supabase.functions.invoke('get-jumble', {
+          body: { word: word }
+        });
         
-        if (response.ok) {
+        if (functionError) {
+          throw functionError;
+        }
+
+        if (result) {
           setData(result);
           // Update page title
           document.title = `${result.jumbled_word} - JumbleAnswers.com`;
         } else {
-          setError(result.error || 'Word not found');
+          setError('Word not found');
         }
       } catch (err) {
         console.error('Error fetching answer:', err);
