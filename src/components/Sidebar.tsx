@@ -88,14 +88,16 @@ const Sidebar = () => {
       </div>
       
       <div className="bg-white rounded-lg overflow-hidden">
-        <div className="bg-gray-100 p-4">
+        <div className="bg-gray-100 p-4 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">Latest Jumble</h2>
+          {latestDate && (
+            <p className="text-[#0275d8] font-medium">{formatDate(latestDate)}</p>
+          )}
         </div>
         <div className="p-4">
           <div className="space-y-4">
             {latestDate && (
               <div className="bg-white p-4 rounded border">
-                <p className="text-[#0275d8] font-medium mb-2 text-right">{formatDate(latestDate)}</p>
                 <ul className="space-y-2">
                   {latestWords.map((word, index) => (
                     <li 
