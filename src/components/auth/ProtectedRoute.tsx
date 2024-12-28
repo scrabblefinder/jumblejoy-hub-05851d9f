@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
+import { Navigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user?.id) {
@@ -24,6 +26,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       }
     });
 
+    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -45,13 +48,19 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         .from('admin_users')
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setIsAdmin(!!adminData);
+      
+      if (!adminData) {
+        toast({
+          title: "Access Denied",
+          description: "You need admin privileges. Share your User ID with the system administrator.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error checking admin status:', error);
       toast({
@@ -86,6 +95,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
             },
           }}
           providers={[]}
+          view="sign_in"
         />
       </div>
     );

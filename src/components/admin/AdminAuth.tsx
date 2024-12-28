@@ -16,7 +16,7 @@ const AdminAuth = () => {
           },
         }}
         providers={[]}
-        view="sign_up"
+        view="sign_in"
       />
     </div>
   );
