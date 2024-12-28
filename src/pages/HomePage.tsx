@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { initializeSearch, updatePuzzleUI } from '../utils/jumbleUtils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
+import { Facebook, Twitter, Mail } from 'lucide-react';
 
 const HomePage = () => {
   const [accordionState, setAccordionState] = useState<{ [key: string]: boolean }>({});
@@ -26,7 +27,7 @@ const HomePage = () => {
           )
         `)
         .order('date', { ascending: false })
-        .limit(2);
+        .limit(7); // Increased limit to show more clues in sidebar
 
       if (error) throw error;
       return data;
@@ -56,20 +57,27 @@ const HomePage = () => {
               <a href="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-90 transition-opacity">JumbleAnswers.com</a>
             </div>
             <div className="flex gap-2">
-              <a href="#" className="p-2 hover:opacity-80">
-                <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/facebook.png" alt="Facebook" className="h-8 w-8" />
+              <a 
+                href="https://www.facebook.com/sharer/sharer.php?u=https://jumbleanswers.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="p-2 hover:opacity-80"
+              >
+                <Facebook className="h-8 w-8 text-[#1877f2]" />
               </a>
-              <a href="#" className="p-2 hover:opacity-80">
-                <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/twitter.png" alt="Twitter" className="h-8 w-8" />
+              <a 
+                href="https://twitter.com/intent/tweet?url=https://jumbleanswers.com&text=Get daily Jumble puzzle solutions!" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="p-2 hover:opacity-80"
+              >
+                <Twitter className="h-8 w-8 text-[#1da1f2]" />
               </a>
-              <a href="#" className="p-2 hover:opacity-80">
-                <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/google.png" alt="Google" className="h-8 w-8" />
-              </a>
-              <a href="#" className="p-2 hover:opacity-80">
-                <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/pinterest.png" alt="Pinterest" className="h-8 w-8" />
-              </a>
-              <a href="#" className="p-2 hover:opacity-80">
-                <img src="https://dailyjumbleanswers.com/wp-content/themes/jumble/images/email.png" alt="Email" className="h-8 w-8" />
+              <a 
+                href="mailto:?subject=Daily Jumble Solutions&body=Check out JumbleAnswers.com for daily puzzle solutions!" 
+                className="p-2 hover:opacity-80"
+              >
+                <Mail className="h-8 w-8 text-gray-600" />
               </a>
             </div>
           </div>
@@ -185,13 +193,28 @@ const HomePage = () => {
             
             <div className="bg-white rounded-lg overflow-hidden">
               <div className="bg-gray-100 p-4">
-                <h2 className="text-xl font-bold text-gray-800">Jumble Clues</h2>
+                <h2 className="text-xl font-bold text-gray-800">Latest Jumble Clues</h2>
               </div>
               <div className="p-4">
                 <div className="space-y-4">
-                  <div className="bg-gray-100 p-4 rounded">
-                    <p className="text-[#0275d8]" id="puzzle-date"></p>
-                  </div>
+                  {puzzles?.map((puzzle) => (
+                    <div key={puzzle.id} className="bg-gray-50 p-4 rounded hover:bg-gray-100 transition-colors">
+                      <p className="text-gray-600 text-sm mb-2">
+                        {new Date(puzzle.date).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                      <a 
+                        href={`/jumble/${puzzle.caption.toLowerCase()}`} 
+                        className="text-[#0275d8] hover:underline block"
+                      >
+                        {puzzle.caption}
+                      </a>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
