@@ -9,7 +9,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<div>// ... keep existing code (home page content)</div>} />
         <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/jumble/:word" element={<JumbleAnswer />} />
+        <Route path="/answer" element={<JumbleAnswer />} />
       </Routes>
       <Toaster />
     </Router>

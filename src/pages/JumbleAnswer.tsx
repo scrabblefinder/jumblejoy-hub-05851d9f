@@ -1,14 +1,17 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 
 const JumbleAnswer = () => {
-  const { word } = useParams();
+  const [searchParams] = useSearchParams();
+  const word = searchParams.get('word')?.toUpperCase();
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['jumble', word],
     queryFn: async () => {
+      if (!word) throw new Error('No word provided');
+      
       const { data, error } = await supabase
         .from('jumble_words')
         .select(`
@@ -19,7 +22,7 @@ const JumbleAnswer = () => {
             image_url
           )
         `)
-        .eq('jumbled_word', word?.toUpperCase())
+        .eq('jumbled_word', word)
         .maybeSingle();
 
       if (error) throw error;
@@ -35,18 +38,10 @@ const JumbleAnswer = () => {
     );
   }
 
-  if (error) {
+  if (error || !data) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">Error loading jumble answer</div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Word not found</div>
+        <div className="text-red-500">Word not found</div>
       </div>
     );
   }
@@ -56,9 +51,9 @@ const JumbleAnswer = () => {
       <header className="bg-[#f8f9fa] border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <a href="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
+            <Link to="/" className="text-3xl font-bold text-[#0275d8] hover:opacity-80">
               JumbleAnswers.com
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -105,12 +100,12 @@ const JumbleAnswer = () => {
             )}
 
             <div className="text-center mt-8">
-              <a 
-                href="/" 
+              <Link 
+                to="/" 
                 className="inline-block bg-[#0275d8] text-white px-6 py-3 rounded hover:bg-[#025aa5] transition-colors"
               >
                 Back to Daily Puzzle
-              </a>
+              </Link>
             </div>
           </div>
         </div>
