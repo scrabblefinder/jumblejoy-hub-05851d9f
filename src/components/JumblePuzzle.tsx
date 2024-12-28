@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface JumbleWord {
   id: string;
@@ -27,6 +27,8 @@ const JumblePuzzle = ({
   isExpanded, 
   onToggle 
 }: JumblePuzzleProps) => {
+  const navigate = useNavigate();
+  
   const createSlug = (text: string) => {
     return text
       .toLowerCase()
@@ -34,6 +36,11 @@ const JumblePuzzle = ({
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
       .trim();
+  };
+
+  const handleCaptionClick = () => {
+    const slug = createSlug(caption);
+    navigate(`/caption/${slug}`);
   };
 
   return (
@@ -93,12 +100,12 @@ const JumblePuzzle = ({
                 />
               </div>
               <div className="border-t pt-4 w-full">
-                <Link 
-                  to={`/caption/${createSlug(caption)}`}
-                  className="block text-[#0275d8] text-lg hover:underline"
+                <button 
+                  onClick={handleCaptionClick}
+                  className="block text-[#0275d8] text-lg hover:underline text-left w-full"
                 >
                   {caption}
-                </Link>
+                </button>
               </div>
             </div>
           </div>
