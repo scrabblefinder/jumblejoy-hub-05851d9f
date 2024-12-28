@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #1A1F2C;
+  color: #FFFFFF;
+}
+
+.jumble-word {
+  @apply bg-[#1A1F2C] p-6 rounded-xl border-2 border-[#9b87f5]/30 shadow-lg hover:shadow-[#9b87f5]/20 transform transition-all duration-300 hover:scale-105;
+}
+
+.jumble-text {
+  @apply text-2xl font-mono text-white tracking-wider;
+}
+
+.jumble-answer {
+  @apply mt-4 flex items-center gap-3;
+}
+
+.jumble-arrow {
+  @apply h-5 w-5 text-[#9b87f5] animate-pulse;
+}
+
+.jumble-solution {
+  @apply text-[#9b87f5] font-bold text-xl;
+}
