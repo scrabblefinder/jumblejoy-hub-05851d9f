@@ -1,13 +1,12 @@
 import React from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 
 const JumbleAnswer = () => {
-  const [searchParams] = useSearchParams();
-  const word = searchParams.get('word')?.toUpperCase();
+  const { word } = useParams();
   
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['jumble', word],
     queryFn: async () => {
       if (!word) throw new Error('No word provided');
@@ -22,7 +21,7 @@ const JumbleAnswer = () => {
             image_url
           )
         `)
-        .eq('jumbled_word', word)
+        .eq('jumbled_word', word.toUpperCase())
         .maybeSingle();
 
       if (error) throw error;
@@ -38,7 +37,7 @@ const JumbleAnswer = () => {
     );
   }
 
-  if (error || !data) {
+  if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-red-500">Word not found</div>
@@ -68,6 +67,7 @@ const JumbleAnswer = () => {
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-600 mb-2">Jumbled Word:</h2>
               <p className="text-4xl font-bold text-[#0275d8]">{data.jumbled_word}</p>
+              <p className="mt-2 text-gray-500">({data.jumbled_word.length} letters)</p>
             </div>
             
             <div className="relative">
@@ -82,6 +82,7 @@ const JumbleAnswer = () => {
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-600 mb-2">Answer:</h2>
               <p className="text-5xl font-bold text-green-600">{data.answer}</p>
+              <p className="mt-2 text-gray-500">({data.answer.length} letters)</p>
             </div>
 
             {data.daily_puzzles && (

@@ -34,7 +34,7 @@ export const initializeSearch = () => {
       ? '<div class="p-3 text-gray-500">No matches found</div>'
       : words
           .map(({ jumbled_word, answer }) => `
-            <a href="/answer?word=${jumbled_word.toLowerCase()}" 
+            <a href="/jumble/${jumbled_word.toLowerCase()}" 
                class="block p-3 hover:bg-gray-100 border-b last:border-b-0">
               <span class="text-[#0275d8] font-semibold">${jumbled_word}</span>
               <span class="text-gray-500 ml-2">→</span>
@@ -80,7 +80,7 @@ export const updatePuzzleUI = (puzzle: any, suffix: string) => {
   
   if (puzzleCaptionEl && puzzle.caption) {
     puzzleCaptionEl.innerHTML = `
-      <a href="/answer?word=${puzzle.caption.toLowerCase()}" class="text-[#0275d8] hover:underline cursor-pointer">
+      <a href="/jumble/${puzzle.caption.toLowerCase()}" class="text-[#0275d8] hover:underline cursor-pointer">
         ${puzzle.caption}
       </a>
     `;
@@ -90,7 +90,7 @@ export const updatePuzzleUI = (puzzle: any, suffix: string) => {
     let wordsHtml = puzzle.jumble_words
       .map(({ jumbled_word }: { jumbled_word: string }) => `
         <div class="jumble-word flex justify-between items-center">
-          <a href="/answer?word=${jumbled_word.toLowerCase()}" class="flex-1">
+          <a href="/jumble/${jumbled_word.toLowerCase()}" class="flex-1">
             <div class="text-lg text-gray-800 hover:text-[#0275d8] transition-colors">
               ${jumbled_word}
             </div>
@@ -103,7 +103,7 @@ export const updatePuzzleUI = (puzzle: any, suffix: string) => {
     if (puzzle.finalJumble) {
       wordsHtml += `
         <div class="jumble-word flex justify-between items-center">
-          <a href="/answer?word=${puzzle.finalJumble.toLowerCase()}" class="flex-1">
+          <a href="/jumble/${puzzle.finalJumble.toLowerCase()}" class="flex-1">
             <div class="text-lg text-gray-800 hover:text-[#0275d8] transition-colors">
               ${puzzle.finalJumble}
             </div>
