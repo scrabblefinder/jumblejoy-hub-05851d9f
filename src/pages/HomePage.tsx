@@ -1,9 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { initializeSearch, updatePuzzleUI } from '../utils/jumbleUtils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 
 const HomePage = () => {
+  const [accordionState, setAccordionState] = useState<{ [key: string]: boolean }>({});
+  
+  const toggleAccordion = (id: string) => {
+    setAccordionState(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const { data: puzzles } = useQuery({
     queryKey: ['daily-puzzles'],
     queryFn: async () => {
@@ -111,10 +120,10 @@ const HomePage = () => {
                   onClick={() => toggleAccordion('dec27')} 
                   className="text-2xl hover:opacity-80 transition-opacity focus:outline-none ml-2"
                 >
-                  <span id="accordion-icon-dec27">+</span>
+                  <span>{accordionState['dec27'] ? '-' : '+'}</span>
                 </button>
               </div>
-              <div id="accordion-content-dec27" className="hidden">
+              <div className={accordionState['dec27'] ? '' : 'hidden'}>
                 <div className="p-4 space-y-4 border-x border-b">
                   <div className="flex gap-8">
                     <div id="jumble-words-dec27" className="w-3/4 space-y-4">
