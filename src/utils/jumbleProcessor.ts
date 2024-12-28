@@ -24,9 +24,12 @@ export const createFinalJumble = (clues: any): string => {
       positions.map(pos => word[pos - 1]).join('')
     ).join('');
   } else {
-    // December 28 format
-    return Object.values(clues)
-      .map((clue: any) => extractCircledLetters(clue.j, clue.circle))
+    // December 28 format - XML style
+    // Extract only the clue objects (c1, c2, c3, c4)
+    const clueEntries = Object.entries(clues).filter(([key]) => key.startsWith('c'));
+    
+    return clueEntries
+      .map(([_, clue]: [string, any]) => extractCircledLetters(clue.j, clue.circle))
       .join('');
   }
 };
