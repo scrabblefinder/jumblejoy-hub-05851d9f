@@ -96,8 +96,13 @@ async function initializePuzzle() {
     }
     
     if (puzzleCaptionEl) {
+      const captionSlug = puzzle.caption
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-');
+        
       puzzleCaptionEl.innerHTML = `
-        <a href="/jumble/caption" class="text-[#0275d8] hover:underline cursor-pointer">
+        <a href="/jumble/${captionSlug}" class="text-[#0275d8] hover:underline cursor-pointer">
           ${puzzle.caption}
         </a>
       `;
