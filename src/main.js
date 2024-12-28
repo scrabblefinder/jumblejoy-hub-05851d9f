@@ -101,7 +101,7 @@ async function initializePuzzles() {
         c3: { j: "ACLBTO", a: "COBALT", circle: "2,6" },
         c4: { j: "LYRURF", a: "FLURRY", circle: "3,5" }
       },
-      caption: { v1: { t: "As "The Wave" went around the stadium, whole sections of fans were —" } },
+      caption: { v1: { t: "As \"The Wave\" went around the stadium, whole sections of fans were —" } },
       solution: { s1: { layout: "UPROOTED", a: "UPROOTED" } }
     };
 
