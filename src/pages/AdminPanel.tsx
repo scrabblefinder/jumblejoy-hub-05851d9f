@@ -38,6 +38,7 @@ const AdminPanel = () => {
   const [jsonInput, setJsonInput] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -52,6 +53,8 @@ const AdminPanel = () => {
       setLoading(false);
       return;
     }
+
+    setUserId(session.user.id); // Store the user ID
 
     const { data: adminData, error: adminError } = await supabase
       .from('admin_users')
@@ -156,6 +159,12 @@ const AdminPanel = () => {
             <CardTitle>Admin Login</CardTitle>
           </CardHeader>
           <CardContent>
+            {userId && (
+              <div className="mb-4 p-4 bg-gray-100 rounded">
+                <p>Your User ID: {userId}</p>
+                <p className="text-sm text-gray-600">Use this ID to grant yourself admin access</p>
+              </div>
+            )}
             <Auth 
               supabaseClient={supabase}
               appearance={{ theme: ThemeSupa }}
