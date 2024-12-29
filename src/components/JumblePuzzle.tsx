@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { format, parseISO } from 'date-fns';
+import { format, parse } from 'date-fns';
 
 interface JumbleWord {
   id: string;
@@ -52,7 +52,9 @@ const JumblePuzzle = ({
 
   const handleDateClick = () => {
     try {
-      const parsedDate = parseISO(date);
+      // Parse the date string (e.g., "December 27 2024") into a Date object
+      const parsedDate = parse(date, 'MMMM dd yyyy', new Date());
+      // Format it as YYYYMMDD for the URL
       const formattedDate = format(parsedDate, 'yyyyMMdd');
       navigate(`/daily-jumble/${formattedDate}`);
     } catch (error) {
