@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
+import { List } from 'lucide-react';
 
 const createSlug = (text: string) => {
   return text
@@ -133,23 +134,28 @@ const CaptionAnswer = () => {
                 {/* Related Posts Section */}
                 {relatedPuzzles && relatedPuzzles.length > 0 && (
                   <div className="mt-8">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">More Clues from {new Date(puzzle.date).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}</h2>
-                    <div className="grid gap-4">
-                      {relatedPuzzles.map((relatedPuzzle) => (
-                        <button
-                          key={relatedPuzzle.id}
-                          onClick={() => navigate(`/clue/${createSlug(relatedPuzzle.caption)}`)}
-                          className="block text-left w-full bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <p className="text-[#0275d8] font-semibold">{relatedPuzzle.caption}</p>
-                          <p className="text-green-600 text-sm mt-1">{relatedPuzzle.solution}</p>
-                        </button>
-                      ))}
+                    <div className="flex items-center gap-2 mb-4">
+                      <List className="text-[#0275d8]" />
+                      <h2 className="text-xl font-semibold text-gray-800">More Clues from {new Date(puzzle.date).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}</h2>
                     </div>
+                    <ul className="space-y-3">
+                      {relatedPuzzles.map((relatedPuzzle) => (
+                        <li key={relatedPuzzle.id} className="flex items-start">
+                          <span className="text-[#0275d8] mr-2 mt-1.5">•</span>
+                          <button
+                            onClick={() => navigate(`/clue/${createSlug(relatedPuzzle.caption)}`)}
+                            className="flex-1 text-left bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <p className="text-[#0275d8] font-semibold">{relatedPuzzle.caption}</p>
+                            <p className="text-green-600 text-sm mt-1">{relatedPuzzle.solution}</p>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
