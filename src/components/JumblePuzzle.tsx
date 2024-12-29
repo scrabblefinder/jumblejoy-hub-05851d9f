@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
 
 interface JumbleWord {
   id: string;
@@ -49,14 +50,30 @@ const JumblePuzzle = ({
     navigate(`/clue/${slug}`);
   };
 
+  const handleDateClick = () => {
+    try {
+      const parsedDate = parseISO(date);
+      const formattedDate = format(parsedDate, 'yyyyMMdd');
+      navigate(`/daily-jumble/${formattedDate}`);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
       <div className="bg-[#0275d8] text-white p-4 text-xl flex justify-between items-center">
-        <Link to={dateUrl} className="hover:underline w-full text-center">
+        <button 
+          onClick={handleDateClick}
+          className="hover:underline w-full text-left text-white"
+        >
           Daily Jumble {date} Answers
-        </Link>
+        </button>
         {onToggle && (
-          <button onClick={onToggle} className="text-2xl hover:opacity-80 transition-opacity focus:outline-none ml-2">
+          <button 
+            onClick={onToggle} 
+            className="text-2xl hover:opacity-80 transition-opacity focus:outline-none ml-2"
+          >
             {isExpanded ? '-' : '+'}
           </button>
         )}

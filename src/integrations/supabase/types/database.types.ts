@@ -25,7 +25,6 @@ export interface Database {
           id?: string;
           user_id?: string;
         };
-        Relationships: [];
       };
       daily_puzzles: {
         Row: {
@@ -52,7 +51,6 @@ export interface Database {
           image_url?: string;
           solution?: string;
         };
-        Relationships: [];
       };
       jumble_words: {
         Row: {
@@ -76,33 +74,7 @@ export interface Database {
           jumbled_word?: string;
           puzzle_id?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "jumble_words_puzzle_id_fkey";
-            columns: ["puzzle_id"];
-            isOneToOne: false;
-            referencedRelation: "daily_puzzles";
-            referencedColumns: ["id"];
-          }
-        ];
       };
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      add_admin_user: {
-        Args: {
-          email_param: string;
-        };
-        Returns: undefined;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
     };
   };
 }
