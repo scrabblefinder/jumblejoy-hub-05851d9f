@@ -62,7 +62,10 @@ const JumblePuzzle = ({
 
   // Filter out the final jumble from regular words
   const regularWords = words.filter(word => word.id !== 'final-jumble');
-  const finalJumbleWord = words.find(word => word.id === 'final-jumble');
+  const finalJumbleWord = words.find(word => word.id === 'final-jumble') || {
+    jumbled_word: finalJumble,
+    answer: solution
+  };
 
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
@@ -105,19 +108,19 @@ const JumblePuzzle = ({
               {finalJumbleWord && finalJumbleWord.jumbled_word && (
                 <Link 
                   to={`/jumble/${finalJumbleWord.jumbled_word.toLowerCase()}`}
-                  className="block bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="block bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors mt-4"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-[#0275d8]">
-                      {finalJumbleWord.jumbled_word}
+                      Final Jumble: {finalJumbleWord.jumbled_word}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
                       {countLetters(finalJumbleWord.jumbled_word)} letters
                     </span>
                   </div>
-                  {solution && (
-                    <div className="mt-2 text-sm text-gray-600">
-                      Solution: {solution}
+                  {finalJumbleWord.answer && (
+                    <div className="mt-2 text-sm text-blue-600">
+                      Solution: {finalJumbleWord.answer}
                     </div>
                   )}
                 </Link>
