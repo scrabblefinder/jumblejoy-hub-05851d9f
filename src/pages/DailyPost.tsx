@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
-import { DailyPuzzle } from '@/integrations/supabase/types';
+import { DailyPuzzle } from '@/integrations/supabase/types/model.types';
 import { format, parseISO } from 'date-fns';
 
 const DailyPost = () => {
@@ -95,16 +95,6 @@ const DailyPost = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="mb-4">
-          <Button
-            variant="outline"
-            onClick={() => window.history.back()}
-            className="text-[#0275d8] hover:text-[#025aa5]"
-          >
-            ← Go Back
-          </Button>
-        </div>
-
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
           Daily Jumble {formattedDate} Answers
         </h1>
@@ -118,6 +108,16 @@ const DailyPost = () => {
           solution={puzzle.solution}
           isExpanded={true}
         />
+
+        <div className="mt-8 mb-4 container mx-auto px-4">
+          <Button
+            variant="outline"
+            onClick={() => window.history.back()}
+            className="text-[#0275d8] hover:text-[#025aa5]"
+          >
+            ← Go Back
+          </Button>
+        </div>
       </main>
 
       <Footer />
