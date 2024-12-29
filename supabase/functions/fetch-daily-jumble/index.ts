@@ -33,6 +33,9 @@ serve(async (req) => {
     const data = JSON.parse(puzzleData)
     console.log('Parsed puzzle data:', data)
 
+    // Clean up the solution by removing { } characters
+    const cleanSolution = (data.Solution?.s1 || '').replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim()
+
     // Insert into daily_puzzles
     const { data: puzzle, error: puzzleError } = await supabaseAdmin
       .from('daily_puzzles')
@@ -40,7 +43,7 @@ serve(async (req) => {
         date: formattedDate,
         caption: data.Caption?.v1 || '',
         image_url: data.Image || '',
-        solution: data.Solution?.s1 || '',
+        solution: cleanSolution,
         final_jumble: data.FinalJumble?.q || '',
         final_jumble_answer: data.FinalJumble?.a || ''
       })
