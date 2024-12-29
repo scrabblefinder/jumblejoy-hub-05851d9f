@@ -39,7 +39,7 @@ serve(async (req) => {
     console.log('Cleaned solution:', cleanSolution)
 
     // Calculate final jumble from circled letters
-    const finalJumble = calculateFinalJumble(data.Clues)
+    const finalJumble = calculateFinalJumble(data)
     console.log('Calculated final jumble:', finalJumble)
 
     // Insert into daily_puzzles
@@ -103,26 +103,44 @@ serve(async (req) => {
 })
 
 // Helper function to calculate final jumble from circled letters
-function calculateFinalJumble(clues: any): string {
-  if (!clues) return '';
+function calculateFinalJumble(data: any): string {
+  if (!data?.Clues) return '';
 
   try {
-    // Extract circled letters from each word based on positions
+    // Check if we have the new format (with circle property)
+    if (data.Clues.c1 && typeof data.Clues.c1 === 'object') {
+      console.log('Using new format for final jumble calculation');
+      const clues = [
+        { answer: data.Clues.c1.a, positions: data.Clues.c1.circle },
+        { answer: data.Clues.c2.a, positions: data.Clues.c2.circle },
+        { answer: data.Clues.c3.a, positions: data.Clues.c3.circle },
+        { answer: data.Clues.c4.a, positions: data.Clues.c4.circle }
+      ];
+
+      const jumbledParts = clues.map(({ answer, positions }) => {
+        if (!answer || !positions) return '';
+        const pos = positions.split(',').map(Number);
+        return pos.map(p => answer[p - 1]).join('');
+      });
+
+      return jumbledParts.join('');
+    }
+
+    // Old format (with o1, o2, etc. properties)
+    console.log('Using old format for final jumble calculation');
     const words = [
-      { answer: clues.a1, positions: clues.o1 },
-      { answer: clues.a2, positions: clues.o2 },
-      { answer: clues.a3, positions: clues.o3 },
-      { answer: clues.a4, positions: clues.o4 }
+      { answer: data.Clues.a1, positions: data.Clues.o1 },
+      { answer: data.Clues.a2, positions: data.Clues.o2 },
+      { answer: data.Clues.a3, positions: data.Clues.o3 },
+      { answer: data.Clues.a4, positions: data.Clues.o4 }
     ];
 
-    // Get circled letters from each word
     const jumbledParts = words.map(({ answer, positions }) => {
       if (!answer || !positions) return '';
       const pos = positions.split(',').map(Number);
       return pos.map(p => answer[p - 1]).join('');
     });
 
-    // Combine all parts to create the final jumbled word
     return jumbledParts.join('');
   } catch (error) {
     console.error('Error calculating final jumble:', error);
