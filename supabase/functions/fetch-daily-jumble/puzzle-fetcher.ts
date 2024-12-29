@@ -11,7 +11,7 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
   try {
     const response = await fetch(url, { 
       headers: HEADERS,
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(10000) // 10 second timeout
     });
 
     if (!response.ok) {
@@ -20,7 +20,7 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
     }
 
     const text = await response.text();
-    // Remove the jsonCallback wrapper if present
+    // Remove the jsonCallback wrapper
     const jsonString = text.replace(/^jsonCallback\((.*)\)$/, '$1');
     
     console.log('Successfully fetched puzzle data');
