@@ -107,6 +107,11 @@ export type Database = {
   }
 }
 
+// Add DailyPuzzle type export
+export type DailyPuzzle = Database['public']['Tables']['daily_puzzles']['Row'] & {
+  jumble_words?: Database['public']['Tables']['jumble_words']['Row'][];
+};
+
 type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -116,7 +121,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
