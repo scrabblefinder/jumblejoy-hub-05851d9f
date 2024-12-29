@@ -6,6 +6,7 @@ import CalendarSection from './sidebar/CalendarSection';
 
 const Sidebar = () => {
   const [latestWords, setLatestWords] = useState<any[]>([]);
+  const [finalJumble, setFinalJumble] = useState<string | null>(null);
   const [latestDate, setLatestDate] = useState<string>('');
 
   useEffect(() => {
@@ -13,13 +14,14 @@ const Sidebar = () => {
       try {
         const { data: latestPuzzle } = await supabase
           .from('daily_puzzles')
-          .select('id, date')
+          .select('id, date, final_jumble')
           .order('date', { ascending: false })
           .limit(1)
           .single();
 
         if (latestPuzzle) {
           setLatestDate(latestPuzzle.date);
+          setFinalJumble(latestPuzzle.final_jumble);
           
           const { data: words } = await supabase
             .from('jumble_words')
@@ -94,6 +96,17 @@ const Sidebar = () => {
                       </Link>
                     </li>
                   ))}
+                  {finalJumble && (
+                    <li className="flex items-center space-x-2 mt-4 pt-4 border-t">
+                      <span className="text-[#0275d8] text-lg">•</span>
+                      <Link 
+                        to={`/jumble/${finalJumble.toLowerCase()}`}
+                        className="text-[#0275d8] font-medium hover:underline transition-colors"
+                      >
+                        {finalJumble}
+                      </Link>
+                    </li>
+                  )}
                 </ul>
               </div>
             )}
