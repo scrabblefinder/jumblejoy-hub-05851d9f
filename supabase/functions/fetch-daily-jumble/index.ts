@@ -34,23 +34,32 @@ function extractValue(xml: string, tag: string, index: number = 0): string {
 }
 
 function parseJumbleXML(xmlText: string): JumbleData {
+  console.log('Parsing XML:', xmlText);
+  
   // Extract clues - we need to get both jumbled words and answers
   const clues = xmlText.match(/<clue[^>]*>[\s\S]*?<\/clue>/g) || [];
+  console.log('Found clues:', clues);
   
   const jumbledWords = clues.map(clue => extractValue(clue, 'j'));
   const answers = clues.map(clue => extractValue(clue, 'a'));
+  
+  console.log('Extracted jumbled words:', jumbledWords);
+  console.log('Extracted answers:', answers);
 
   // Extract caption from v1 tag inside caption
   const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>[\s\S]*?<\/v1>[\s\S]*?<\/caption>/);
   const caption = captionMatch ? captionMatch[1].trim() : '';
+  console.log('Extracted caption:', caption);
 
   // Extract solution from s1 tag inside solution
   const solutionMatch = xmlText.match(/<solution>[\s\S]*?<s1[^>]*>[\s\S]*?<a>(.*?)<\/a>[\s\S]*?<\/s1>[\s\S]*?<\/solution>/);
   const solution = solutionMatch ? solutionMatch[1].trim() : '';
+  console.log('Extracted solution:', solution);
 
   // Extract image URL
   const imageMatch = xmlText.match(/<image>(.*?)<\/image>/);
   const imageUrl = imageMatch ? imageMatch[1].trim() : '';
+  console.log('Extracted image URL:', imageUrl);
 
   return {
     Date: format(new Date(), 'yyMMdd'),
@@ -75,57 +84,64 @@ function parseJumbleXML(xmlText: string): JumbleData {
 }
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const today = new Date()
-    const dateStr = format(today, 'yyMMdd')
+    const today = new Date();
+    // Format date as YYMMDD (e.g., 241229 for December 29, 2024)
+    const dateStr = format(today, 'yyMMdd');
+    console.log(`Fetching puzzle for date: ${dateStr}`);
     
-    console.log(`Fetching puzzle for date: ${dateStr}`)
+    // Construct the URL with the correct format
+    const url = `https://www.uclick.com/puzzles/tmjmf/tmjmf${dateStr}-data.xml`;
+    console.log(`Trying URL: ${url}`);
     
-    // Updated URL format to match the correct pattern
-    const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.xml`
-    console.log(`Trying URL: ${url}`)
-    
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/xml',
+        'User-Agent': 'Mozilla/5.0 (compatible; DailyJumbleBot/1.0)'
+      }
+    });
+
     if (!response.ok) {
-      console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`)
-      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
+      console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
     }
     
-    const xmlText = await response.text()
-    console.log('Received XML:', xmlText)
+    const xmlText = await response.text();
+    console.log('Received XML:', xmlText);
 
     // Parse XML without using DOMParser
     const jsonData = parseJumbleXML(xmlText);
-    console.log('Parsed data:', jsonData)
+    console.log('Parsed data:', jsonData);
 
     // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Format the date for database storage (YYYY-MM-DD)
-    const dbDate = format(today, 'yyyy-MM-dd')
+    const dbDate = format(today, 'yyyy-MM-dd');
 
     // Check if puzzle already exists for this date
     const { data: existingPuzzle } = await supabase
       .from('daily_puzzles')
       .select()
       .eq('date', dbDate)
-      .maybeSingle()
+      .maybeSingle();
 
     if (existingPuzzle) {
-      console.log(`Puzzle for ${dbDate} already exists`)
+      console.log(`Puzzle for ${dbDate} already exists`);
       return new Response(
         JSON.stringify({ message: `Puzzle for ${dbDate} already exists` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      );
     }
 
-    console.log(`Inserting new puzzle for ${dbDate}`)
+    console.log(`Inserting new puzzle for ${dbDate}`);
 
     // Insert the puzzle
     const { data: puzzle, error: puzzleError } = await supabase
@@ -137,11 +153,11 @@ Deno.serve(async (req) => {
         solution: jsonData.Solution.s1,
       })
       .select()
-      .single()
+      .single();
 
     if (puzzleError) {
-      console.error('Error inserting puzzle:', puzzleError)
-      throw puzzleError
+      console.error('Error inserting puzzle:', puzzleError);
+      throw puzzleError;
     }
 
     // Insert the jumble words
@@ -150,35 +166,35 @@ Deno.serve(async (req) => {
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c2, answer: jsonData.Clues.a2 },
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c3, answer: jsonData.Clues.a3 },
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c4, answer: jsonData.Clues.a4 },
-    ]
+    ];
 
     const { error: wordsError } = await supabase
       .from('jumble_words')
       .upsert(jumbleWords, { 
         onConflict: 'puzzle_id,jumbled_word',
         ignoreDuplicates: true 
-      })
+      });
 
     if (wordsError) {
-      console.error('Error inserting jumble words:', wordsError)
-      throw wordsError
+      console.error('Error inserting jumble words:', wordsError);
+      throw wordsError;
     }
 
-    console.log(`Successfully added puzzle for ${dbDate}`)
+    console.log(`Successfully added puzzle for ${dbDate}`);
 
     return new Response(
       JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    );
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
   }
-})
+});
