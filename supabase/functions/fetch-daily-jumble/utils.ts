@@ -20,17 +20,23 @@ const extractCircledLetters = (word: string, circles: string): string => {
   console.log(`Extracting circled letters from word: ${word}, circles: ${circles}`);
   
   try {
-    const positions = circles.split(',').map(Number);
-    const letters = positions.map(pos => {
-      // Adjust for 0-based indexing and log each extraction
-      const letter = word[pos - 1];
-      console.log(`Position ${pos} (index ${pos - 1}) in "${word}" gives letter: "${letter}"`);
-      return letter;
-    });
+    // For December 29th format, we need to handle multiple sets of circle positions
+    const circleGroups = circles.includes(';') ? circles.split(';') : [circles];
     
-    const result = letters.join('');
-    console.log(`Extracted letters: ${result}`);
-    return result;
+    let letters = '';
+    for (const group of circleGroups) {
+      const positions = group.split(',').map(Number);
+      const extractedLetters = positions.map(pos => {
+        // Adjust for 0-based indexing and log each extraction
+        const letter = word[pos - 1];
+        console.log(`Position ${pos} (index ${pos - 1}) in "${word}" gives letter: "${letter}"`);
+        return letter;
+      }).join('');
+      letters += extractedLetters;
+    }
+    
+    console.log(`Extracted letters: ${letters}`);
+    return letters;
   } catch (error) {
     console.error('Error extracting circled letters:', error);
     return '';
