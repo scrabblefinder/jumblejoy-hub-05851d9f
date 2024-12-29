@@ -19,50 +19,78 @@ Deno.serve(async (req) => {
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
+      // Extract answers and circle positions
+      const answers = [
+        puzzleData.Clues.a1,
+        puzzleData.Clues.a2,
+        puzzleData.Clues.a3,
+        puzzleData.Clues.a4
+      ];
+      
+      const positions = [
+        puzzleData.CircledLetters?.p1 || '',
+        puzzleData.CircledLetters?.p2 || '',
+        puzzleData.CircledLetters?.p3 || '',
+        puzzleData.CircledLetters?.p4 || ''
+      ];
+
+      // Generate the final jumble from circled letters
+      const finalJumble = extractCircledLetters(answers, positions);
+      console.log('Generated final jumble:', finalJumble);
+
       // Check if puzzle already exists
       const { data: existingPuzzle } = await supabase
         .from('daily_puzzles')
         .select()
-        .eq('date', puzzleData.date)
+        .eq('date', puzzleData.Date)
         .maybeSingle();
 
       if (existingPuzzle) {
-        console.log(`Puzzle for ${puzzleData.date} already exists`);
+        console.log(`Puzzle for ${puzzleData.Date} already exists`);
         return new Response(
-          JSON.stringify({ message: `Puzzle for ${puzzleData.date} already exists` }),
+          JSON.stringify({ message: `Puzzle for ${puzzleData.Date} already exists` }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Insert new puzzle
+      // Insert new puzzle with the generated final jumble
       console.log('Inserting new puzzle...');
       const { data: puzzle, error: puzzleError } = await supabase
         .from('daily_puzzles')
         .insert({
-          date: puzzleData.date,
-          caption: puzzleData.caption,
-          image_url: puzzleData.image_url,
-          solution: puzzleData.solution,
-          final_jumble: puzzleData.final_jumble
+          date: puzzleData.Date,
+          caption: puzzleData.Caption.v1,
+          image_url: puzzleData.Image,
+          solution: puzzleData.Solution.s1,
+          final_jumble: finalJumble
         })
         .select()
         .single();
 
       if (puzzleError) throw puzzleError;
 
-      // Insert jumble words including the final jumble
-      console.log('Inserting jumble words and final jumble...');
+      // Insert jumble words
+      console.log('Inserting jumble words...');
       const jumbleWords = [
-        ...puzzleData.jumble_words.map(word => ({
-          puzzle_id: puzzle.id,
-          jumbled_word: word.jumbled_word,
-          answer: word.answer
-        })),
-        // Add final jumble as a jumble word
         {
           puzzle_id: puzzle.id,
-          jumbled_word: puzzleData.final_jumble,
-          answer: puzzleData.solution
+          jumbled_word: puzzleData.Clues.c1,
+          answer: puzzleData.Clues.a1
+        },
+        {
+          puzzle_id: puzzle.id,
+          jumbled_word: puzzleData.Clues.c2,
+          answer: puzzleData.Clues.a2
+        },
+        {
+          puzzle_id: puzzle.id,
+          jumbled_word: puzzleData.Clues.c3,
+          answer: puzzleData.Clues.a3
+        },
+        {
+          puzzle_id: puzzle.id,
+          jumbled_word: puzzleData.Clues.c4,
+          answer: puzzleData.Clues.a4
         }
       ];
 
@@ -72,7 +100,7 @@ Deno.serve(async (req) => {
 
       if (wordsError) throw wordsError;
 
-      console.log('Successfully added puzzle, jumble words, and final jumble');
+      console.log('Successfully added puzzle and jumble words');
       return new Response(
         JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

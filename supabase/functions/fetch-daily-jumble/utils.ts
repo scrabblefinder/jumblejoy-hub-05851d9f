@@ -1,126 +1,109 @@
-import { format } from 'https://esm.sh/date-fns@3.3.1';
-
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-export const cleanCaption = (caption: string): string => {
-  return caption.replace(/{\s*}/g, '');
-};
+interface JumbleCallback {
+  Date: string;
+  Clues: {
+    c1: string;
+    c2: string;
+    c3: string;
+    c4: string;
+    a1: string;
+    a2: string;
+    a3: string;
+    a4: string;
+  };
+  Caption: {
+    v1: string;
+  };
+  Solution: {
+    s1: string;
+  };
+  Image: string;
+  CircledLetters?: {
+    p1?: string;
+    p2?: string;
+    p3?: string;
+    p4?: string;
+  };
+}
 
-export const cleanSolution = (solution: string): string => {
-  return solution.replace(/{\s*}/g, ' ').trim();
-};
-
-const extractCircledLetters = (word: string, circles: string): string => {
-  if (!circles || !word) return '';
+export const extractPuzzleData = (xmlText: string, date: Date) => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
   
-  // Log the input for debugging
-  console.log(`Extracting circled letters from word: ${word}, circles: ${circles}`);
-  
-  try {
-    // For December 29th format, we need to handle multiple sets of circle positions
-    // Example: "1,2;3,4" means take letters at positions 1,2 and then 3,4
-    const circleGroups = circles.includes(';') ? circles.split(';') : [circles];
-    
-    let letters = '';
-    for (const group of circleGroups) {
-      const positions = group.split(',').map(Number);
-      for (const pos of positions) {
-        // Adjust for 0-based indexing and log each extraction
-        const letter = word[pos - 1];
-        console.log(`Position ${pos} (index ${pos - 1}) in "${word}" gives letter: "${letter}"`);
-        letters += letter;
-      }
+  // Extract all the necessary data from XML
+  const puzzleData: JumbleCallback = {
+    Date: formatDate(date),
+    Clues: {
+      c1: getNodeText(xmlDoc, "c1"),
+      c2: getNodeText(xmlDoc, "c2"),
+      c3: getNodeText(xmlDoc, "c3"),
+      c4: getNodeText(xmlDoc, "c4"),
+      a1: getNodeText(xmlDoc, "a1"),
+      a2: getNodeText(xmlDoc, "a2"),
+      a3: getNodeText(xmlDoc, "a3"),
+      a4: getNodeText(xmlDoc, "a4")
+    },
+    Caption: {
+      v1: getNodeText(xmlDoc, "v1")
+    },
+    Solution: {
+      s1: getNodeText(xmlDoc, "s1")
+    },
+    Image: getNodeText(xmlDoc, "image"),
+    CircledLetters: {
+      p1: getNodeText(xmlDoc, "p1"),
+      p2: getNodeText(xmlDoc, "p2"),
+      p3: getNodeText(xmlDoc, "p3"),
+      p4: getNodeText(xmlDoc, "p4")
     }
-    
-    console.log(`Extracted letters: ${letters}`);
-    return letters;
-  } catch (error) {
-    console.error('Error extracting circled letters:', error);
-    return '';
-  }
-};
-
-export const extractPuzzleData = (jsonText: string, date: Date) => {
-  console.log('Raw JSON:', jsonText);
-
-  // Remove the jsonCallback wrapper
-  const cleanJson = jsonText.replace(/^\/\*\*\/jsonCallback\((.*)\);?$/, '$1');
-  const data = JSON.parse(cleanJson);
-  console.log('Parsed JSON data:', data);
-
-  // Extract jumble words with circles information
-  const jumbleWords = [
-    { jumbled_word: data.Clues.c1, answer: data.Clues.a1, circles: data.Clues.o1 },
-    { jumbled_word: data.Clues.c2, answer: data.Clues.a2, circles: data.Clues.o2 },
-    { jumbled_word: data.Clues.c3, answer: data.Clues.a3, circles: data.Clues.o3 },
-    { jumbled_word: data.Clues.c4, answer: data.Clues.a4, circles: data.Clues.o4 }
-  ].filter(word => word.jumbled_word && word.answer);
-
-  console.log('Extracted jumble words with circles:', jumbleWords);
-
-  // Create final jumble from circled letters
-  const finalJumble = jumbleWords
-    .map(word => {
-      const letters = extractCircledLetters(word.jumbled_word, word.circles);
-      console.log(`For word ${word.jumbled_word}, extracted letters: ${letters}`);
-      return letters;
-    })
-    .join('');
-
-  console.log('Created final jumble:', finalJumble);
-
-  const solution = cleanSolution(data.Solution.s1 || '');
-  console.log('Solution:', solution);
-
-  // Format data for database insertion with cleaned caption and solution
-  const puzzleData = {
-    date: format(date, 'yyyy-MM-dd'),
-    caption: cleanCaption(data.Caption.v1 || 'Daily Jumble Puzzle'),
-    image_url: data.Image || 'https://placeholder.com/400x300',
-    solution: solution,
-    final_jumble: finalJumble,
-    jumble_words: jumbleWords.map(({ jumbled_word, answer }) => ({
-      jumbled_word,
-      answer
-    }))
   };
 
-  console.log('Final puzzle data:', puzzleData);
   return puzzleData;
 };
 
-export const fetchPuzzle = async (date: Date) => {
-  const dateStr = format(date, 'yyyyMMdd');
-  const timestamp = Date.now();
-  const url = `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${dateStr}/data.json?callback=jsonCallback&_=${timestamp}`;
-  
-  console.log(`Attempting to fetch puzzle from URL: ${url}`);
-  
-  const headers = {
-    'Accept': '*/*',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache',
-    'Referer': 'https://www.uclick.com/'
-  };
+export const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
 
-  try {
-    const response = await fetch(url, { headers });
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(`Failed to fetch from ${url}:`, response.status, errorBody);
-      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
+const getNodeText = (doc: Document, tagName: string): string => {
+  const node = doc.getElementsByTagName(tagName)[0];
+  return node ? node.textContent || "" : "";
+};
+
+export const extractCircledLetters = (answers: string[], positions: string[]): string => {
+  let finalJumble = '';
+  
+  // Process each answer with its corresponding positions
+  answers.forEach((answer, index) => {
+    if (positions[index]) {
+      const positionsList = positions[index].split(';');
+      positionsList.forEach(pos => {
+        const position = parseInt(pos) - 1; // Convert to 0-based index
+        if (!isNaN(position) && position >= 0 && position < answer.length) {
+          finalJumble += answer[position];
+        }
+      });
     }
+  });
+  
+  return finalJumble;
+};
 
-    const text = await response.text();
-    console.log('Successfully fetched puzzle data');
-    return text;
-  } catch (error) {
-    console.error(`Error fetching from ${url}:`, error);
-    throw error;
+export const fetchPuzzle = async (date: Date): Promise<string> => {
+  const formattedDate = formatDate(date);
+  const url = `https://www.uclick.com/puzzles/tmjmf/${formattedDate}-data.xml`;
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch puzzle for date ${formattedDate}`);
   }
+  
+  return await response.text();
 };
