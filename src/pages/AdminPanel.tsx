@@ -48,8 +48,9 @@ const AdminPanel = () => {
   // Update JSON URL when date changes
   useEffect(() => {
     if (date) {
-      const formattedDate = format(date, 'yyyyMMdd');
-      setJsonUrl(`https://www.uclick.com/puzzles/tmjmf/${formattedDate}-data.json`);
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      const timestamp = Date.now(); // Current timestamp for cache busting
+      setJsonUrl(`https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
     } else {
       setJsonUrl('');
     }
@@ -61,7 +62,7 @@ const AdminPanel = () => {
       const { data, error } = await supabase.functions.invoke('fetch-daily-jumble', {
         body: { 
           date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
-          jsonUrl: jsonUrl // Pass the JSON URL to the function
+          jsonUrl: jsonUrl
         }
       });
       
