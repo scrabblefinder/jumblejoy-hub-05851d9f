@@ -82,12 +82,13 @@ const DailyPost = () => {
   const formatUrlDate = (dateString: string) => {
     const date = parseISO(dateString);
     const month = format(date, 'MMMM').toLowerCase();
-    const day = format(date, 'dd');
+    const day = format(date, 'd');
     const year = format(date, 'yyyy');
     return `/daily-jumble-${month}-${day}-${year}-answers`;
   };
 
   const formattedDate = formatPuzzleDate(puzzle.date);
+  const dateUrl = formatUrlDate(puzzle.date);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -110,7 +111,7 @@ const DailyPost = () => {
 
         <JumblePuzzle
           date={formattedDate}
-          dateUrl={formatUrlDate(puzzle.date)}
+          dateUrl={dateUrl}
           words={puzzle.jumble_words || []}
           caption={puzzle.caption}
           imageUrl={puzzle.image_url}
