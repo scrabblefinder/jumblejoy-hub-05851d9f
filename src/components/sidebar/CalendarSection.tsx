@@ -42,7 +42,7 @@ const CalendarSection = () => {
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         {hasPuzzle ? (
-          <div className="bg-[#0EA5E9] w-7 h-7 rounded-sm flex items-center justify-center">
+          <div className="bg-[#2f75d9] w-7 h-7 rounded-sm flex items-center justify-center">
             <span className="text-white">{day.getDate()}</span>
           </div>
         ) : (
