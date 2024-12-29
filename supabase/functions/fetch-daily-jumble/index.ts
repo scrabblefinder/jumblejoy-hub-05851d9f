@@ -27,6 +27,51 @@ interface JumbleData {
   Image: string;
 }
 
+function extractValue(xml: string, tag: string): string {
+  const regex = new RegExp(`<${tag}>(.*?)</${tag}>`, 's');
+  const match = xml.match(regex);
+  return match ? match[1].trim() : '';
+}
+
+function parseJumbleXML(xmlText: string): JumbleData {
+  // Extract clues
+  const c1j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
+  const c2j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
+  const c3j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
+  const c4j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
+  
+  const c1a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
+  const c2a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
+  const c3a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
+  const c4a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
+
+  // Extract caption and solution
+  const caption = extractValue(xmlText, 't(?:[^>]*>|>)(?:[^<]*<\/t>|<\/t>)');
+  const solution = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
+  const image = extractValue(xmlText, 'image(?:[^>]*>|>)(?:[^<]*<\/image>|<\/image>)');
+
+  return {
+    Date: format(new Date(), 'yyMMdd'),
+    Clues: {
+      c1: c1j,
+      c2: c2j,
+      c3: c3j,
+      c4: c4j,
+      a1: c1a,
+      a2: c2a,
+      a3: c3a,
+      a4: c4a,
+    },
+    Caption: {
+      v1: caption,
+    },
+    Solution: {
+      s1: solution,
+    },
+    Image: image,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -51,31 +96,8 @@ Deno.serve(async (req) => {
     const xmlText = await response.text()
     console.log('Received XML:', xmlText)
 
-    // Parse XML to extract needed data
-    const parser = new DOMParser()
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml')
-
-    // Extract data from XML
-    const jsonData = {
-      Date: dateStr,
-      Clues: {
-        c1: xmlDoc.querySelector('c1 j')?.textContent || '',
-        c2: xmlDoc.querySelector('c2 j')?.textContent || '',
-        c3: xmlDoc.querySelector('c3 j')?.textContent || '',
-        c4: xmlDoc.querySelector('c4 j')?.textContent || '',
-        a1: xmlDoc.querySelector('c1 a')?.textContent || '',
-        a2: xmlDoc.querySelector('c2 a')?.textContent || '',
-        a3: xmlDoc.querySelector('c3 a')?.textContent || '',
-        a4: xmlDoc.querySelector('c4 a')?.textContent || '',
-      },
-      Caption: {
-        v1: xmlDoc.querySelector('caption v1 t')?.textContent || '',
-      },
-      Solution: {
-        s1: xmlDoc.querySelector('solution s1 a')?.textContent || '',
-      },
-      Image: xmlDoc.querySelector('image')?.textContent || '',
-    }
+    // Parse XML without using DOMParser
+    const jsonData = parseJumbleXML(xmlText);
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
