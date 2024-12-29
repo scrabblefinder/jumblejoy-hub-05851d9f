@@ -34,6 +34,8 @@ export interface Database {
           id: string;
           image_url: string;
           solution: string;
+          final_jumble: string | null;
+          final_jumble_answer: string | null;
         };
         Insert: {
           caption: string;
@@ -42,6 +44,8 @@ export interface Database {
           id?: string;
           image_url: string;
           solution: string;
+          final_jumble?: string | null;
+          final_jumble_answer?: string | null;
         };
         Update: {
           caption?: string;
@@ -50,6 +54,8 @@ export interface Database {
           id?: string;
           image_url?: string;
           solution?: string;
+          final_jumble?: string | null;
+          final_jumble_answer?: string | null;
         };
       };
       jumble_words: {

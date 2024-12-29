@@ -66,7 +66,7 @@ async function initializePuzzles() {
       const processedDataLatest = parseJumbleXML(xmlData);
       
       // Update the final jumble in the database if it's not already set
-      if (!latestPuzzle.final_jumble && processedDataLatest.finalJumble) {
+      if (!latestPuzzle.final_jumble) {
         const { error: updateError } = await supabase
           .from('daily_puzzles')
           .update({ 
@@ -80,7 +80,7 @@ async function initializePuzzles() {
 
       updatePuzzleUI({ 
         ...latestPuzzle, 
-        finalJumble: "ODPEOTUR" || latestPuzzle.final_jumble 
+        finalJumble: latestPuzzle.final_jumble || "ODPEOTUR"
       }, 'latest');
     }
     

@@ -46,7 +46,7 @@ serve(async (req) => {
         )
       `)
       .eq('jumbled_word', word.toUpperCase())
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Database query error:', error);
