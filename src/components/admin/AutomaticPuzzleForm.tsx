@@ -21,6 +21,10 @@ interface JumbleCallback {
     a2: string;
     a3: string;
     a4: string;
+    o1: string;
+    o2: string;
+    o3: string;
+    o4: string;
   };
   Caption: {
     v1: string;
@@ -46,15 +50,38 @@ const AutomaticPuzzleForm = () => {
     return solution.replace(/{\s*}/g, ' ').trim();
   };
 
+  const calculateFinalJumble = (clues: any): string => {
+    // Extract circled letters from answer words based on positions
+    const jumbledParts = [];
+    
+    // Get circled letters from each answer word using position arrays
+    const answers = [clues.a1, clues.a2, clues.a3, clues.a4];
+    const positions = [clues.o1, clues.o2, clues.o3, clues.o4];
+    
+    for (let i = 0; i < answers.length; i++) {
+      const word = answers[i];
+      const pos = positions[i].split(',').map(Number);
+      const letters = pos.map(p => word[p - 1]).join('');
+      jumbledParts.push(letters);
+    }
+    
+    // Combine all parts to create the final jumbled word
+    return jumbledParts.join('');
+  };
+
   const transformToDbFormat = (callback: JumbleCallback) => {
     // Format date from YYYYMMDD to YYYY-MM-DD
     const formattedDate = `${callback.Date.slice(0, 4)}-${callback.Date.slice(4, 6)}-${callback.Date.slice(6, 8)}`;
+    
+    // Calculate the final jumble
+    const finalJumble = calculateFinalJumble(callback.Clues);
     
     return {
       date: formattedDate,
       caption: callback.Caption.v1,
       image_url: callback.Image,
       solution: formatSolution(callback.Solution.s1),
+      final_jumble: finalJumble,
       jumbled_words: [
         { jumbled_word: callback.Clues.c1, answer: callback.Clues.a1 },
         { jumbled_word: callback.Clues.c2, answer: callback.Clues.a2 },
@@ -92,7 +119,8 @@ const AutomaticPuzzleForm = () => {
           date: puzzleData.date,
           caption: puzzleData.caption,
           image_url: puzzleData.image_url,
-          solution: puzzleData.solution
+          solution: puzzleData.solution,
+          final_jumble: puzzleData.final_jumble
         })
         .select()
         .single();
@@ -144,7 +172,8 @@ const AutomaticPuzzleForm = () => {
   "Date": "20241228",
   "Clues": {
     "c1": "RUGDO", "c2": "PWRIE", "c3": "ACLBTO", "c4": "LYRURF",
-    "a1": "GOURD", "a2": "WIPER", "a3": "COBALT", "a4": "FLURRY"
+    "a1": "GOURD", "a2": "WIPER", "a3": "COBALT", "a4": "FLURRY",
+    "o1": "1,4,5", "o2": "4,5,6", "o3": "3,5", "o4": "1,2,6"
   },
   "Caption": { "v1": "Puzzle caption here" },
   "Solution": { "s1": "SOLUTION" },
