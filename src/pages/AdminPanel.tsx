@@ -17,6 +17,7 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [fetchingPuzzle, setFetchingPuzzle] = useState(false);
   const [date, setDate] = useState<Date>();
+  const [jsonUrl, setJsonUrl] = useState<string>('');
 
   useEffect(() => {
     const checkSession = async () => {
@@ -44,11 +45,24 @@ const AdminPanel = () => {
     checkSession();
   }, [toast]);
 
+  // Update JSON URL when date changes
+  useEffect(() => {
+    if (date) {
+      const formattedDate = format(date, 'yyyyMMdd');
+      setJsonUrl(`https://www.uclick.com/puzzles/tmjmf/${formattedDate}-data.json`);
+    } else {
+      setJsonUrl('');
+    }
+  }, [date]);
+
   const fetchPuzzle = async (selectedDate?: Date) => {
     setFetchingPuzzle(true);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-daily-jumble', {
-        body: { date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined }
+        body: { 
+          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
+          jsonUrl: jsonUrl // Pass the JSON URL to the function
+        }
       });
       
       if (error) throw error;
@@ -121,6 +135,15 @@ const AdminPanel = () => {
             {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Puzzle for ${format(date, 'PPP')}` : 'Fetch Latest Puzzle'}
           </Button>
         </div>
+
+        {jsonUrl && (
+          <div className="mb-8 p-4 bg-white rounded-lg shadow">
+            <p className="text-sm text-gray-600">JSON URL:</p>
+            <code className="block mt-1 p-2 bg-gray-50 rounded text-sm break-all">
+              {jsonUrl}
+            </code>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-8">
           <div>
