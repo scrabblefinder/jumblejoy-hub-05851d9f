@@ -44,9 +44,9 @@ async function initializePuzzles() {
       return;
     }
 
-    // Latest puzzle (December 28)
+    // Latest puzzle
     const latestPuzzle = puzzles[0];
-    // Previous puzzle (December 27)
+    // Previous puzzle
     const previousPuzzle = puzzles.length > 1 ? puzzles[1] : null;
 
     if (latestPuzzle) {
@@ -70,7 +70,7 @@ async function initializePuzzles() {
         const { error: updateError } = await supabase
           .from('daily_puzzles')
           .update({ 
-            final_jumble: latestPuzzle.final_jumble || "ODPEOTUR",
+            final_jumble: latestPuzzle.final_jumble,
             final_jumble_answer: latestPuzzle.solution
           })
           .eq('id', latestPuzzle.id);
@@ -85,7 +85,7 @@ async function initializePuzzles() {
           ...latestPuzzle.jumble_words,
           {
             id: 'final-jumble',
-            jumbled_word: latestPuzzle.final_jumble || "ODPEOTUR",
+            jumbled_word: latestPuzzle.final_jumble,
             answer: latestPuzzle.solution
           }
         ]
