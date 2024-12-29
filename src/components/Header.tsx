@@ -11,7 +11,11 @@ const Header = () => {
   const navigate = useNavigate();
 
   const handleSearch = async () => {
-    if (!searchTerm) return;
+    if (searchTerm.length < 2) {
+      setShowResults(false);
+      setSearchResults([]);
+      return;
+    }
     
     setIsSearching(true);
     setShowResults(true);
@@ -54,7 +58,15 @@ const Header = () => {
                 placeholder="Search jumbled word..."
                 className="w-64 p-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  if (e.target.value.length >= 2) {
+                    handleSearch();
+                  } else {
+                    setShowResults(false);
+                    setSearchResults([]);
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSearch();
                 }}
@@ -62,7 +74,7 @@ const Header = () => {
                   setTimeout(() => setShowResults(false), 200);
                 }}
                 onFocus={() => {
-                  if (searchTerm) handleSearch();
+                  if (searchTerm.length >= 2) handleSearch();
                 }}
               />
               <button 
@@ -73,7 +85,7 @@ const Header = () => {
               </button>
             </div>
 
-            {showResults && searchTerm.length > 0 && (
+            {showResults && searchTerm.length >= 2 && (
               <div className="absolute left-0 right-0 top-full mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-3 text-gray-500">Searching...</div>
