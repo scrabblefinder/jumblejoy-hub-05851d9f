@@ -103,12 +103,15 @@ Deno.serve(async (req) => {
       headers: {
         'Accept': 'application/xml, text/xml, */*',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://www.uclick.com/'
+        'Referer': 'https://www.uclick.com/',
+        'Origin': 'https://www.uclick.com'
       }
     });
 
     if (!response.ok) {
       console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
+      const errorBody = await response.text();
+      console.error('Error response body:', errorBody);
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
     }
     
