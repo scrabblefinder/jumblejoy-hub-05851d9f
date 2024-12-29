@@ -116,14 +116,15 @@ export const extractCircledLetters = (answers: string[], positions: string[]): s
 };
 
 export const fetchPuzzle = async (date: Date): Promise<string> => {
-  const formattedDate = formatDate(date).replace(/-/g, '');
-  const url = `https://www.uclick.com/puzzles/tmjmf/${formattedDate}-data.xml`;
+  const formattedDate = formatDate(date);
+  const timestamp = new Date().getTime();
+  const url = `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
   
   try {
     console.log(`Attempting to fetch puzzle for date ${formattedDate} from URL: ${url}`);
     const response = await fetch(url, {
       headers: {
-        'Accept': 'application/xml, text/xml, */*',
+        'Accept': 'application/json, text/javascript, */*',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': 'https://www.uclick.com/',
         'Origin': 'https://www.uclick.com',
@@ -137,10 +138,10 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
       console.error(`HTTP error! status: ${response.status}`);
       // Try fetching without cache
       console.log('Retrying with cache-busting parameter...');
-      const retryUrl = `${url}?t=${new Date().getTime()}`;
+      const retryUrl = `${url}&nocache=${new Date().getTime()}`;
       const retryResponse = await fetch(retryUrl, { 
         headers: {
-          'Accept': 'application/xml, text/xml, */*',
+          'Accept': 'application/json, text/javascript, */*',
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Referer': 'https://www.uclick.com/',
           'Origin': 'https://www.uclick.com',
@@ -159,9 +160,9 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
       return retryText;
     }
 
-    const xmlText = await response.text();
-    console.log('Successfully fetched puzzle XML');
-    return xmlText;
+    const text = await response.text();
+    console.log('Successfully fetched puzzle data');
+    return text;
   } catch (error) {
     console.error(`Error fetching puzzle for date ${formattedDate}:`, error);
     throw new Error(`Failed to fetch puzzle for date ${formattedDate}`);
