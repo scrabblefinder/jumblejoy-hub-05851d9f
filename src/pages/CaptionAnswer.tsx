@@ -40,22 +40,6 @@ const CaptionAnswer = () => {
     },
   });
 
-  const { data: relatedPuzzles } = useQuery({
-    queryKey: ['related_puzzles', puzzle?.date],
-    enabled: !!puzzle?.date,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('daily_puzzles')
-        .select('*')
-        .eq('date', puzzle.date)
-        .neq('id', puzzle.id)
-        .limit(3);
-      
-      if (error) throw error;
-      return data;
-    },
-  });
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
@@ -73,9 +57,8 @@ const CaptionAnswer = () => {
             <h1 className="text-2xl font-bold text-jumble-text mb-4">Puzzle Not Found</h1>
             <p className="text-jumble-text/60 mb-8">Sorry, we couldn't find the puzzle you're looking for.</p>
             <Button
-              variant="outline"
               onClick={() => navigate(-1)}
-              className="text-jumble-primary hover:text-jumble-primary/80"
+              className="bg-[#2f75d9] text-white hover:bg-[#2f75d9]/90 transition-colors"
             >
               ← Go Back
             </Button>
@@ -120,9 +103,8 @@ const CaptionAnswer = () => {
 
         <div className="mt-4">
           <Button
-            variant="outline"
             onClick={() => navigate(-1)}
-            className="text-jumble-primary hover:text-jumble-primary/80"
+            className="bg-[#2f75d9] text-white hover:bg-[#2f75d9]/90 transition-colors"
           >
             ← Go Back
           </Button>
