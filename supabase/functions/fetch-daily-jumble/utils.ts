@@ -27,20 +27,23 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
   const cluesSection = cluesMatch[1];
   console.log('Clues section:', cluesSection);
 
-  // Extract individual clues
-  const clueRegex = /<c\d+>\s*<j>(.*?)<\/j>\s*<a>(.*?)<\/a>/g;
-  const jumbleWords = [];
-  const answers = [];
-  
+  // Extract individual clues using the same format as the manual JSON entry
+  const clues = {
+    c1: '', c2: '', c3: '', c4: '',
+    a1: '', a2: '', a3: '', a4: '',
+    o1: '2,3,5', o2: '2,4,5', o3: '2,3,6', o4: '3,5'
+  };
+
+  // Extract jumbled words and answers
+  const clueRegex = /<c(\d+)>\s*<j>(.*?)<\/j>\s*<a>(.*?)<\/a>/g;
   let clueMatch;
   while ((clueMatch = clueRegex.exec(cluesSection)) !== null) {
-    const [, jumbled, answer] = clueMatch;
-    jumbleWords.push(jumbled.trim());
-    answers.push(answer.trim());
+    const [, num, jumbled, answer] = clueMatch;
+    clues[`c${num}`] = jumbled.trim();
+    clues[`a${num}`] = answer.trim();
   }
 
-  console.log('Extracted jumble words:', jumbleWords);
-  console.log('Extracted answers:', answers);
+  console.log('Extracted clues:', clues);
 
   // Extract caption
   const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>/);
@@ -57,16 +60,18 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
   const imageUrl = imageMatch ? imageMatch[1].trim() : '';
   console.log('Extracted image URL:', imageUrl);
 
-  // Prepare the data
+  // Format data exactly like the manual JSON entry
   const puzzleData = {
     date: format(date, 'yyyy-MM-dd'),
     caption,
     image_url: imageUrl || 'https://placeholder.com/400x300',
     solution,
-    jumble_words: jumbleWords.map((word, index) => ({
-      jumbled_word: word,
-      answer: answers[index]
-    }))
+    jumble_words: [
+      { jumbled_word: clues.c1, answer: clues.a1 },
+      { jumbled_word: clues.c2, answer: clues.a2 },
+      { jumbled_word: clues.c3, answer: clues.a3 },
+      { jumbled_word: clues.c4, answer: clues.a4 }
+    ].filter(word => word.jumbled_word && word.answer) // Only include complete word pairs
   };
 
   console.log('Final puzzle data:', puzzleData);
