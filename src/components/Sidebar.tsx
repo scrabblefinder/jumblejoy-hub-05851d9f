@@ -13,7 +13,6 @@ const Sidebar = () => {
   useEffect(() => {
     const fetchLatestWords = async () => {
       try {
-        // First get the latest puzzle
         const { data: latestPuzzle } = await supabase
           .from('daily_puzzles')
           .select('id, date')
@@ -24,7 +23,6 @@ const Sidebar = () => {
         if (latestPuzzle) {
           setLatestDate(latestPuzzle.date);
           
-          // Then get all jumbled words for this puzzle
           const { data: words } = await supabase
             .from('jumble_words')
             .select('jumbled_word')
@@ -68,7 +66,6 @@ const Sidebar = () => {
       }
     };
 
-    // Debounce the search to avoid too many requests
     const timeoutId = setTimeout(searchWords, 300);
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
@@ -90,21 +87,23 @@ const Sidebar = () => {
         </div>
         <div className="p-4">
           <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Type your jumbled word" 
-              className="w-full p-3 border rounded-md"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button 
-              className="absolute right-0 top-0 h-full px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]"
-              onClick={() => {/* Search is automatic */}}
-            >
-              SEARCH
-            </button>
+            <div className="flex">
+              <input 
+                type="text" 
+                placeholder="Type your jumbled word" 
+                className="w-full p-3 border rounded-l-md"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button 
+                className="px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]"
+                onClick={() => {/* Search is automatic */}}
+              >
+                SEARCH
+              </button>
+            </div>
             {searchTerm.length > 0 && (
-              <div className="fixed w-[calc(100%-2rem)] md:w-auto md:relative bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto">
+              <div className="absolute left-0 right-0 mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-3 text-gray-500">Searching...</div>
                 ) : searchResults.length === 0 ? (
