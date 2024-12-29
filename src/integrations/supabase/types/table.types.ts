@@ -13,7 +13,7 @@ export type Tables<
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
       Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
@@ -21,7 +21,7 @@ export type Tables<
       PublicSchema['Views'])
   ? (PublicSchema['Tables'] &
       PublicSchema['Views'])[PublicTableNameOrOptions] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
