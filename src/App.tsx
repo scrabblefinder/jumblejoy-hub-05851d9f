@@ -7,6 +7,7 @@ import JumbleAnswer from './pages/JumbleAnswer';
 import CaptionAnswer from './pages/CaptionAnswer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import AdminPanel from './pages/AdminPanel';
+import DailyPost from './pages/DailyPost';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Create a client
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="/jumble/:word" element={<JumbleAnswer />} />
           <Route path="/clue/:slug" element={<CaptionAnswer />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/daily-jumble/:date" element={<DailyPost />} />
           <Route 
             path="/admin" 
             element={
