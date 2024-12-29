@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import { Button } from "@/components/ui/button";
 import ClueContent from '@/components/clue/ClueContent';
 import RelatedClues from '@/components/clue/RelatedClues';
+import { DailyPuzzle } from '@/integrations/supabase/types';
 
 const createSlug = (text: string) => {
   return text
@@ -40,19 +41,19 @@ const CaptionAnswer = () => {
     },
   });
 
-  const { data: relatedPuzzles } = useQuery({
+  const { data: relatedPuzzles = [] } = useQuery({
     queryKey: ['related_puzzles', puzzle?.date],
     enabled: !!puzzle?.date,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('daily_puzzles')
         .select('*')
-        .eq('date', puzzle.date)
-        .neq('id', puzzle.id)
+        .eq('date', puzzle!.date)
+        .neq('id', puzzle!.id)
         .limit(3);
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -111,7 +112,7 @@ const CaptionAnswer = () => {
             </div>
 
             <RelatedClues 
-              relatedPuzzles={relatedPuzzles || []} 
+              relatedPuzzles={relatedPuzzles} 
               currentDate={new Date(puzzle.date)} 
             />
           </div>
