@@ -5,8 +5,10 @@ import { format, parseISO } from 'date-fns';
 
 const Sidebar = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [latestWords, setLatestWords] = useState<any[]>([]);
   const [latestDate, setLatestDate] = useState<string>('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const fetchLatestWords = async () => {
@@ -41,6 +43,36 @@ const Sidebar = () => {
     fetchLatestWords();
   }, []);
 
+  useEffect(() => {
+    const searchWords = async () => {
+      if (searchTerm.length === 0) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const { data: words, error } = await supabase
+          .from('jumble_words')
+          .select('jumbled_word, answer')
+          .ilike('jumbled_word', `%${searchTerm.toUpperCase()}%`)
+          .limit(10);
+
+        if (error) throw error;
+        setSearchResults(words || []);
+      } catch (error) {
+        console.error('Error searching words:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce the search to avoid too many requests
+    const timeoutId = setTimeout(searchWords, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
   const formatDate = (dateString: string) => {
     try {
       return format(parseISO(dateString), 'MMMM dd yyyy');
@@ -64,9 +96,33 @@ const Sidebar = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="absolute right-0 top-0 h-full px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]">
+            <button 
+              className="absolute right-0 top-0 h-full px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]"
+              onClick={() => {/* Search is automatic */}}
+            >
               SEARCH
             </button>
+            {searchTerm.length > 0 && (
+              <div className="absolute w-full bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto">
+                {isSearching ? (
+                  <div className="p-3 text-gray-500">Searching...</div>
+                ) : searchResults.length === 0 ? (
+                  <div className="p-3 text-gray-500">No matches found</div>
+                ) : (
+                  searchResults.map((word, index) => (
+                    <Link
+                      key={index}
+                      to={`/jumble/${word.jumbled_word.toLowerCase()}`}
+                      className="block p-3 hover:bg-gray-100 border-b last:border-b-0"
+                    >
+                      <span className="text-[#0275d8] font-semibold">{word.jumbled_word}</span>
+                      <span className="text-gray-500 ml-2">→</span>
+                      <span className="text-green-600 font-semibold ml-2">{word.answer}</span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
