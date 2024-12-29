@@ -80,18 +80,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get today's date and format it as YYMMDD
     const today = new Date()
     const dateStr = format(today, 'yyMMdd')
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
     // Updated URL format to match the correct pattern
-    const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.xml`
+    const url = `https://www.uclick.com/puzzles/tmjmf/${dateStr}/data.xml`
     console.log(`Trying URL: ${url}`)
     
     const response = await fetch(url)
     if (!response.ok) {
+      console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`)
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
     }
     
