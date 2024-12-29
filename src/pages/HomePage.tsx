@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
@@ -80,7 +81,7 @@ const HomePage: React.FC = () => {
     };
 
     fetchPuzzles();
-  }, [currentPage]); // Add currentPage as dependency
+  }, [currentPage]);
 
   const formatPuzzleDate = (dateString: string) => {
     try {
@@ -89,6 +90,19 @@ const HomePage: React.FC = () => {
     } catch (error) {
       console.error('Error formatting date:', error);
       return dateString;
+    }
+  };
+
+  const formatUrlDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      const month = format(date, 'MMMM').toLowerCase();
+      const day = format(date, 'dd');
+      const year = format(date, 'yyyy');
+      return `/daily-jumble-${month}-${day}-${year}-answers`;
+    } catch (error) {
+      console.error('Error formatting URL date:', error);
+      return '#';
     }
   };
 
@@ -117,6 +131,7 @@ const HomePage: React.FC = () => {
               <JumblePuzzle 
                 key={puzzle.id}
                 date={formatPuzzleDate(puzzle.date)}
+                dateUrl={formatUrlDate(puzzle.date)}
                 words={puzzle.jumble_words}
                 caption={puzzle.caption}
                 imageUrl={puzzle.image_url}

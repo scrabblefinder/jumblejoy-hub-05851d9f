@@ -8,6 +8,7 @@ interface JumbleWord {
 
 interface JumblePuzzleProps {
   date: string;
+  dateUrl: string;
   words: JumbleWord[];
   caption: string;
   imageUrl: string;
@@ -19,6 +20,7 @@ interface JumblePuzzleProps {
 
 const JumblePuzzle = ({ 
   date, 
+  dateUrl,
   words, 
   caption, 
   imageUrl, 
@@ -50,7 +52,7 @@ const JumblePuzzle = ({
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
       <div className="bg-[#0275d8] text-white p-4 text-xl flex justify-between items-center">
-        <Link to="#" className="hover:underline w-full text-center">
+        <Link to={dateUrl} className="hover:underline w-full text-center">
           Daily Jumble {date} Answers
         </Link>
         {onToggle && (
