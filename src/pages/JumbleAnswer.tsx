@@ -46,6 +46,10 @@ const JumbleAnswer = () => {
     );
   }
 
+  const relatedWords = data.daily_puzzles?.jumble_words?.filter(
+    (w) => w.jumbled_word !== data.jumbled_word
+  ) || [];
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
@@ -82,18 +86,44 @@ const JumbleAnswer = () => {
                   </div>
 
                   {data.daily_puzzles && (
-                    <div className="mt-8 text-left">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">From Puzzle:</h3>
-                      <p className="text-gray-600">
-                        {new Date(data.daily_puzzles.date).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                      <p className="text-[#2f75d9] mt-2">{data.daily_puzzles.caption}</p>
-                    </div>
+                    <>
+                      <div className="mt-8 text-left">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-2">From Puzzle:</h3>
+                        <p className="text-gray-600">
+                          {new Date(data.daily_puzzles.date).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                        <p className="text-[#2f75d9] mt-2">{data.daily_puzzles.caption}</p>
+                      </div>
+
+                      {relatedWords.length > 0 && (
+                        <div className="mt-8 text-left">
+                          <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                            Other Words from this Puzzle:
+                          </h3>
+                          <div className="grid gap-4">
+                            {relatedWords.map((relatedWord) => (
+                              <Link
+                                key={relatedWord.jumbled_word}
+                                to={`/jumble/${relatedWord.jumbled_word.toLowerCase()}`}
+                                className="block bg-gray-50 p-4 rounded-lg 
+                                         hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xl font-bold text-[#2f75d9]">
+                                    {relatedWord.jumbled_word}
+                                  </span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
