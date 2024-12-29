@@ -60,6 +60,10 @@ const JumblePuzzle = ({
     }
   };
 
+  // Filter out the final jumble from regular words
+  const regularWords = words.filter(word => word.id !== 'final-jumble');
+  const finalJumbleWord = words.find(word => word.id === 'final-jumble');
+
   return (
     <div className="bg-white rounded-lg overflow-hidden mb-8">
       <div className="bg-[#0275d8] text-white p-4 text-xl flex justify-between items-center">
@@ -82,7 +86,7 @@ const JumblePuzzle = ({
         <div className="p-4 space-y-4 border-x border-b">
           <div className="flex gap-8">
             <div className="w-3/4 space-y-4">
-              {words.map((word) => (
+              {regularWords.map((word) => (
                 <Link 
                   key={word.id}
                   to={`/jumble/${word.jumbled_word.toLowerCase()}`}
@@ -98,17 +102,17 @@ const JumblePuzzle = ({
                   </div>
                 </Link>
               ))}
-              {finalJumble && (
+              {finalJumbleWord && finalJumbleWord.jumbled_word && (
                 <Link 
-                  to={`/jumble/${finalJumble.toLowerCase()}`}
+                  to={`/jumble/${finalJumbleWord.jumbled_word.toLowerCase()}`}
                   className="block bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-[#0275d8]">
-                      {finalJumble}
+                      {finalJumbleWord.jumbled_word}
                     </span>
                     <span className="text-sm text-gray-500">
-                      {countLetters(finalJumble)} letters
+                      {countLetters(finalJumbleWord.jumbled_word)} letters
                     </span>
                   </div>
                   {solution && (
