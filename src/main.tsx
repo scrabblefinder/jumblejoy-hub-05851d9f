@@ -22,6 +22,31 @@ declare global {
   }
 }
 
+const calculateFinalJumble = (clues: any): string => {
+  const jumbledParts = [];
+  const answers = [
+    clues.c1.a,
+    clues.c2.a,
+    clues.c3.a,
+    clues.c4.a
+  ];
+  const positions = [
+    clues.c1.circle,
+    clues.c2.circle,
+    clues.c3.circle,
+    clues.c4.circle
+  ];
+  
+  for (let i = 0; i < answers.length; i++) {
+    const word = answers[i];
+    const pos = positions[i].split(',').map(Number);
+    const letters = pos.map(p => word[p - 1]).join('');
+    jumbledParts.push(letters);
+  }
+  
+  return jumbledParts.join('');
+};
+
 async function initializePuzzles() {
   try {
     // Get the latest puzzles
@@ -64,6 +89,22 @@ async function initializePuzzles() {
       };
 
       const processedDataLatest = parseJumbleXML(xmlData);
+      
+      // Calculate final jumble if it's not already set
+      if (!latestPuzzle.final_jumble) {
+        const finalJumble = calculateFinalJumble(xmlData.clues);
+        // Update the puzzle with the calculated final jumble
+        const { error: updateError } = await supabase
+          .from('daily_puzzles')
+          .update({ final_jumble: finalJumble })
+          .eq('id', latestPuzzle.id);
+          
+        if (updateError) {
+          console.error('Error updating final jumble:', updateError);
+        } else {
+          latestPuzzle.final_jumble = finalJumble;
+        }
+      }
 
       // Add the final jumble word to the jumble_words array
       const latestPuzzleWithFinalJumble = {
