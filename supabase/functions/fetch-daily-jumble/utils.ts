@@ -13,6 +13,12 @@ export const cleanSolution = (solution: string): string => {
   return solution.replace(/{\s*}/g, ' ').trim();
 };
 
+const extractCircledLetters = (word: string, circles: string): string => {
+  if (!circles || !word) return '';
+  const positions = circles.split(',').map(Number);
+  return positions.map(pos => word[pos - 1]).join('');
+};
+
 export const extractPuzzleData = (jsonText: string, date: Date) => {
   console.log('Raw JSON:', jsonText);
 
@@ -27,15 +33,18 @@ export const extractPuzzleData = (jsonText: string, date: Date) => {
     { jumbled_word: data.Clues.c2, answer: data.Clues.a2, circles: data.Clues.o2 },
     { jumbled_word: data.Clues.c3, answer: data.Clues.a3, circles: data.Clues.o3 },
     { jumbled_word: data.Clues.c4, answer: data.Clues.a4, circles: data.Clues.o4 }
-  ].filter(word => word.jumbled_word && word.answer); // Filter out any undefined words
+  ].filter(word => word.jumbled_word && word.answer);
 
   console.log('Extracted jumble words:', jumbleWords);
 
-  // Get final jumble and solution
-  const finalJumble = data.Solution.k1 || '';
-  const solution = cleanSolution(data.Solution.s1 || '');
+  // Create final jumble from circled letters
+  const finalJumble = jumbleWords
+    .map(word => extractCircledLetters(word.jumbled_word, word.circles))
+    .join('');
 
-  console.log('Final jumble:', finalJumble);
+  console.log('Created final jumble from circled letters:', finalJumble);
+
+  const solution = cleanSolution(data.Solution.s1 || '');
   console.log('Solution:', solution);
 
   // Format data for database insertion with cleaned caption and solution
@@ -45,7 +54,10 @@ export const extractPuzzleData = (jsonText: string, date: Date) => {
     image_url: data.Image || 'https://placeholder.com/400x300',
     solution: solution,
     final_jumble: finalJumble,
-    jumble_words: jumbleWords
+    jumble_words: jumbleWords.map(({ jumbled_word, answer }) => ({
+      jumbled_word,
+      answer
+    }))
   };
 
   console.log('Final puzzle data:', puzzleData);
