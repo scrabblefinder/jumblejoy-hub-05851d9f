@@ -99,10 +99,11 @@ const Sidebar = () => {
               <input 
                 type="text" 
                 placeholder="Type your jumbled word" 
-                className="w-full p-3 border rounded-l-md"
+                className="w-full p-3 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onBlur={() => {
+                  // Delay hiding results to allow for click events
                   setTimeout(() => setShowResults(false), 200);
                 }}
                 onFocus={() => {
@@ -110,14 +111,14 @@ const Sidebar = () => {
                 }}
               />
               <button 
-                className="px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]"
+                className="px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5] transition-colors"
                 onClick={() => setShowResults(true)}
               >
                 SEARCH
               </button>
             </div>
             {showResults && searchTerm.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+              <div className="absolute left-0 right-0 top-full mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-3 text-gray-500">Searching...</div>
                 ) : searchResults.length === 0 ? (
@@ -127,7 +128,7 @@ const Sidebar = () => {
                     <Link
                       key={index}
                       to={`/jumble/${word.jumbled_word.toLowerCase()}`}
-                      className="block p-3 hover:bg-gray-100 border-b last:border-b-0"
+                      className="block p-3 hover:bg-gray-100 border-b last:border-b-0 transition-colors"
                       onClick={() => handleResultClick(word.jumbled_word)}
                     >
                       <span className="text-[#0275d8] font-semibold">{word.jumbled_word}</span>
