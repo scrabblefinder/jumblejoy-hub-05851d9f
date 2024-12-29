@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
 import { DailyPuzzle } from '@/integrations/supabase/types';
+import { format, parseISO } from 'date-fns';
 
 const DailyPost = () => {
   const { date } = useParams();
@@ -73,11 +74,20 @@ const DailyPost = () => {
     );
   }
 
-  const formattedDate = new Date(puzzle.date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  const formatPuzzleDate = (dateString: string) => {
+    const date = parseISO(dateString);
+    return format(date, 'MMMM d, yyyy');
+  };
+
+  const formatUrlDate = (dateString: string) => {
+    const date = parseISO(dateString);
+    const month = format(date, 'MMMM').toLowerCase();
+    const day = format(date, 'dd');
+    const year = format(date, 'yyyy');
+    return `/daily-jumble-${month}-${day}-${year}-answers`;
+  };
+
+  const formattedDate = formatPuzzleDate(puzzle.date);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -100,6 +110,7 @@ const DailyPost = () => {
 
         <JumblePuzzle
           date={formattedDate}
+          dateUrl={formatUrlDate(puzzle.date)}
           words={puzzle.jumble_words || []}
           caption={puzzle.caption}
           imageUrl={puzzle.image_url}
