@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     // Construct the URL with the formatted date
     const url = `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
     
-    console.log('Fetching from URL:', url);
+    console.log('Attempting to fetch from URL:', url);
 
     const response = await fetch(url, {
       headers: {
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status}`);
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
     }
 
     const text = await response.text();
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: `Failed to fetch or process puzzle: ${error.message}` }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
