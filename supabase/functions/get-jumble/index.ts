@@ -32,8 +32,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     )
 
-    // Query the database
-    const { data, error } = await supabaseClient
+    console.log('Searching for word:', word);
+
+    // First try to find it in jumble_words
+    let { data: jumbleData, error: jumbleError } = await supabaseClient
       .from('jumble_words')
       .select(`
         jumbled_word,
@@ -42,24 +44,56 @@ serve(async (req) => {
         daily_puzzles (
           date,
           caption,
-          solution
+          solution,
+          jumble_words (
+            jumbled_word,
+            answer
+          )
         )
       `)
       .eq('jumbled_word', word.toUpperCase())
-      .maybeSingle()
+      .maybeSingle();
 
-    if (error) {
-      console.error('Database query error:', error);
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      )
+    if (jumbleError) {
+      console.error('Database query error:', jumbleError);
+      throw jumbleError;
     }
 
-    if (!data) {
+    // If not found in jumble_words, try to find it in daily_puzzles as final_jumble
+    if (!jumbleData) {
+      console.log('Word not found in jumble_words, checking final_jumble');
+      const { data: puzzleData, error: puzzleError } = await supabaseClient
+        .from('daily_puzzles')
+        .select(`
+          date,
+          caption,
+          solution,
+          final_jumble,
+          final_jumble_answer,
+          jumble_words (
+            jumbled_word,
+            answer
+          )
+        `)
+        .eq('final_jumble', word.toUpperCase())
+        .maybeSingle();
+
+      if (puzzleError) {
+        console.error('Database query error:', puzzleError);
+        throw puzzleError;
+      }
+
+      if (puzzleData) {
+        jumbleData = {
+          jumbled_word: puzzleData.final_jumble,
+          answer: puzzleData.final_jumble_answer,
+          daily_puzzles: puzzleData
+        };
+      }
+    }
+
+    if (!jumbleData) {
+      console.log('Word not found in either table');
       return new Response(
         JSON.stringify({ error: 'Word not found' }),
         { 
@@ -69,9 +103,11 @@ serve(async (req) => {
       )
     }
 
+    console.log('Found word data:', jumbleData);
+
     // Return the data
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(jumbleData),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
