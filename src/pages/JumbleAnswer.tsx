@@ -64,31 +64,25 @@ const JumbleAnswer = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0275d8]"></div>
+      <div className="flex items-center justify-center min-h-screen bg-jumble-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-jumble-primary"></div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">{error}</div>
+      <div className="min-h-screen flex flex-col bg-jumble-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8 flex-grow">
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 text-center">
+            <div className="text-red-500">{error}</div>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
-
-  const formatPuzzleDate = (dateString: string) => {
-    const puzzleDate = new Date(dateString);
-    puzzleDate.setMinutes(puzzleDate.getMinutes() + puzzleDate.getTimezoneOffset());
-    
-    return puzzleDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const relatedWords = data.daily_puzzles?.jumble_words?.filter(
     (w) => w.jumbled_word !== data.jumbled_word
@@ -100,58 +94,73 @@ const JumbleAnswer = () => {
         <title>{`${data.jumbled_word} - JumbleAnswers.com`}</title>
       </Helmet>
 
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-jumble-background">
         <Header />
         
         <main className="container mx-auto px-4 py-8 flex-grow">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-              <div className="bg-white rounded-lg overflow-hidden">
-                <div className="bg-[#0275d8] text-white p-4 text-xl">
-                  <h1 className="text-center">Jumble Answer</h1>
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden">
+                <div className="bg-jumble-primary text-jumble-text p-4">
+                  <h1 className="text-2xl font-bold text-center">Jumble Answer</h1>
                 </div>
-                <div className="p-8 space-y-6 border-x border-b">
+                
+                <div className="p-8 space-y-6">
                   <div className="text-center">
                     <div className="mb-8">
-                      <h2 className="text-xl font-semibold text-gray-600 mb-2">Jumbled Word:</h2>
-                      <p className="text-4xl font-bold text-[#0275d8]">{data.jumbled_word}</p>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                      </div>
-                      <div className="relative flex justify-center">
-                        <span className="bg-white px-4 text-sm text-gray-500">UNSCRAMBLES TO</span>
-                      </div>
-                    </div>
-                    <div className="mt-8">
-                      <h2 className="text-xl font-semibold text-gray-600 mb-2">Answer:</h2>
-                      <p className="text-5xl font-bold text-green-600">{data.answer}</p>
+                      <h2 className="text-xl font-semibold text-jumble-text/80 mb-2">Jumbled Word:</h2>
+                      <p className="text-4xl font-bold text-jumble-primary">{data.jumbled_word}</p>
                     </div>
                     
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-jumble-text/10"></div>
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-jumble-background px-4 text-sm text-jumble-text/60">
+                          UNSCRAMBLES TO
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8">
+                      <h2 className="text-xl font-semibold text-jumble-text/80 mb-2">Answer:</h2>
+                      <p className="text-5xl font-bold text-green-500">{data.answer}</p>
+                    </div>
+
                     {data.daily_puzzles && (
                       <>
                         <div className="mt-8 text-left">
-                          <h3 className="text-lg font-semibold text-gray-600 mb-2">From Puzzle:</h3>
-                          <p className="text-gray-600">{formatPuzzleDate(data.daily_puzzles.date)}</p>
-                          <p className="text-[#0275d8] mt-2">{data.daily_puzzles.caption}</p>
+                          <h3 className="text-xl font-semibold text-jumble-text/80 mb-2">From Puzzle:</h3>
+                          <p className="text-jumble-text/60">
+                            {new Date(data.daily_puzzles.date).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                          <p className="text-jumble-primary mt-2">{data.daily_puzzles.caption}</p>
                         </div>
 
                         {relatedWords.length > 0 && (
                           <div className="mt-8 text-left">
-                            <h3 className="text-lg font-semibold text-gray-600 mb-4">Other Words from this Puzzle:</h3>
+                            <h3 className="text-xl font-semibold text-jumble-text/80 mb-4">
+                              Other Words from this Puzzle:
+                            </h3>
                             <div className="grid gap-4">
                               {relatedWords.map((relatedWord) => (
                                 <Link
                                   key={relatedWord.jumbled_word}
                                   to={`/jumble/${relatedWord.jumbled_word.toLowerCase()}`}
-                                  className="block bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                                  className="block bg-white/5 backdrop-blur-sm p-4 rounded-lg 
+                                           hover:bg-white/10 transition-colors"
                                 >
                                   <div className="flex justify-between items-center">
-                                    <span className="text-xl font-bold text-[#0275d8]">
+                                    <span className="text-xl font-bold text-jumble-primary">
                                       {relatedWord.jumbled_word}
                                     </span>
-                                    <span className="text-green-600 font-semibold">
+                                    <span className="text-green-500 font-semibold">
                                       {relatedWord.answer}
                                     </span>
                                   </div>
@@ -166,10 +175,11 @@ const JumbleAnswer = () => {
                 </div>
               </div>
               
-              <div className="mt-8 ml-4">
+              <div className="mt-8">
                 <Link
                   to="/"
-                  className="inline-block bg-[#0275d8] text-white px-6 py-3 rounded hover:bg-[#025aa5] transition-colors"
+                  className="inline-flex items-center px-6 py-3 rounded-lg bg-jumble-primary 
+                           text-jumble-text hover:bg-jumble-primary/80 transition-colors"
                 >
                   Back to Daily Puzzle
                 </Link>

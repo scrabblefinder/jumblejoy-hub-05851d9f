@@ -16,7 +16,6 @@ const DailyPost = () => {
     queryFn: async () => {
       if (!date) throw new Error('No date provided');
       
-      // Parse the date from URL format (YYYYMMDD) to database format (YYYY-MM-DD)
       const parsedDate = new Date(
         parseInt(date.substring(0, 4)),
         parseInt(date.substring(4, 6)) - 1,
@@ -48,24 +47,24 @@ const DailyPost = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0275d8]"></div>
+      <div className="flex items-center justify-center min-h-screen bg-jumble-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-jumble-primary"></div>
       </div>
     );
   }
 
   if (error || !puzzle) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-jumble-background">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
-            <p className="text-gray-600 mb-8">Sorry, we couldn't find the puzzle for this date.</p>
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-jumble-text mb-4">Puzzle Not Found</h1>
+            <p className="text-jumble-text/60 mb-8">Sorry, we couldn't find the puzzle for this date.</p>
             <Button
               variant="outline"
               onClick={() => window.history.back()}
-              className="text-[#0275d8] hover:text-[#025aa5]"
+              className="text-jumble-primary hover:text-jumble-primary/80"
             >
               ← Go Back
             </Button>
@@ -93,11 +92,11 @@ const DailyPost = () => {
   const dateUrl = formatUrlDate(puzzle.date);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-jumble-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+        <h1 className="text-3xl font-bold text-jumble-text mb-6 text-center">
           Daily Jumble {formattedDate} Answers
         </h1>
 
@@ -115,7 +114,7 @@ const DailyPost = () => {
           <Button
             variant="outline"
             onClick={() => window.history.back()}
-            className="text-[#0275d8] hover:text-[#025aa5]"
+            className="text-jumble-primary hover:text-jumble-primary/80"
           >
             ← Go Back
           </Button>
