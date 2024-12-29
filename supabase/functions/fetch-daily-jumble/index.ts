@@ -38,6 +38,10 @@ serve(async (req) => {
     const cleanSolution = rawSolution.replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim()
     console.log('Cleaned solution:', cleanSolution)
 
+    // Calculate final jumble from circled letters
+    const finalJumble = calculateFinalJumble(data.Clues)
+    console.log('Calculated final jumble:', finalJumble)
+
     // Insert into daily_puzzles
     const { data: puzzle, error: puzzleError } = await supabaseAdmin
       .from('daily_puzzles')
@@ -46,8 +50,8 @@ serve(async (req) => {
         caption: data.Caption?.v1 || '',
         image_url: data.Image || '',
         solution: cleanSolution,
-        final_jumble: data.FinalJumble?.q || '',
-        final_jumble_answer: data.FinalJumble?.a || ''
+        final_jumble: finalJumble,
+        final_jumble_answer: cleanSolution // The solution is the answer to the final jumble
       })
       .select()
       .single()
@@ -97,3 +101,31 @@ serve(async (req) => {
     )
   }
 })
+
+// Helper function to calculate final jumble from circled letters
+function calculateFinalJumble(clues: any): string {
+  if (!clues) return '';
+
+  try {
+    // Extract circled letters from each word based on positions
+    const words = [
+      { answer: clues.a1, positions: clues.o1 },
+      { answer: clues.a2, positions: clues.o2 },
+      { answer: clues.a3, positions: clues.o3 },
+      { answer: clues.a4, positions: clues.o4 }
+    ];
+
+    // Get circled letters from each word
+    const jumbledParts = words.map(({ answer, positions }) => {
+      if (!answer || !positions) return '';
+      const pos = positions.split(',').map(Number);
+      return pos.map(p => answer[p - 1]).join('');
+    });
+
+    // Combine all parts to create the final jumbled word
+    return jumbledParts.join('');
+  } catch (error) {
+    console.error('Error calculating final jumble:', error);
+    return '';
+  }
+}
