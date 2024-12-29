@@ -91,7 +91,7 @@ export const formatDate = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
+  return `${year}-${month}-${day}`;
 };
 
 export const extractCircledLetters = (answers: string[], positions: string[]): string => {
@@ -116,7 +116,7 @@ export const extractCircledLetters = (answers: string[], positions: string[]): s
 };
 
 export const fetchPuzzle = async (date: Date): Promise<string> => {
-  const formattedDate = formatDate(date);
+  const formattedDate = formatDate(date).replace(/-/g, '');
   const url = `https://www.uclick.com/puzzles/tmjmf/${formattedDate}-data.xml`;
   
   try {
@@ -125,6 +125,8 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
       headers: {
         'Accept': 'application/xml, text/xml, */*',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.uclick.com/',
+        'Origin': 'https://www.uclick.com',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
       },
@@ -132,7 +134,29 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error(`HTTP error! status: ${response.status}`);
+      // Try fetching without cache
+      console.log('Retrying with cache-busting parameter...');
+      const retryUrl = `${url}?t=${new Date().getTime()}`;
+      const retryResponse = await fetch(retryUrl, { 
+        headers: {
+          'Accept': 'application/xml, text/xml, */*',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://www.uclick.com/',
+          'Origin': 'https://www.uclick.com',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+
+      if (!retryResponse.ok) {
+        throw new Error(`HTTP error! status: ${retryResponse.status}`);
+      }
+
+      const retryText = await retryResponse.text();
+      console.log('Successfully fetched puzzle data after retry');
+      return retryText;
     }
 
     const xmlText = await response.text();
