@@ -18,23 +18,20 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
   const cluesSection = cluesMatch[1];
   console.log('Clues section:', cluesSection);
 
-  // Extract individual clues using the same format as the manual JSON entry
-  const clues = {
-    c1: '', c2: '', c3: '', c4: '',
-    a1: '', a2: '', a3: '', a4: '',
-    o1: '2,3,5', o2: '2,4,5', o3: '2,3,6', o4: '3,5'
-  };
-
-  // Extract jumbled words and answers
+  // Extract individual clues
   const clueRegex = /<c(\d+)>\s*<j>(.*?)<\/j>\s*<a>(.*?)<\/a>/g;
+  const jumbleWords = [];
   let clueMatch;
+  
   while ((clueMatch = clueRegex.exec(cluesSection)) !== null) {
     const [, num, jumbled, answer] = clueMatch;
-    clues[`c${num}`] = jumbled.trim();
-    clues[`a${num}`] = answer.trim();
+    jumbleWords.push({
+      jumbled_word: jumbled.trim(),
+      answer: answer.trim()
+    });
   }
 
-  console.log('Extracted clues:', clues);
+  console.log('Extracted jumble words:', jumbleWords);
 
   // Extract caption
   const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>/);
@@ -51,18 +48,13 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
   const imageUrl = imageMatch ? imageMatch[1].trim() : '';
   console.log('Extracted image URL:', imageUrl);
 
-  // Format data exactly like the manual JSON entry
+  // Format data for database insertion
   const puzzleData = {
     date: format(date, 'yyyy-MM-dd'),
     caption: caption || 'Daily Jumble Puzzle',
     image_url: imageUrl || 'https://placeholder.com/400x300',
     solution: solution || '',
-    jumble_words: [
-      { jumbled_word: clues.c1, answer: clues.a1 },
-      { jumbled_word: clues.c2, answer: clues.a2 },
-      { jumbled_word: clues.c3, answer: clues.a3 },
-      { jumbled_word: clues.c4, answer: clues.a4 }
-    ].filter(word => word.jumbled_word && word.answer) // Only include complete word pairs
+    jumble_words: jumbleWords
   };
 
   console.log('Final puzzle data:', puzzleData);
@@ -71,7 +63,7 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
 
 export const fetchPuzzle = async (date: Date) => {
   const dateStr = format(date, 'yyMMdd');
-  const url = `http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`;
+  const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.xml`;
   
   console.log(`Fetching puzzle for date ${dateStr} from URL: ${url}`);
   
