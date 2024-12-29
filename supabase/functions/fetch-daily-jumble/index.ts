@@ -37,14 +37,17 @@ Deno.serve(async (req) => {
 
     const response = await fetch(url, {
       headers: {
-        'Accept': 'application/json, text/javascript, */*',
+        'Accept': '*/*',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': 'https://www.uclick.com/',
-        'Origin': 'https://www.uclick.com'
+        'Origin': 'https://www.uclick.com',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
     });
 
     if (!response.ok) {
+      console.error(`HTTP error! status: ${response.status}`);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -83,7 +86,9 @@ Deno.serve(async (req) => {
         date: dbDate,
         caption: jsonData.Caption.v1,
         image_url: jsonData.Image,
-        solution: jsonData.Solution.s1
+        solution: jsonData.Solution.s1,
+        final_jumble: jsonData.Solution?.j1 || null,
+        final_jumble_answer: jsonData.Solution?.s1 || null
       })
       .select()
       .single();
@@ -128,7 +133,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: `Failed to fetch puzzle for date ${error.message}` }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
