@@ -5,17 +5,24 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
+import { DailyPuzzle } from '@/integrations/supabase/types';
 
 const DailyPost = () => {
   const { date } = useParams();
   
-  const { data: puzzle, isLoading, error } = useQuery({
+  const { data: puzzle, isLoading, error } = useQuery<DailyPuzzle>({
     queryKey: ['daily_puzzle', date],
     queryFn: async () => {
       if (!date) throw new Error('No date provided');
       
-      // Format the date parameter to YYYY-MM-DD
-      const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+      // Parse the date from URL format (YYYYMMDD) to database format (YYYY-MM-DD)
+      const parsedDate = new Date(
+        parseInt(date.substring(0, 4)),
+        parseInt(date.substring(4, 6)) - 1,
+        parseInt(date.substring(6, 8))
+      );
+      
+      const formattedDate = parsedDate.toISOString().split('T')[0];
       
       const { data, error } = await supabase
         .from('daily_puzzles')
@@ -93,7 +100,7 @@ const DailyPost = () => {
 
         <JumblePuzzle
           date={formattedDate}
-          words={puzzle.jumble_words}
+          words={puzzle.jumble_words || []}
           caption={puzzle.caption}
           imageUrl={puzzle.image_url}
           solution={puzzle.solution}
