@@ -1,11 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { format, parse } from 'date-fns';
-
-interface JumbleWord {
-  id: string;
-  jumbled_word: string;
-  answer: string;
-}
+import { JumbleWord } from '@/integrations/supabase/types';
 
 interface JumblePuzzleProps {
   date: string;
@@ -112,7 +107,7 @@ const JumblePuzzle = ({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-[#0275d8]">
-                      Final Jumble: {finalJumbleWord.jumbled_word}
+                      {finalJumbleWord.jumbled_word}
                     </span>
                     <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
                       {countLetters(finalJumbleWord.jumbled_word)} letters
