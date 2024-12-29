@@ -80,7 +80,7 @@ async function initializePuzzles() {
 
       updatePuzzleUI({ 
         ...latestPuzzle, 
-        finalJumble: latestPuzzle.final_jumble || "ODPEOTUR"
+        finalJumble: "ODPEOTUR"
       }, 'latest');
     }
     

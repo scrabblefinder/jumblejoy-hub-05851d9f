@@ -35,9 +35,9 @@ const JumblePuzzle = ({
   const createSlug = (text: string) => {
     return text
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .trim();
   };
 
@@ -52,9 +52,7 @@ const JumblePuzzle = ({
 
   const handleDateClick = () => {
     try {
-      // Parse the date string (e.g., "December 27 2024") into a Date object
       const parsedDate = parse(date, 'MMMM dd yyyy', new Date());
-      // Format it as YYYYMMDD for the URL
       const formattedDate = format(parsedDate, 'yyyyMMdd');
       navigate(`/daily-jumble/${formattedDate}`);
     } catch (error) {
