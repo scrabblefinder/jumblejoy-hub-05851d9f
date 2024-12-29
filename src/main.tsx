@@ -64,19 +64,6 @@ async function initializePuzzles() {
       };
 
       const processedDataLatest = parseJumbleXML(xmlData);
-      
-      // Update the final jumble in the database if it's not already set
-      if (!latestPuzzle.final_jumble) {
-        const { error: updateError } = await supabase
-          .from('daily_puzzles')
-          .update({ 
-            final_jumble: latestPuzzle.final_jumble,
-            final_jumble_answer: latestPuzzle.solution
-          })
-          .eq('id', latestPuzzle.id);
-
-        if (updateError) console.error('Error updating final jumble:', updateError);
-      }
 
       // Add the final jumble word to the jumble_words array
       const latestPuzzleWithFinalJumble = {
@@ -85,7 +72,7 @@ async function initializePuzzles() {
           ...latestPuzzle.jumble_words,
           {
             id: 'final-jumble',
-            jumbled_word: latestPuzzle.final_jumble,
+            jumbled_word: latestPuzzle.final_jumble || "",
             answer: latestPuzzle.solution
           }
         ]
@@ -123,24 +110,21 @@ async function initializePuzzles() {
       };
 
       const processedDataPrevious = parseJumbleCallback(sampleData);
-      
-      // Update the final jumble in the database if it's not already set
-      if (!previousPuzzle.final_jumble && processedDataPrevious.finalJumble) {
-        const { error: updateError } = await supabase
-          .from('daily_puzzles')
-          .update({ 
-            final_jumble: processedDataPrevious.finalJumble,
-            final_jumble_answer: previousPuzzle.solution
-          })
-          .eq('id', previousPuzzle.id);
 
-        if (updateError) console.error('Error updating final jumble:', updateError);
-      }
+      // Add the final jumble word to the jumble_words array
+      const previousPuzzleWithFinalJumble = {
+        ...previousPuzzle,
+        jumble_words: [
+          ...previousPuzzle.jumble_words,
+          {
+            id: 'final-jumble',
+            jumbled_word: previousPuzzle.final_jumble || "",
+            answer: previousPuzzle.solution
+          }
+        ]
+      };
 
-      updatePuzzleUI({ 
-        ...previousPuzzle, 
-        finalJumble: processedDataPrevious.finalJumble || previousPuzzle.final_jumble 
-      }, 'previous');
+      updatePuzzleUI(previousPuzzleWithFinalJumble, 'previous');
     }
 
   } catch (error) {
