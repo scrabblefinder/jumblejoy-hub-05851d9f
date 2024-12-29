@@ -48,9 +48,34 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
     }
     
-    const text = await response.text()
-    // Remove the jsonCallback wrapper and parse the JSON
-    const jsonData: JumbleData = JSON.parse(text.replace(/\/\*\*\/jsonCallback\((.*)\)/, '$1'))
+    const xmlText = await response.text()
+    console.log('Received XML:', xmlText)
+
+    // Parse XML to extract needed data
+    const parser = new DOMParser()
+    const xmlDoc = parser.parseFromString(xmlText, 'text/xml')
+
+    // Extract data from XML
+    const jsonData = {
+      Date: dateStr,
+      Clues: {
+        c1: xmlDoc.querySelector('c1 j')?.textContent || '',
+        c2: xmlDoc.querySelector('c2 j')?.textContent || '',
+        c3: xmlDoc.querySelector('c3 j')?.textContent || '',
+        c4: xmlDoc.querySelector('c4 j')?.textContent || '',
+        a1: xmlDoc.querySelector('c1 a')?.textContent || '',
+        a2: xmlDoc.querySelector('c2 a')?.textContent || '',
+        a3: xmlDoc.querySelector('c3 a')?.textContent || '',
+        a4: xmlDoc.querySelector('c4 a')?.textContent || '',
+      },
+      Caption: {
+        v1: xmlDoc.querySelector('caption v1 t')?.textContent || '',
+      },
+      Solution: {
+        s1: xmlDoc.querySelector('solution s1 a')?.textContent || '',
+      },
+      Image: xmlDoc.querySelector('image')?.textContent || '',
+    }
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
