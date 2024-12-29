@@ -39,10 +39,36 @@ Deno.serve(async (req) => {
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
-    // Fetch the puzzle data with the correct URL format
-    const response = await fetch(`https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
+    // Try different URL formats
+    const urlFormats = [
+      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`,
+      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.json`,
+      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.php`,
+      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.php`
+    ]
+
+    let response = null
+    let error = null
+
+    // Try each URL format until one works
+    for (const url of urlFormats) {
+      try {
+        console.log(`Trying URL: ${url}`)
+        const resp = await fetch(url)
+        if (resp.ok) {
+          response = resp
+          break
+        }
+        error = `Failed to fetch from ${url}: ${resp.statusText}`
+      } catch (e) {
+        error = e.message
+        console.error(`Error fetching from ${url}:`, e)
+        continue
+      }
+    }
+
+    if (!response) {
+      throw new Error(error || 'Failed to fetch puzzle data from all URLs')
     }
     
     const text = await response.text()
