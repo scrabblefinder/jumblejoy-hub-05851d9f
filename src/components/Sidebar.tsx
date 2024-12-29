@@ -77,6 +77,7 @@ const Sidebar = () => {
     try {
       return format(parseISO(dateString), 'MMMM dd yyyy');
     } catch (error) {
+      console.error('Error formatting date:', error);
       return dateString;
     }
   };
@@ -103,7 +104,7 @@ const Sidebar = () => {
               SEARCH
             </button>
             {searchTerm.length > 0 && (
-              <div className="absolute w-full bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto">
+              <div className="fixed w-[calc(100%-2rem)] md:w-auto md:relative bg-white border rounded-md mt-1 shadow-lg z-50 max-h-60 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-3 text-gray-500">Searching...</div>
                 ) : searchResults.length === 0 ? (
