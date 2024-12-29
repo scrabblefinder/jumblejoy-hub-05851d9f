@@ -5,6 +5,10 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+export const cleanCaption = (caption: string): string => {
+  return caption.replace(/{\s*}/g, '');
+};
+
 export const extractPuzzleData = (jsonText: string, date: Date) => {
   console.log('Raw JSON:', jsonText);
 
@@ -23,10 +27,10 @@ export const extractPuzzleData = (jsonText: string, date: Date) => {
 
   console.log('Extracted jumble words:', jumbleWords);
 
-  // Format data for database insertion
+  // Format data for database insertion with cleaned caption
   const puzzleData = {
     date: format(date, 'yyyy-MM-dd'),
-    caption: data.Caption.v1 || 'Daily Jumble Puzzle',
+    caption: cleanCaption(data.Caption.v1 || 'Daily Jumble Puzzle'),
     image_url: data.Image || 'https://placeholder.com/400x300',
     solution: data.Solution.s1 || '',
     jumble_words: jumbleWords
@@ -60,7 +64,7 @@ export const fetchPuzzle = async (date: Date) => {
     }
 
     const text = await response.text();
-    console.log('Successfully fetched puzzle data from:', url);
+    console.log('Successfully fetched puzzle data');
     return text;
   } catch (error) {
     console.error(`Error fetching from ${url}:`, error);
