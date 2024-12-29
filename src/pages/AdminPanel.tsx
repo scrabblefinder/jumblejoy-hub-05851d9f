@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import PuzzleForm from '@/components/admin/PuzzleForm';
 import AutomaticPuzzleForm from '@/components/admin/AutomaticPuzzleForm';
 import PuzzleList from '@/components/admin/PuzzleList';
+import { Download } from 'lucide-react';
 
 const AdminPanel = () => {
   const { toast } = useToast();
@@ -38,7 +39,7 @@ const AdminPanel = () => {
     checkSession();
   }, [toast]);
 
-  const fetchTodaysPuzzle = async () => {
+  const fetchLatestPuzzle = async () => {
     setFetchingPuzzle(true);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-daily-jumble');
@@ -47,16 +48,16 @@ const AdminPanel = () => {
 
       toast({
         title: "Success",
-        description: data.message,
+        description: "Latest puzzle fetched and saved successfully",
       });
 
-      // Refresh the puzzle list
+      // Refresh the puzzle list by reloading the page
       window.location.reload();
     } catch (error) {
       console.error('Error fetching puzzle:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch today's puzzle",
+        description: "Failed to fetch latest puzzle",
         variant: "destructive"
       });
     } finally {
@@ -81,11 +82,12 @@ const AdminPanel = () => {
       
       <div className="mb-8">
         <Button 
-          onClick={fetchTodaysPuzzle} 
+          onClick={fetchLatestPuzzle} 
           disabled={fetchingPuzzle}
-          className="w-full md:w-auto"
+          className="w-full md:w-auto flex items-center gap-2"
         >
-          {fetchingPuzzle ? 'Fetching...' : 'Fetch Today\'s Puzzle'}
+          <Download className="h-4 w-4" />
+          {fetchingPuzzle ? 'Fetching Latest Puzzle...' : 'Fetch Latest Puzzle'}
         </Button>
       </div>
 
