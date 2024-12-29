@@ -114,6 +114,7 @@ const Sidebar = () => {
                       key={index}
                       to={`/jumble/${word.jumbled_word.toLowerCase()}`}
                       className="block p-3 hover:bg-gray-100 border-b last:border-b-0"
+                      onClick={() => setSearchTerm('')}
                     >
                       <span className="text-[#0275d8] font-semibold">{word.jumbled_word}</span>
                     </Link>

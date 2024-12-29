@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         image_url: jsonData.Image,
         solution: cleanSolution,
         final_jumble: finalJumble,
-        final_jumble_answer: cleanSolution // Store the solution as the final jumble answer
+        final_jumble_answer: cleanSolution
       })
       .select()
       .single();
