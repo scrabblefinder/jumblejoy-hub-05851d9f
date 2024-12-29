@@ -37,7 +37,7 @@ const HomePage: React.FC = () => {
           setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
         }
 
-        // Then fetch the puzzles for the current page
+        // Then fetch the puzzles for the current page, ordered by date in descending order
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select(`
@@ -136,6 +136,7 @@ const HomePage: React.FC = () => {
                 caption={puzzle.caption}
                 imageUrl={puzzle.image_url}
                 solution={puzzle.solution}
+                finalJumble={puzzle.final_jumble}
                 isExpanded={expandedPuzzles[puzzle.id]}
                 onToggle={index === 0 ? undefined : () => handleToggle(puzzle.id)}
               />
