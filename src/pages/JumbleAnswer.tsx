@@ -26,7 +26,7 @@ const JumbleAnswer = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-jumble-background">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2f75d9]"></div>
       </div>
     );
@@ -34,7 +34,7 @@ const JumbleAnswer = () => {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex flex-col bg-jumble-background">
+      <div className="min-h-screen flex flex-col bg-white">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 text-center">
@@ -51,45 +51,45 @@ const JumbleAnswer = () => {
   ) || [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-jumble-background">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden">
-              <div className="bg-[#2f75d9] text-jumble-text p-4">
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+              <div className="bg-[#2f75d9] text-white p-4">
                 <h1 className="text-2xl font-bold text-center">Jumble Answer</h1>
               </div>
               
               <div className="p-8 space-y-6">
                 <div className="text-center">
                   <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-jumble-text/80 mb-2">Jumbled Word:</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Jumbled Word:</h2>
                     <p className="text-4xl font-bold text-[#2f75d9]">{data.jumbled_word}</p>
                   </div>
                   
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-jumble-text/10"></div>
+                      <div className="w-full border-t border-gray-200"></div>
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="bg-jumble-background px-4 text-sm text-jumble-text/60">
+                      <span className="bg-white px-4 text-sm text-gray-500">
                         UNSCRAMBLES TO
                       </span>
                     </div>
                   </div>
                   
                   <div className="mt-8">
-                    <h2 className="text-xl font-semibold text-jumble-text/80 mb-2">Answer:</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Answer:</h2>
                     <p className="text-5xl font-bold text-green-500">{data.answer}</p>
                   </div>
 
                   {data.daily_puzzles && (
                     <>
                       <div className="mt-8 text-left">
-                        <h3 className="text-xl font-semibold text-jumble-text/80 mb-2">From Puzzle:</h3>
-                        <p className="text-jumble-text/60">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-2">From Puzzle:</h3>
+                        <p className="text-gray-600">
                           {new Date(data.daily_puzzles.date).toLocaleDateString('en-US', {
                             weekday: 'long',
                             year: 'numeric',
@@ -102,7 +102,7 @@ const JumbleAnswer = () => {
 
                       {relatedWords.length > 0 && (
                         <div className="mt-8 text-left">
-                          <h3 className="text-xl font-semibold text-jumble-text/80 mb-4">
+                          <h3 className="text-xl font-semibold text-gray-800 mb-4">
                             Other Words from this Puzzle:
                           </h3>
                           <div className="grid gap-4">
@@ -110,8 +110,8 @@ const JumbleAnswer = () => {
                               <Link
                                 key={relatedWord.jumbled_word}
                                 to={`/jumble/${relatedWord.jumbled_word.toLowerCase()}`}
-                                className="block bg-white/5 backdrop-blur-sm p-4 rounded-lg 
-                                         hover:bg-white/10 transition-colors"
+                                className="block bg-gray-50 p-4 rounded-lg 
+                                         hover:bg-gray-100 transition-colors"
                               >
                                 <div className="flex justify-between items-center">
                                   <span className="text-xl font-bold text-[#2f75d9]">
@@ -136,7 +136,7 @@ const JumbleAnswer = () => {
               <Link
                 to="/"
                 className="inline-flex items-center px-6 py-3 rounded-lg bg-[#2f75d9] 
-                         text-jumble-text hover:bg-[#2f75d9]/80 transition-colors"
+                         text-white hover:bg-[#2f75d9]/80 transition-colors"
               >
                 Back to Daily Puzzle
               </Link>
