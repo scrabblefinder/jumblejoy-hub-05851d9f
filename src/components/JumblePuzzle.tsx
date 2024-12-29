@@ -99,27 +99,24 @@ const JumblePuzzle = ({
                 </Link>
               ))}
               {finalJumble && (
-                <div className="mt-6 border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Final Jumble:</h3>
-                  <Link 
-                    to={`/jumble/${finalJumble.toLowerCase()}`}
-                    className="block bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-[#0275d8]">
-                        {finalJumble}
-                      </span>
-                      <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
-                        Final Jumble - {countLetters(finalJumble)} letters
-                      </span>
+                <Link 
+                  to={`/jumble/${finalJumble.toLowerCase()}`}
+                  className="block bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-[#0275d8]">
+                      {finalJumble}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {countLetters(finalJumble)} letters
+                    </span>
+                  </div>
+                  {solution && (
+                    <div className="mt-2 text-sm text-gray-600">
+                      Solution: {solution}
                     </div>
-                    {solution && (
-                      <div className="mt-2 text-sm text-blue-600">
-                        Solution: {solution}
-                      </div>
-                    )}
-                  </Link>
-                </div>
+                  )}
+                </Link>
               )}
             </div>
             <div className="w-1/4 flex flex-col items-center space-y-4">

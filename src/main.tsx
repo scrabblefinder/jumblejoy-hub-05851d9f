@@ -78,10 +78,20 @@ async function initializePuzzles() {
         if (updateError) console.error('Error updating final jumble:', updateError);
       }
 
-      updatePuzzleUI({ 
-        ...latestPuzzle, 
-        finalJumble: "ODPEOTUR"
-      }, 'latest');
+      // Add the final jumble word to the jumble_words array
+      const latestPuzzleWithFinalJumble = {
+        ...latestPuzzle,
+        jumble_words: [
+          ...latestPuzzle.jumble_words,
+          {
+            id: 'final-jumble',
+            jumbled_word: "ODPEOTUR",
+            answer: latestPuzzle.solution
+          }
+        ]
+      };
+
+      updatePuzzleUI(latestPuzzleWithFinalJumble, 'latest');
     }
     
     if (previousPuzzle) {
