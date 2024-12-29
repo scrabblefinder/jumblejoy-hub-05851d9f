@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
     
     const response = await fetch(url, {
       headers: {
-        'Accept': 'application/xml',
+        'Accept': 'application/xml, text/xml, */*',
         'User-Agent': 'Mozilla/5.0 (compatible; DailyJumbleBot/1.0)'
       }
     });
@@ -170,10 +170,7 @@ Deno.serve(async (req) => {
 
     const { error: wordsError } = await supabase
       .from('jumble_words')
-      .upsert(jumbleWords, { 
-        onConflict: 'puzzle_id,jumbled_word',
-        ignoreDuplicates: true 
-      });
+      .insert(jumbleWords);
 
     if (wordsError) {
       console.error('Error inserting jumble words:', wordsError);
