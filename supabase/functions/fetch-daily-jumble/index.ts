@@ -33,8 +33,10 @@ serve(async (req) => {
     const data = JSON.parse(puzzleData)
     console.log('Parsed puzzle data:', data)
 
-    // Clean up the solution by removing { } characters
-    const cleanSolution = (data.Solution?.s1 || '').replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim()
+    // Clean up the solution by removing { } characters, with null checks
+    const rawSolution = data.Solution?.s1 || ''
+    const cleanSolution = rawSolution.replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim()
+    console.log('Cleaned solution:', cleanSolution)
 
     // Insert into daily_puzzles
     const { data: puzzle, error: puzzleError } = await supabaseAdmin

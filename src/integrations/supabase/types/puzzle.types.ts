@@ -1,9 +1,9 @@
 export interface JumbleWord {
   id: string;
+  puzzle_id?: string;
   jumbled_word: string;
   answer: string;
-  puzzle_id?: string;
-  created_at?: string;
+  created_at: string;
 }
 
 export interface DailyPuzzle {
@@ -13,7 +13,7 @@ export interface DailyPuzzle {
   image_url: string;
   solution: string;
   created_at: string;
-  final_jumble?: string;
-  final_jumble_answer?: string;
+  final_jumble?: string | null;
+  final_jumble_answer?: string | null;
   jumble_words: JumbleWord[];
 }
