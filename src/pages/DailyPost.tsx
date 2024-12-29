@@ -12,8 +12,10 @@ const DailyPost = () => {
   const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['daily_puzzle', date],
     queryFn: async () => {
+      if (!date) throw new Error('No date provided');
+      
       // Format the date parameter to YYYY-MM-DD
-      const formattedDate = date?.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+      const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
       
       const { data, error } = await supabase
         .from('daily_puzzles')
