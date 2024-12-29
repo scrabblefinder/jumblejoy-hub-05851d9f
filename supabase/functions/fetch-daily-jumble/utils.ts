@@ -15,8 +15,26 @@ export const cleanSolution = (solution: string): string => {
 
 const extractCircledLetters = (word: string, circles: string): string => {
   if (!circles || !word) return '';
-  const positions = circles.split(',').map(Number);
-  return positions.map(pos => word[pos - 1]).join('');
+  
+  // Log the input for debugging
+  console.log(`Extracting circled letters from word: ${word}, circles: ${circles}`);
+  
+  try {
+    const positions = circles.split(',').map(Number);
+    const letters = positions.map(pos => {
+      // Adjust for 0-based indexing and log each extraction
+      const letter = word[pos - 1];
+      console.log(`Position ${pos} (index ${pos - 1}) in "${word}" gives letter: "${letter}"`);
+      return letter;
+    });
+    
+    const result = letters.join('');
+    console.log(`Extracted letters: ${result}`);
+    return result;
+  } catch (error) {
+    console.error('Error extracting circled letters:', error);
+    return '';
+  }
 };
 
 export const extractPuzzleData = (jsonText: string, date: Date) => {
@@ -35,14 +53,18 @@ export const extractPuzzleData = (jsonText: string, date: Date) => {
     { jumbled_word: data.Clues.c4, answer: data.Clues.a4, circles: data.Clues.o4 }
   ].filter(word => word.jumbled_word && word.answer);
 
-  console.log('Extracted jumble words:', jumbleWords);
+  console.log('Extracted jumble words with circles:', jumbleWords);
 
   // Create final jumble from circled letters
   const finalJumble = jumbleWords
-    .map(word => extractCircledLetters(word.jumbled_word, word.circles))
+    .map(word => {
+      const letters = extractCircledLetters(word.jumbled_word, word.circles);
+      console.log(`For word ${word.jumbled_word}, extracted letters: ${letters}`);
+      return letters;
+    })
     .join('');
 
-  console.log('Created final jumble from circled letters:', finalJumble);
+  console.log('Created final jumble:', finalJumble);
 
   const solution = cleanSolution(data.Solution.s1 || '');
   console.log('Solution:', solution);
