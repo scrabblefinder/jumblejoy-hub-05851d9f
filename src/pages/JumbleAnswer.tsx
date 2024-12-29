@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import Header from '../components/Header';
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 
 const JumbleAnswer = () => {
   const { word } = useParams();
+  const navigate = useNavigate();
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['jumble', word],
@@ -23,6 +24,22 @@ const JumbleAnswer = () => {
       return data;
     },
   });
+
+  const createSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  const handleCaptionClick = () => {
+    if (data?.daily_puzzles?.caption) {
+      const slug = createSlug(data.daily_puzzles.caption);
+      navigate(`/clue/${slug}`);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -97,7 +114,12 @@ const JumbleAnswer = () => {
                             day: 'numeric'
                           })}
                         </p>
-                        <p className="text-[#2f75d9] mt-2">{data.daily_puzzles.caption}</p>
+                        <button 
+                          onClick={handleCaptionClick}
+                          className="text-[#2f75d9] mt-2 hover:underline text-left"
+                        >
+                          {data.daily_puzzles.caption}
+                        </button>
                       </div>
 
                       {relatedWords.length > 0 && (

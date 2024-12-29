@@ -17,3 +17,9 @@ export interface DailyPuzzle {
   final_jumble_answer?: string;
   jumble_words?: JumbleWord[];
 }
+
+export * from './admin.types';
+export * from './database.types';
+export * from './model.types';
+export * from './puzzle.types';
+export * from './table.types';
