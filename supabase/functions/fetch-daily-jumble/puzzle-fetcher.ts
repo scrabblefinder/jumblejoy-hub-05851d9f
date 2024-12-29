@@ -27,8 +27,11 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
       throw new Error('Invalid puzzle data format');
     }
     
-    // Remove the jsonCallback wrapper
-    const jsonString = text.replace(/^\/\*\*\/jsonCallback\((.*)\);?$/, '$1');
+    // Remove the jsonCallback wrapper and any comments
+    const jsonString = text
+      .replace(/^\/\*\*\//, '') // Remove leading comments
+      .replace(/^jsonCallback\((.*)\);?$/, '$1'); // Remove jsonCallback wrapper
+    
     console.log('Processed JSON string:', jsonString);
     
     // Validate JSON
