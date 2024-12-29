@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { corsHeaders, extractPuzzleData, fetchPuzzle } from './utils.ts';
+import { corsHeaders } from './utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -7,177 +7,123 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const today = new Date();
-    console.log('Starting puzzle fetch process...');
+    let targetDate: Date;
     
-    try {
-      console.log('Attempting to fetch today\'s puzzle...');
-      const xmlText = await fetchPuzzle(today);
-      const puzzleData = extractPuzzleData(xmlText, today);
-      
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // Extract answers and circle positions
-      const answers = [
-        puzzleData.Clues.a1,
-        puzzleData.Clues.a2,
-        puzzleData.Clues.a3,
-        puzzleData.Clues.a4
-      ];
-      
-      const positions = [
-        puzzleData.CircledLetters?.p1 || '',
-        puzzleData.CircledLetters?.p2 || '',
-        puzzleData.CircledLetters?.p3 || '',
-        puzzleData.CircledLetters?.p4 || ''
-      ];
-
-      // Generate the final jumble from circled letters
-      const finalJumble = extractCircledLetters(answers, positions);
-      console.log('Generated final jumble:', finalJumble);
-
-      // Check if puzzle already exists
-      const { data: existingPuzzle } = await supabase
-        .from('daily_puzzles')
-        .select()
-        .eq('date', puzzleData.Date)
-        .maybeSingle();
-
-      if (existingPuzzle) {
-        console.log(`Puzzle for ${puzzleData.Date} already exists`);
-        return new Response(
-          JSON.stringify({ message: `Puzzle for ${puzzleData.Date} already exists` }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Insert new puzzle with the generated final jumble
-      console.log('Inserting new puzzle...');
-      const { data: puzzle, error: puzzleError } = await supabase
-        .from('daily_puzzles')
-        .insert({
-          date: puzzleData.Date,
-          caption: puzzleData.Caption.v1,
-          image_url: puzzleData.Image,
-          solution: puzzleData.Solution.s1,
-          final_jumble: finalJumble
-        })
-        .select()
-        .single();
-
-      if (puzzleError) throw puzzleError;
-
-      // Insert jumble words
-      console.log('Inserting jumble words...');
-      const jumbleWords = [
-        {
-          puzzle_id: puzzle.id,
-          jumbled_word: puzzleData.Clues.c1,
-          answer: puzzleData.Clues.a1
-        },
-        {
-          puzzle_id: puzzle.id,
-          jumbled_word: puzzleData.Clues.c2,
-          answer: puzzleData.Clues.a2
-        },
-        {
-          puzzle_id: puzzle.id,
-          jumbled_word: puzzleData.Clues.c3,
-          answer: puzzleData.Clues.a3
-        },
-        {
-          puzzle_id: puzzle.id,
-          jumbled_word: puzzleData.Clues.c4,
-          answer: puzzleData.Clues.a4
+    // Parse the request body for a specific date
+    if (req.method === 'POST') {
+      const { date } = await req.json();
+      if (date) {
+        targetDate = new Date(date);
+        if (isNaN(targetDate.getTime())) {
+          throw new Error('Invalid date format');
         }
-      ];
-
-      const { error: wordsError } = await supabase
-        .from('jumble_words')
-        .insert(jumbleWords);
-
-      if (wordsError) throw wordsError;
-
-      console.log('Successfully added puzzle and jumble words');
-      return new Response(
-        JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-      
-    } catch (error) {
-      console.log('Failed to fetch today\'s puzzle, trying yesterday\'s...');
-      
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      const xmlText = await fetchPuzzle(yesterday);
-      const puzzleData = extractPuzzleData(xmlText, yesterday);
-      
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // Check if puzzle already exists
-      const { data: existingPuzzle } = await supabase
-        .from('daily_puzzles')
-        .select()
-        .eq('date', puzzleData.date)
-        .maybeSingle();
-
-      if (existingPuzzle) {
-        console.log(`Puzzle for ${puzzleData.date} already exists`);
-        return new Response(
-          JSON.stringify({ message: `Puzzle for ${puzzleData.date} already exists` }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      } else {
+        targetDate = new Date();
       }
+    } else {
+      targetDate = new Date();
+    }
 
-      // Insert new puzzle
-      console.log('Inserting new puzzle...');
-      const { data: puzzle, error: puzzleError } = await supabase
-        .from('daily_puzzles')
-        .insert({
-          date: puzzleData.date,
-          caption: puzzleData.caption,
-          image_url: puzzleData.image_url,
-          solution: puzzleData.solution,
-          final_jumble: puzzleData.final_jumble
-        })
-        .select()
-        .single();
+    console.log('Fetching puzzle for date:', targetDate.toISOString());
 
-      if (puzzleError) throw puzzleError;
+    // Format date for the API request (YYYYMMDD)
+    const formattedDate = targetDate.toISOString().slice(0, 10).replace(/-/g, '');
+    const timestamp = Date.now();
+    
+    // Construct the URL with the formatted date
+    const url = `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
+    
+    console.log('Fetching from URL:', url);
 
-      // Insert jumble words including the final jumble
-      console.log('Inserting jumble words and final jumble...');
-      const jumbleWords = [
-        ...puzzleData.jumble_words.map(word => ({
-          puzzle_id: puzzle.id,
-          jumbled_word: word.jumbled_word,
-          answer: word.answer
-        })),
-        // Add final jumble as a jumble word
-        {
-          puzzle_id: puzzle.id,
-          jumbled_word: puzzleData.final_jumble,
-          answer: puzzleData.solution
-        }
-      ];
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json, text/javascript, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.uclick.com/',
+        'Origin': 'https://www.uclick.com'
+      }
+    });
 
-      const { error: wordsError } = await supabase
-        .from('jumble_words')
-        .insert(jumbleWords);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-      if (wordsError) throw wordsError;
+    const text = await response.text();
+    console.log('Received response:', text.slice(0, 100) + '...');
 
-      console.log('Successfully added puzzle, jumble words, and final jumble');
+    // Remove the jsonCallback wrapper and parse the JSON
+    const jsonData = JSON.parse(text.replace(/^jsonCallback\((.*)\)$/, '$1'));
+    
+    // Connect to Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Format the date for database insertion (YYYY-MM-DD)
+    const dbDate = targetDate.toISOString().slice(0, 10);
+
+    // Check if puzzle already exists
+    const { data: existingPuzzle } = await supabase
+      .from('daily_puzzles')
+      .select()
+      .eq('date', dbDate)
+      .maybeSingle();
+
+    if (existingPuzzle) {
       return new Response(
-        JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
+        JSON.stringify({ message: `Puzzle for ${dbDate} already exists` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Insert new puzzle
+    const { data: puzzle, error: puzzleError } = await supabase
+      .from('daily_puzzles')
+      .insert({
+        date: dbDate,
+        caption: jsonData.Caption.v1,
+        image_url: jsonData.Image,
+        solution: jsonData.Solution.s1
+      })
+      .select()
+      .single();
+
+    if (puzzleError) throw puzzleError;
+
+    // Insert jumble words
+    const jumbleWords = [
+      {
+        puzzle_id: puzzle.id,
+        jumbled_word: jsonData.Clues.c1,
+        answer: jsonData.Clues.a1
+      },
+      {
+        puzzle_id: puzzle.id,
+        jumbled_word: jsonData.Clues.c2,
+        answer: jsonData.Clues.a2
+      },
+      {
+        puzzle_id: puzzle.id,
+        jumbled_word: jsonData.Clues.c3,
+        answer: jsonData.Clues.a3
+      },
+      {
+        puzzle_id: puzzle.id,
+        jumbled_word: jsonData.Clues.c4,
+        answer: jsonData.Clues.a4
+      }
+    ];
+
+    const { error: wordsError } = await supabase
+      .from('jumble_words')
+      .insert(jumbleWords);
+
+    if (wordsError) throw wordsError;
+
+    return new Response(
+      JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Error:', error);

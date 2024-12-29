@@ -3,15 +3,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon, Download } from 'lucide-react';
+import { cn } from "@/lib/utils";
 import PuzzleForm from '@/components/admin/PuzzleForm';
 import AutomaticPuzzleForm from '@/components/admin/AutomaticPuzzleForm';
 import PuzzleList from '@/components/admin/PuzzleList';
-import { Download } from 'lucide-react';
 
 const AdminPanel = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [fetchingPuzzle, setFetchingPuzzle] = useState(false);
+  const [date, setDate] = useState<Date>();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -39,16 +44,18 @@ const AdminPanel = () => {
     checkSession();
   }, [toast]);
 
-  const fetchLatestPuzzle = async () => {
+  const fetchPuzzle = async (selectedDate?: Date) => {
     setFetchingPuzzle(true);
     try {
-      const { data, error } = await supabase.functions.invoke('fetch-daily-jumble');
+      const { data, error } = await supabase.functions.invoke('fetch-daily-jumble', {
+        body: { date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined }
+      });
       
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Latest puzzle fetched and saved successfully",
+        description: "Puzzle fetched and saved successfully",
       });
 
       // Refresh the puzzle list by reloading the page
@@ -57,7 +64,7 @@ const AdminPanel = () => {
       console.error('Error fetching puzzle:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch latest puzzle",
+        description: "Failed to fetch puzzle",
         variant: "destructive"
       });
     } finally {
@@ -80,14 +87,37 @@ const AdminPanel = () => {
         <p className="text-gray-600">Manage daily jumble puzzles</p>
       </div>
       
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col sm:flex-row gap-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "justify-start text-left font-normal w-full sm:w-[240px]",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "PPP") : "Pick a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+
         <Button 
-          onClick={fetchLatestPuzzle} 
+          onClick={() => fetchPuzzle(date)}
           disabled={fetchingPuzzle}
-          className="w-full md:w-auto flex items-center gap-2"
+          className="flex items-center gap-2"
         >
           <Download className="h-4 w-4" />
-          {fetchingPuzzle ? 'Fetching Latest Puzzle...' : 'Fetch Latest Puzzle'}
+          {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Puzzle for ${format(date, 'PPP')}` : 'Fetch Latest Puzzle'}
         </Button>
       </div>
 
