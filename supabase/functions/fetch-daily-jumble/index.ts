@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
       throw puzzleError
     }
 
-    // Insert the jumble words
+    // Insert the jumble words with ON CONFLICT DO NOTHING
     const jumbleWords = [
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c1, answer: jsonData.Clues.a1 },
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c2, answer: jsonData.Clues.a2 },
@@ -151,7 +151,10 @@ Deno.serve(async (req) => {
 
     const { error: wordsError } = await supabase
       .from('jumble_words')
-      .insert(jumbleWords)
+      .upsert(jumbleWords, { 
+        onConflict: 'puzzle_id,jumbled_word',
+        ignoreDuplicates: true 
+      })
 
     if (wordsError) {
       console.error('Error inserting jumble words:', wordsError)
