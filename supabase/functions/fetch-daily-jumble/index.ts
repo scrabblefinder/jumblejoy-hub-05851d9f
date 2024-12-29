@@ -51,7 +51,7 @@ serve(async (req) => {
         image_url: data.Image || '',
         solution: cleanSolution,
         final_jumble: finalJumble,
-        final_jumble_answer: cleanSolution // The solution is the answer to the final jumble
+        final_jumble_answer: cleanSolution
       })
       .select()
       .single()
@@ -61,10 +61,10 @@ serve(async (req) => {
     // Insert jumble words if they exist
     if (data.Clues) {
       const jumbleWords = [
-        { jumbled_word: data.Clues.c1, answer: data.Clues.a1 },
-        { jumbled_word: data.Clues.c2, answer: data.Clues.a2 },
-        { jumbled_word: data.Clues.c3, answer: data.Clues.a3 },
-        { jumbled_word: data.Clues.c4, answer: data.Clues.a4 }
+        { jumbled_word: data.Clues.c1?.j || data.Clues.c1, answer: data.Clues.c1?.a || data.Clues.a1 },
+        { jumbled_word: data.Clues.c2?.j || data.Clues.c2, answer: data.Clues.c2?.a || data.Clues.a2 },
+        { jumbled_word: data.Clues.c3?.j || data.Clues.c3, answer: data.Clues.c3?.a || data.Clues.a3 },
+        { jumbled_word: data.Clues.c4?.j || data.Clues.c4, answer: data.Clues.c4?.a || data.Clues.a4 }
       ].filter(word => word.jumbled_word && word.answer)
 
       if (jumbleWords.length > 0) {
@@ -108,7 +108,7 @@ function calculateFinalJumble(data: any): string {
 
   try {
     // Check if we have the new format (with circle property)
-    if (data.Clues.c1 && typeof data.Clues.c1 === 'object') {
+    if (data.Clues.c1?.circle) {
       console.log('Using new format for final jumble calculation');
       const clues = [
         { answer: data.Clues.c1.a, positions: data.Clues.c1.circle },
@@ -117,13 +117,19 @@ function calculateFinalJumble(data: any): string {
         { answer: data.Clues.c4.a, positions: data.Clues.c4.circle }
       ];
 
+      console.log('Clues for final jumble:', clues);
+
       const jumbledParts = clues.map(({ answer, positions }) => {
         if (!answer || !positions) return '';
         const pos = positions.split(',').map(Number);
-        return pos.map(p => answer[p - 1]).join('');
+        const letters = pos.map(p => answer[p - 1]).join('');
+        console.log(`Extracted letters from ${answer} at positions ${positions}: ${letters}`);
+        return letters;
       });
 
-      return jumbledParts.join('');
+      const result = jumbledParts.join('');
+      console.log('Final jumble result:', result);
+      return result;
     }
 
     // Old format (with o1, o2, etc. properties)
@@ -135,13 +141,19 @@ function calculateFinalJumble(data: any): string {
       { answer: data.Clues.a4, positions: data.Clues.o4 }
     ];
 
+    console.log('Words for final jumble:', words);
+
     const jumbledParts = words.map(({ answer, positions }) => {
       if (!answer || !positions) return '';
       const pos = positions.split(',').map(Number);
-      return pos.map(p => answer[p - 1]).join('');
+      const letters = pos.map(p => answer[p - 1]).join('');
+      console.log(`Extracted letters from ${answer} at positions ${positions}: ${letters}`);
+      return letters;
     });
 
-    return jumbledParts.join('');
+    const result = jumbledParts.join('');
+    console.log('Final jumble result:', result);
+    return result;
   } catch (error) {
     console.error('Error calculating final jumble:', error);
     return '';
