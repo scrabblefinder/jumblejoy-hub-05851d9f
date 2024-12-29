@@ -118,11 +118,6 @@ const JumblePuzzle = ({
                       {countLetters(finalJumbleWord.jumbled_word)} letters
                     </span>
                   </div>
-                  {finalJumbleWord.answer && (
-                    <div className="mt-2 text-sm text-blue-600">
-                      Solution: {finalJumbleWord.answer}
-                    </div>
-                  )}
                 </Link>
               )}
             </div>
