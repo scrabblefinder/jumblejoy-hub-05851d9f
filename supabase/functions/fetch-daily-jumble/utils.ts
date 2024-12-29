@@ -5,55 +5,30 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-export const extractPuzzleData = (xmlText: string, date: Date) => {
-  console.log('Raw XML:', xmlText);
+export const extractPuzzleData = (jsonText: string, date: Date) => {
+  console.log('Raw JSON:', jsonText);
 
-  // Extract clues section
-  const cluesMatch = xmlText.match(/<clues>([\s\S]*?)<\/clues>/);
-  if (!cluesMatch) {
-    console.error('No clues section found');
-    throw new Error('Invalid puzzle format');
-  }
+  // Remove the jsonCallback wrapper
+  const cleanJson = jsonText.replace(/^\/\*\*\/jsonCallback\((.*)\);?$/, '$1');
+  const data = JSON.parse(cleanJson);
+  console.log('Parsed JSON data:', data);
 
-  const cluesSection = cluesMatch[1];
-  console.log('Clues section:', cluesSection);
-
-  // Extract individual clues
-  const clueRegex = /<c(\d+)>\s*<j>(.*?)<\/j>\s*<a>(.*?)<\/a>/g;
-  const jumbleWords = [];
-  let clueMatch;
-  
-  while ((clueMatch = clueRegex.exec(cluesSection)) !== null) {
-    const [, num, jumbled, answer] = clueMatch;
-    jumbleWords.push({
-      jumbled_word: jumbled.trim(),
-      answer: answer.trim()
-    });
-  }
+  // Extract jumble words
+  const jumbleWords = [
+    { jumbled_word: data.Clues.c1, answer: data.Clues.a1 },
+    { jumbled_word: data.Clues.c2, answer: data.Clues.a2 },
+    { jumbled_word: data.Clues.c3, answer: data.Clues.a3 },
+    { jumbled_word: data.Clues.c4, answer: data.Clues.a4 }
+  ];
 
   console.log('Extracted jumble words:', jumbleWords);
-
-  // Extract caption
-  const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>/);
-  const caption = captionMatch ? captionMatch[1].trim() : '';
-  console.log('Extracted caption:', caption);
-
-  // Extract solution
-  const solutionMatch = xmlText.match(/<solution>[\s\S]*?<s1[^>]*>[\s\S]*?<a>(.*?)<\/a>/);
-  const solution = solutionMatch ? solutionMatch[1].trim() : '';
-  console.log('Extracted solution:', solution);
-
-  // Extract image URL
-  const imageMatch = xmlText.match(/<image>(.*?)<\/image>/);
-  const imageUrl = imageMatch ? imageMatch[1].trim() : '';
-  console.log('Extracted image URL:', imageUrl);
 
   // Format data for database insertion
   const puzzleData = {
     date: format(date, 'yyyy-MM-dd'),
-    caption: caption || 'Daily Jumble Puzzle',
-    image_url: imageUrl || 'https://placeholder.com/400x300',
-    solution: solution || '',
+    caption: data.Caption.v1 || 'Daily Jumble Puzzle',
+    image_url: data.Image || 'https://placeholder.com/400x300',
+    solution: data.Solution.s1 || '',
     jumble_words: jumbleWords
   };
 
@@ -62,44 +37,33 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
 };
 
 export const fetchPuzzle = async (date: Date) => {
-  const dateStr = format(date, 'yyMMdd');
-  const baseUrls = [
-    'https://www.uclick.com/puzzles/tmjmf/data',
-    'https://picayune.uclick.com/comics/tmjmf/data',
-    'https://picayune.uclick.com/puzzles/tmjmf/data'
-  ];
+  const dateStr = format(date, 'yyyy-MM-dd');
+  const timestamp = Date.now();
+  const url = `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${dateStr}/data.json?callback=jsonCallback&_=${timestamp}`;
+  
+  console.log(`Attempting to fetch puzzle from URL: ${url}`);
   
   const headers = {
-    'Accept': 'application/xml, text/xml, */*',
+    'Accept': 'application/javascript, application/json',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Cache-Control': 'no-cache',
     'Pragma': 'no-cache'
   };
 
-  let lastError = null;
-
-  // Try each base URL
-  for (const baseUrl of baseUrls) {
-    const url = `${baseUrl}/tmjmf${dateStr}-data.xml`;
-    console.log(`Attempting to fetch puzzle from URL: ${url}`);
+  try {
+    const response = await fetch(url, { headers });
     
-    try {
-      const response = await fetch(url, { headers });
-      
-      if (response.ok) {
-        const text = await response.text();
-        console.log('Successfully fetched puzzle data from:', url);
-        return text;
-      }
-      
+    if (!response.ok) {
       const errorBody = await response.text();
       console.error(`Failed to fetch from ${url}:`, response.status, errorBody);
-      lastError = `${response.status} ${response.statusText}`;
-    } catch (error) {
-      console.error(`Error fetching from ${url}:`, error);
-      lastError = error.message;
+      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
     }
-  }
 
-  throw new Error(`Failed to fetch puzzle data: ${lastError}`);
+    const text = await response.text();
+    console.log('Successfully fetched puzzle data from:', url);
+    return text;
+  } catch (error) {
+    console.error(`Error fetching from ${url}:`, error);
+    throw error;
+  }
 };
