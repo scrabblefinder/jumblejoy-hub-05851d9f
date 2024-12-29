@@ -42,20 +42,29 @@ Deno.serve(async (req) => {
           date: puzzleData.date,
           caption: puzzleData.caption,
           image_url: puzzleData.image_url,
-          solution: puzzleData.solution
+          solution: puzzleData.solution,
+          final_jumble: puzzleData.final_jumble
         })
         .select()
         .single();
 
       if (puzzleError) throw puzzleError;
 
-      // Insert jumble words
-      console.log('Inserting jumble words...');
-      const jumbleWords = puzzleData.jumble_words.map(word => ({
-        puzzle_id: puzzle.id,
-        jumbled_word: word.jumbled_word,
-        answer: word.answer
-      }));
+      // Insert jumble words including the final jumble
+      console.log('Inserting jumble words and final jumble...');
+      const jumbleWords = [
+        ...puzzleData.jumble_words.map(word => ({
+          puzzle_id: puzzle.id,
+          jumbled_word: word.jumbled_word,
+          answer: word.answer
+        })),
+        // Add final jumble as a jumble word
+        {
+          puzzle_id: puzzle.id,
+          jumbled_word: puzzleData.final_jumble,
+          answer: puzzleData.solution
+        }
+      ];
 
       const { error: wordsError } = await supabase
         .from('jumble_words')
@@ -63,7 +72,7 @@ Deno.serve(async (req) => {
 
       if (wordsError) throw wordsError;
 
-      console.log('Successfully added puzzle and jumble words');
+      console.log('Successfully added puzzle, jumble words, and final jumble');
       return new Response(
         JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -105,20 +114,29 @@ Deno.serve(async (req) => {
           date: puzzleData.date,
           caption: puzzleData.caption,
           image_url: puzzleData.image_url,
-          solution: puzzleData.solution
+          solution: puzzleData.solution,
+          final_jumble: puzzleData.final_jumble
         })
         .select()
         .single();
 
       if (puzzleError) throw puzzleError;
 
-      // Insert jumble words
-      console.log('Inserting jumble words...');
-      const jumbleWords = puzzleData.jumble_words.map(word => ({
-        puzzle_id: puzzle.id,
-        jumbled_word: word.jumbled_word,
-        answer: word.answer
-      }));
+      // Insert jumble words including the final jumble
+      console.log('Inserting jumble words and final jumble...');
+      const jumbleWords = [
+        ...puzzleData.jumble_words.map(word => ({
+          puzzle_id: puzzle.id,
+          jumbled_word: word.jumbled_word,
+          answer: word.answer
+        })),
+        // Add final jumble as a jumble word
+        {
+          puzzle_id: puzzle.id,
+          jumbled_word: puzzleData.final_jumble,
+          answer: puzzleData.solution
+        }
+      ];
 
       const { error: wordsError } = await supabase
         .from('jumble_words')
@@ -126,7 +144,7 @@ Deno.serve(async (req) => {
 
       if (wordsError) throw wordsError;
 
-      console.log('Successfully added puzzle and jumble words');
+      console.log('Successfully added puzzle, jumble words, and final jumble');
       return new Response(
         JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
