@@ -33,7 +33,7 @@ serve(async (req) => {
     const data = JSON.parse(puzzleData)
     console.log('Parsed puzzle data:', data)
 
-    // Clean up the solution by removing { } characters, with null checks
+    // Clean up the solution by removing { } characters
     const rawSolution = data.Solution?.s1 || ''
     const cleanSolution = rawSolution.replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim()
     console.log('Cleaned solution:', cleanSolution)
@@ -58,7 +58,7 @@ serve(async (req) => {
 
     if (puzzleError) throw puzzleError
 
-    // Insert jumble words if they exist
+    // Insert jumble words
     if (data.Clues) {
       const jumbleWords = [
         { jumbled_word: data.Clues.c1?.j || data.Clues.c1, answer: data.Clues.c1?.a || data.Clues.a1 },
@@ -107,22 +107,25 @@ function calculateFinalJumble(data: any): string {
   if (!data?.Clues) return '';
 
   try {
-    // Check if we have the new format (with circle property)
-    if (data.Clues.c1?.circle) {
-      console.log('Using new format for final jumble calculation');
+    // Handle new format (December 29 format)
+    if (data.Clues.c1?.j) {
+      console.log('Using new format (December 29) for final jumble calculation');
       const clues = [
-        { answer: data.Clues.c1.a, positions: data.Clues.c1.circle },
-        { answer: data.Clues.c2.a, positions: data.Clues.c2.circle },
-        { answer: data.Clues.c3.a, positions: data.Clues.c3.circle },
-        { answer: data.Clues.c4.a, positions: data.Clues.c4.circle }
+        { word: data.Clues.c1.j, answer: data.Clues.c1.a, circle: data.Clues.c1.circle },
+        { word: data.Clues.c2.j, answer: data.Clues.c2.a, circle: data.Clues.c2.circle },
+        { word: data.Clues.c3.j, answer: data.Clues.c3.a, circle: data.Clues.c3.circle },
+        { word: data.Clues.c4.j, answer: data.Clues.c4.a, circle: data.Clues.c4.circle }
       ];
 
-      console.log('Clues for final jumble:', clues);
+      console.log('Processing clues:', clues);
 
-      const jumbledParts = clues.map(({ answer, positions }) => {
-        if (!answer || !positions) return '';
-        const pos = positions.split(',').map(Number);
-        const letters = pos.map(p => answer[p - 1]).join('');
+      const jumbledParts = clues.map(({ answer, circle }) => {
+        if (!answer || !circle) {
+          console.log('Missing answer or circle data');
+          return '';
+        }
+        const positions = circle.split(',').map(Number);
+        const letters = positions.map(p => answer[p - 1]).join('');
         console.log(`Extracted letters from ${answer} at positions ${positions}: ${letters}`);
         return letters;
       });
@@ -132,8 +135,8 @@ function calculateFinalJumble(data: any): string {
       return result;
     }
 
-    // Old format (with o1, o2, etc. properties)
-    console.log('Using old format for final jumble calculation');
+    // Handle old format (December 27 format)
+    console.log('Using old format (December 27) for final jumble calculation');
     const words = [
       { answer: data.Clues.a1, positions: data.Clues.o1 },
       { answer: data.Clues.a2, positions: data.Clues.o2 },
@@ -141,10 +144,13 @@ function calculateFinalJumble(data: any): string {
       { answer: data.Clues.a4, positions: data.Clues.o4 }
     ];
 
-    console.log('Words for final jumble:', words);
+    console.log('Processing words:', words);
 
     const jumbledParts = words.map(({ answer, positions }) => {
-      if (!answer || !positions) return '';
+      if (!answer || !positions) {
+        console.log('Missing answer or positions data');
+        return '';
+      }
       const pos = positions.split(',').map(Number);
       const letters = pos.map(p => answer[p - 1]).join('');
       console.log(`Extracted letters from ${answer} at positions ${positions}: ${letters}`);
