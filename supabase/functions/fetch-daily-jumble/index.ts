@@ -12,12 +12,16 @@ serve(async (req) => {
   try {
     const { date, jsonUrl } = await req.json()
     
-    // Use the provided JSON URL or construct one based on the date
-    const url = jsonUrl || `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${date}/data.json?callback=jsonCallback&_=${Date.now()}`
+    // Format the date to ensure it's in YYYY-MM-DD format
+    const formattedDate = date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-$3')
+    console.log('Formatted date:', formattedDate)
     
-    console.log('Fetching puzzle from URL:', url);
+    // Use the provided JSON URL or construct one based on the date
+    const url = jsonUrl || `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json`
+    
+    console.log('Fetching puzzle from URL:', url)
     const puzzleData = await fetchPuzzleXML(url)
-    console.log('Received puzzle data:', puzzleData);
+    console.log('Received puzzle data:', puzzleData)
 
     // Create Supabase client
     const supabaseAdmin = createClient(
@@ -27,13 +31,13 @@ serve(async (req) => {
 
     // Parse the JSON data
     const data = JSON.parse(puzzleData)
-    console.log('Parsed puzzle data:', data);
+    console.log('Parsed puzzle data:', data)
 
     // Insert into daily_puzzles
     const { data: puzzle, error: puzzleError } = await supabaseAdmin
       .from('daily_puzzles')
       .insert({
-        date,
+        date: formattedDate,
         caption: data.Caption?.v1 || '',
         image_url: data.Image || '',
         solution: data.Solution?.s1 || '',

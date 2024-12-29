@@ -9,10 +9,21 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
   console.log(`Fetching puzzle from URL: ${url}`);
   
   try {
-    const response = await fetch(url, { 
+    // First try the provided URL
+    let response = await fetch(url, { 
       headers: HEADERS,
       signal: AbortSignal.timeout(10000) // 10 second timeout
     });
+
+    // If the first attempt fails, try without the callback parameter
+    if (!response.ok) {
+      console.log('First attempt failed, trying without callback parameter');
+      const baseUrl = url.split('?')[0];
+      response = await fetch(baseUrl, {
+        headers: HEADERS,
+        signal: AbortSignal.timeout(10000)
+      });
+    }
 
     if (!response.ok) {
       console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
@@ -22,15 +33,18 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
     const text = await response.text();
     console.log('Raw response:', text);
     
-    // Check if the response is empty or doesn't contain the expected callback
-    if (!text || !text.includes('jsonCallback')) {
-      throw new Error('Invalid puzzle data format');
+    // Check if the response is empty
+    if (!text) {
+      throw new Error('Empty response received');
     }
     
-    // Remove the jsonCallback wrapper and any comments
-    const jsonString = text
-      .replace(/^\/\*\*\//, '') // Remove leading comments
-      .replace(/^jsonCallback\((.*)\);?$/, '$1'); // Remove jsonCallback wrapper
+    // Handle both callback wrapped and raw JSON responses
+    let jsonString = text;
+    if (text.includes('jsonCallback')) {
+      jsonString = text
+        .replace(/^\/\*\*\//, '') // Remove leading comments
+        .replace(/^jsonCallback\((.*)\);?$/, '$1'); // Remove jsonCallback wrapper
+    }
     
     console.log('Processed JSON string:', jsonString);
     
