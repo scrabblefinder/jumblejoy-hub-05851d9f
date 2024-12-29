@@ -9,6 +9,10 @@ export const cleanCaption = (caption: string): string => {
   return caption.replace(/{\s*}/g, '');
 };
 
+export const cleanSolution = (solution: string): string => {
+  return solution.replace(/{\s*}/g, ' ').trim();
+};
+
 export const extractPuzzleData = (jsonText: string, date: Date) => {
   console.log('Raw JSON:', jsonText);
 
@@ -27,12 +31,12 @@ export const extractPuzzleData = (jsonText: string, date: Date) => {
 
   console.log('Extracted jumble words:', jumbleWords);
 
-  // Format data for database insertion with cleaned caption
+  // Format data for database insertion with cleaned caption and solution
   const puzzleData = {
     date: format(date, 'yyyy-MM-dd'),
     caption: cleanCaption(data.Caption.v1 || 'Daily Jumble Puzzle'),
     image_url: data.Image || 'https://placeholder.com/400x300',
-    solution: data.Solution.s1 || '',
+    solution: cleanSolution(data.Solution.s1 || ''),
     jumble_words: jumbleWords
   };
 
