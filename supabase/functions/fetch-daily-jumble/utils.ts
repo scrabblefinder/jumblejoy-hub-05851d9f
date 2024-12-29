@@ -14,12 +14,6 @@ const HEADERS = {
   'Pragma': 'no-cache'
 };
 
-export const getTagContent = (xml: string, tag: string) => {
-  const regex = new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, 'gs');
-  const match = regex.exec(xml);
-  return match ? match[1].trim() : '';
-};
-
 export const extractPuzzleData = (xmlText: string, date: Date) => {
   console.log('Extracting puzzle data from XML...');
   console.log('Raw XML:', xmlText);

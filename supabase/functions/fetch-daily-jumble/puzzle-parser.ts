@@ -30,6 +30,7 @@ function extractValue(xml: string, tag: string, index: number = 0): string {
 export function parseJumbleXML(xmlText: string): JumbleData {
   console.log('Parsing XML:', xmlText);
   
+  // Extract clues
   const clues = xmlText.match(/<clue[^>]*>[\s\S]*?<\/clue>/g) || [];
   console.log('Found clues:', clues);
   
@@ -39,12 +40,15 @@ export function parseJumbleXML(xmlText: string): JumbleData {
   console.log('Extracted jumbled words:', jumbledWords);
   console.log('Extracted answers:', answers);
 
+  // Extract caption
   const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>[\s\S]*?<\/v1>[\s\S]*?<\/caption>/);
   const caption = captionMatch ? captionMatch[1].trim() : '';
   
+  // Extract solution
   const solutionMatch = xmlText.match(/<solution>[\s\S]*?<s1[^>]*>[\s\S]*?<a>(.*?)<\/a>[\s\S]*?<\/s1>[\s\S]*?<\/solution>/);
   const solution = solutionMatch ? solutionMatch[1].trim() : '';
   
+  // Extract image URL
   const imageMatch = xmlText.match(/<image>(.*?)<\/image>/);
   const imageUrl = imageMatch ? imageMatch[1].trim() : '';
 
