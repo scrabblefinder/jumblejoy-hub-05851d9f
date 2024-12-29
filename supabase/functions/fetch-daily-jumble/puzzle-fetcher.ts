@@ -22,12 +22,22 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
     const text = await response.text();
     console.log('Raw response:', text);
     
+    // Check if the response is empty or doesn't contain the expected callback
+    if (!text || !text.includes('jsonCallback')) {
+      throw new Error('Invalid puzzle data format');
+    }
+    
     // Remove the jsonCallback wrapper
     const jsonString = text.replace(/^\/\*\*\/jsonCallback\((.*)\);?$/, '$1');
     console.log('Processed JSON string:', jsonString);
     
     // Validate JSON
-    JSON.parse(jsonString); // This will throw if invalid
+    try {
+      JSON.parse(jsonString);
+    } catch (e) {
+      console.error('JSON parsing error:', e);
+      throw new Error(`Invalid JSON format: ${e.message}`);
+    }
     
     console.log('Successfully fetched and validated puzzle data');
     return jsonString;

@@ -1,2 +1,2 @@
-// Re-export types from puzzle.types.ts
-export * from './puzzle.types';
+// Re-export types from base.types.ts
+export * from './base.types';
