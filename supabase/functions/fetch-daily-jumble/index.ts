@@ -1,6 +1,31 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { corsHeaders } from './utils.ts';
 
+const calculateFinalJumble = (clues: any): string => {
+  const jumbledParts = [];
+  const answers = [
+    clues.a1,
+    clues.a2,
+    clues.a3,
+    clues.a4
+  ];
+  const positions = [
+    clues.o1,
+    clues.o2,
+    clues.o3,
+    clues.o4
+  ];
+  
+  for (let i = 0; i < answers.length; i++) {
+    const word = answers[i];
+    const pos = positions[i].split(',').map(Number);
+    const letters = pos.map(p => word[p - 1]).join('');
+    jumbledParts.push(letters);
+  }
+  
+  return jumbledParts.join('');
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -58,6 +83,10 @@ Deno.serve(async (req) => {
     const jsonData = JSON.parse(text.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1'));
     console.log('Parsed JSON data:', jsonData);
 
+    // Calculate the final jumble
+    const finalJumble = calculateFinalJumble(jsonData.Clues);
+    console.log('Calculated final jumble:', finalJumble);
+
     // Clean up the solution by removing { } characters
     const cleanSolution = jsonData.Solution.s1.replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim();
     console.log('Cleaned solution:', cleanSolution);
@@ -84,7 +113,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert new puzzle with cleaned solution
+    // Insert new puzzle with cleaned solution and final jumble
     const { data: puzzle, error: puzzleError } = await supabase
       .from('daily_puzzles')
       .insert({
@@ -92,8 +121,7 @@ Deno.serve(async (req) => {
         caption: jsonData.Caption.v1,
         image_url: jsonData.Image,
         solution: cleanSolution,
-        final_jumble: jsonData.Solution?.j1 || null,
-        final_jumble_answer: jsonData.Solution?.s1 || null
+        final_jumble: finalJumble
       })
       .select()
       .single();
