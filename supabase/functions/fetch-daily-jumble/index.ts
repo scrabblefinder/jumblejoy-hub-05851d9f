@@ -86,8 +86,8 @@ Deno.serve(async (req) => {
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
-    // Use the correct URL format for the XML data
-    const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.xml`
+    // Updated URL format to match the correct pattern
+    const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.xml`
     console.log(`Trying URL: ${url}`)
     
     const response = await fetch(url)
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       throw puzzleError
     }
 
-    // Insert the jumble words with ON CONFLICT DO NOTHING
+    // Insert the jumble words
     const jumbleWords = [
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c1, answer: jsonData.Clues.a1 },
       { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c2, answer: jsonData.Clues.a2 },
