@@ -92,7 +92,7 @@ const CaptionAnswer = () => {
       
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="bg-jumble-primary text-jumble-text p-4">
+          <div className="bg-[#2f75d9] text-white p-4">
             <h1 className="text-2xl font-bold text-center">Clue Solution</h1>
           </div>
           
