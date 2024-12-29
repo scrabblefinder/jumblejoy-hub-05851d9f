@@ -63,51 +63,43 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
 
 export const fetchPuzzle = async (date: Date) => {
   const dateStr = format(date, 'yyMMdd');
-  // Updated URL format based on actual source
-  const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.xml`;
+  const baseUrls = [
+    'https://www.uclick.com/puzzles/tmjmf/data',
+    'https://picayune.uclick.com/comics/tmjmf/data',
+    'https://picayune.uclick.com/puzzles/tmjmf/data'
+  ];
   
-  console.log(`Fetching puzzle for date ${dateStr} from URL: ${url}`);
-  
-  try {
-    const response = await fetch(url, { 
-      headers: {
-        'Accept': 'application/xml, text/xml, */*',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    });
+  const headers = {
+    'Accept': 'application/xml, text/xml, */*',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
+  };
+
+  let lastError = null;
+
+  // Try each base URL
+  for (const baseUrl of baseUrls) {
+    const url = `${baseUrl}/tmjmf${dateStr}-data.xml`;
+    console.log(`Attempting to fetch puzzle from URL: ${url}`);
     
-    if (!response.ok) {
-      console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
-      const errorBody = await response.text();
-      console.error('Error response body:', errorBody);
+    try {
+      const response = await fetch(url, { headers });
       
-      // Try alternate URL format
-      const alternateUrl = `https://picayune.uclick.com/comics/tmjmf/data/tmjmf${dateStr}-data.xml`;
-      console.log('Trying alternate URL:', alternateUrl);
-      
-      const altResponse = await fetch(alternateUrl, {
-        headers: {
-          'Accept': 'application/xml, text/xml, */*',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-
-      if (!altResponse.ok) {
-        throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
+      if (response.ok) {
+        const text = await response.text();
+        console.log('Successfully fetched puzzle data from:', url);
+        return text;
       }
-
-      return await altResponse.text();
+      
+      const errorBody = await response.text();
+      console.error(`Failed to fetch from ${url}:`, response.status, errorBody);
+      lastError = `${response.status} ${response.statusText}`;
+    } catch (error) {
+      console.error(`Error fetching from ${url}:`, error);
+      lastError = error.message;
     }
-
-    const text = await response.text();
-    console.log('Successfully fetched puzzle data:', text);
-    return text;
-  } catch (error) {
-    console.error('Error fetching puzzle:', error);
-    throw error;
   }
+
+  throw new Error(`Failed to fetch puzzle data: ${lastError}`);
 };
