@@ -54,7 +54,7 @@ const Sidebar = () => {
       try {
         const { data: words, error } = await supabase
           .from('jumble_words')
-          .select('jumbled_word, answer')
+          .select('jumbled_word')
           .ilike('jumbled_word', `%${searchTerm.toUpperCase()}%`)
           .limit(10);
 
@@ -117,8 +117,6 @@ const Sidebar = () => {
                       className="block p-3 hover:bg-gray-100 border-b last:border-b-0"
                     >
                       <span className="text-[#0275d8] font-semibold">{word.jumbled_word}</span>
-                      <span className="text-gray-500 ml-2">→</span>
-                      <span className="text-green-600 font-semibold ml-2">{word.answer}</span>
                     </Link>
                   ))
                 )}
