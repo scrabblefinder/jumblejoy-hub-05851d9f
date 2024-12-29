@@ -20,10 +20,16 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
     }
 
     const text = await response.text();
-    // Remove the jsonCallback wrapper
-    const jsonString = text.replace(/^jsonCallback\((.*)\)$/, '$1');
+    console.log('Raw response:', text);
     
-    console.log('Successfully fetched puzzle data');
+    // Remove the jsonCallback wrapper
+    const jsonString = text.replace(/^\/\*\*\/jsonCallback\((.*)\);?$/, '$1');
+    console.log('Processed JSON string:', jsonString);
+    
+    // Validate JSON
+    JSON.parse(jsonString); // This will throw if invalid
+    
+    console.log('Successfully fetched and validated puzzle data');
     return jsonString;
   } catch (error) {
     console.error('Error fetching puzzle:', error);
