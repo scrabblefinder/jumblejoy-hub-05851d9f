@@ -58,7 +58,8 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
 
 export const fetchPuzzle = async (date: Date) => {
   const dateStr = format(date, 'yyMMdd');
-  const url = `https://www.uclick.com/puzzles/tmjmf/tmjmf${dateStr}-data.xml`;
+  // Updated URL to use MSN assets
+  const url = `http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`;
   
   console.log(`Attempting to fetch puzzle for date ${dateStr} from URL: ${url}`);
   
