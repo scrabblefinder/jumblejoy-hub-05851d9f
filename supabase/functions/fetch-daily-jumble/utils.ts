@@ -21,18 +21,18 @@ const extractCircledLetters = (word: string, circles: string): string => {
   
   try {
     // For December 29th format, we need to handle multiple sets of circle positions
+    // Example: "1,2;3,4" means take letters at positions 1,2 and then 3,4
     const circleGroups = circles.includes(';') ? circles.split(';') : [circles];
     
     let letters = '';
     for (const group of circleGroups) {
       const positions = group.split(',').map(Number);
-      const extractedLetters = positions.map(pos => {
+      for (const pos of positions) {
         // Adjust for 0-based indexing and log each extraction
         const letter = word[pos - 1];
         console.log(`Position ${pos} (index ${pos - 1}) in "${word}" gives letter: "${letter}"`);
-        return letter;
-      }).join('');
-      letters += extractedLetters;
+        letters += letter;
+      }
     }
     
     console.log(`Extracted letters: ${letters}`);
