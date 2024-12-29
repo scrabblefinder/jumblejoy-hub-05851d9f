@@ -14,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 import { supabase } from "./integrations/supabase/client";
 import { parseJumbleCallback, parseJumbleXML } from './utils/parseUtils';
 import { initializeSearch, updatePuzzleUI } from './utils/jumbleUtils';
+import { calculateFinalJumble, updateFinalJumble } from './utils/puzzleUtils';
 
 // Declare the global toggleAccordion function type
 declare global {
@@ -21,31 +22,6 @@ declare global {
     toggleAccordion: (id: string) => void;
   }
 }
-
-const calculateFinalJumble = (clues: any): string => {
-  const jumbledParts = [];
-  const answers = [
-    clues.c1.a,
-    clues.c2.a,
-    clues.c3.a,
-    clues.c4.a
-  ];
-  const positions = [
-    clues.c1.circle,
-    clues.c2.circle,
-    clues.c3.circle,
-    clues.c4.circle
-  ];
-  
-  for (let i = 0; i < answers.length; i++) {
-    const word = answers[i];
-    const pos = positions[i].split(',').map(Number);
-    const letters = pos.map(p => word[p - 1]).join('');
-    jumbledParts.push(letters);
-  }
-  
-  return jumbledParts.join('');
-};
 
 async function initializePuzzles() {
   try {
@@ -93,15 +69,8 @@ async function initializePuzzles() {
       // Calculate final jumble if it's not already set
       if (!latestPuzzle.final_jumble) {
         const finalJumble = calculateFinalJumble(xmlData.clues);
-        // Update the puzzle with the calculated final jumble
-        const { error: updateError } = await supabase
-          .from('daily_puzzles')
-          .update({ final_jumble: finalJumble })
-          .eq('id', latestPuzzle.id);
-          
-        if (updateError) {
-          console.error('Error updating final jumble:', updateError);
-        } else {
+        const updated = await updateFinalJumble(latestPuzzle.id, finalJumble);
+        if (updated) {
           latestPuzzle.final_jumble = finalJumble;
         }
       }
