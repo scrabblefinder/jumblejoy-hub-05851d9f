@@ -49,7 +49,7 @@ const AdminPanel = () => {
   useEffect(() => {
     if (date) {
       const formattedDate = format(date, 'yyyy-MM-dd');
-      const timestamp = Date.now(); // Current timestamp for cache busting
+      const timestamp = Date.now();
       setJsonUrl(`https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
     } else {
       setJsonUrl('');
