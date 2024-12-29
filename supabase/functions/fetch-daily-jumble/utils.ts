@@ -22,26 +22,50 @@ export const getTagContent = (xml: string, tag: string) => {
 
 export const extractPuzzleData = (xmlText: string, date: Date) => {
   console.log('Extracting puzzle data from XML...');
+  console.log('Raw XML:', xmlText);
   
-  const clues = xmlText.match(/<clue[^>]*>[\s\S]*?<\/clue>/g) || [];
-  const jumbledWords = clues.map(clue => getTagContent(clue, 'j'));
-  const answers = clues.map(clue => getTagContent(clue, 'a'));
+  // Extract clues section
+  const cluesMatch = xmlText.match(/<clues>(.*?)<\/clues>/s);
+  if (!cluesMatch) {
+    console.error('No clues section found in XML');
+    throw new Error('Invalid puzzle data format');
+  }
+  
+  const cluesSection = cluesMatch[1];
+  const clues = cluesSection.match(/<c\d+>.*?<\/c\d+>/gs) || [];
+  
+  const jumbledWords = [];
+  const answers = [];
+  
+  for (const clue of clues) {
+    const jumbledMatch = clue.match(/<j>(.*?)<\/j>/);
+    const answerMatch = clue.match(/<a>(.*?)<\/a>/);
+    
+    if (jumbledMatch && answerMatch) {
+      jumbledWords.push(jumbledMatch[1].trim());
+      answers.push(answerMatch[1].trim());
+    }
+  }
   
   // Extract caption from nested structure
-  const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>[\s\S]*?<\/v1>[\s\S]*?<\/caption>/);
+  const captionMatch = xmlText.match(/<caption>.*?<v1>.*?<t>(.*?)<\/t>.*?<\/v1>.*?<\/caption>/s);
   const caption = captionMatch ? captionMatch[1].trim() : '';
   
   // Extract solution from nested structure
-  const solutionMatch = xmlText.match(/<solution>[\s\S]*?<s1[^>]*>[\s\S]*?<a>(.*?)<\/a>[\s\S]*?<\/s1>[\s\S]*?<\/solution>/);
+  const solutionMatch = xmlText.match(/<solution>.*?<s1.*?>.*?<a>(.*?)<\/a>.*?<\/s1>.*?<\/solution>/s);
   const solution = solutionMatch ? solutionMatch[1].trim() : '';
   
-  const imageUrl = getTagContent(xmlText, 'image');
+  // Extract image URL
+  const imageMatch = xmlText.match(/<image>(.*?)<\/image>/);
+  const imageUrl = imageMatch ? imageMatch[1].trim() : '';
 
   console.log('Extracted data:', {
     date: format(date, 'yyyy-MM-dd'),
     caption,
     solution,
-    jumbleWordsCount: jumbledWords.length
+    jumbleWordsCount: jumbledWords.length,
+    jumbledWords,
+    answers
   });
 
   return {
@@ -58,7 +82,6 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
 
 export const fetchPuzzle = async (date: Date) => {
   const dateStr = format(date, 'yyMMdd');
-  // Updated URL to use MSN assets
   const url = `http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`;
   
   console.log(`Attempting to fetch puzzle for date ${dateStr} from URL: ${url}`);
