@@ -2,19 +2,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { corsHeaders } from './utils.ts';
 
 const calculateFinalJumble = (clues: any): string => {
+  // Extract circled letters from answer words based on positions
   const jumbledParts = [];
-  const answers = [
-    clues.a1,
-    clues.a2,
-    clues.a3,
-    clues.a4
-  ];
-  const positions = [
-    clues.o1,
-    clues.o2,
-    clues.o3,
-    clues.o4
-  ];
+  
+  // Get circled letters from each answer word using position arrays
+  const answers = [clues.a1, clues.a2, clues.a3, clues.a4];
+  const positions = [clues.o1, clues.o2, clues.o3, clues.o4];
   
   for (let i = 0; i < answers.length; i++) {
     const word = answers[i];
@@ -23,6 +16,7 @@ const calculateFinalJumble = (clues: any): string => {
     jumbledParts.push(letters);
   }
   
+  // Combine all parts to create the final jumbled word
   return jumbledParts.join('');
 };
 
@@ -121,7 +115,8 @@ Deno.serve(async (req) => {
         caption: jsonData.Caption.v1,
         image_url: jsonData.Image,
         solution: cleanSolution,
-        final_jumble: finalJumble
+        final_jumble: finalJumble,
+        final_jumble_answer: cleanSolution // Store the solution as the final jumble answer
       })
       .select()
       .single();
