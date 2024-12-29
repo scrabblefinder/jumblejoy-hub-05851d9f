@@ -61,8 +61,12 @@ function parseJumbleXML(xmlText: string): JumbleData {
   const imageUrl = imageMatch ? imageMatch[1].trim() : '';
   console.log('Extracted image URL:', imageUrl);
 
+  // Format date as YYMMDD
+  const today = new Date();
+  const dateStr = format(today, 'yyMMdd');
+
   return {
-    Date: format(new Date(), 'yyMMdd'),
+    Date: dateStr,
     Clues: {
       c1: jumbledWords[0] || '',
       c2: jumbledWords[1] || '',
@@ -104,7 +108,9 @@ Deno.serve(async (req) => {
         'Accept': 'application/xml, text/xml, */*',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': 'https://www.uclick.com/',
-        'Origin': 'https://www.uclick.com'
+        'Origin': 'https://www.uclick.com',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
     });
 
@@ -112,7 +118,22 @@ Deno.serve(async (req) => {
       console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
       const errorBody = await response.text();
       console.error('Error response body:', errorBody);
-      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
+      
+      // Try fetching without cache
+      const retryResponse = await fetch(url + '?' + new Date().getTime(), {
+        headers: {
+          'Accept': 'application/xml, text/xml, */*',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://www.uclick.com/',
+          'Origin': 'https://www.uclick.com',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      if (!retryResponse.ok) {
+        throw new Error(`Failed to fetch puzzle data after retry: ${retryResponse.statusText}`);
+      }
     }
     
     const xmlText = await response.text();
