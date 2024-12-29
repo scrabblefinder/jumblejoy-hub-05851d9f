@@ -58,7 +58,7 @@ const CaptionAnswer = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-jumble-background">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-jumble-primary"></div>
       </div>
     );
@@ -66,7 +66,7 @@ const CaptionAnswer = () => {
 
   if (!puzzle) {
     return (
-      <div className="min-h-screen flex flex-col bg-jumble-background">
+      <div className="min-h-screen flex flex-col bg-white">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 text-center">
@@ -87,11 +87,11 @@ const CaptionAnswer = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-jumble-background">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden">
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="bg-jumble-primary text-jumble-text p-4">
             <h1 className="text-2xl font-bold text-center">Clue Solution</h1>
           </div>
