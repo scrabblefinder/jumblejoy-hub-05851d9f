@@ -63,6 +63,7 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
 
 export const fetchPuzzle = async (date: Date) => {
   const dateStr = format(date, 'yyMMdd');
+  // Updated URL format based on actual source
   const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.xml`;
   
   console.log(`Fetching puzzle for date ${dateStr} from URL: ${url}`);
@@ -81,7 +82,25 @@ export const fetchPuzzle = async (date: Date) => {
       console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
       const errorBody = await response.text();
       console.error('Error response body:', errorBody);
-      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
+      
+      // Try alternate URL format
+      const alternateUrl = `https://picayune.uclick.com/comics/tmjmf/data/tmjmf${dateStr}-data.xml`;
+      console.log('Trying alternate URL:', alternateUrl);
+      
+      const altResponse = await fetch(alternateUrl, {
+        headers: {
+          'Accept': 'application/xml, text/xml, */*',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      if (!altResponse.ok) {
+        throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
+      }
+
+      return await altResponse.text();
     }
 
     const text = await response.text();
