@@ -9,6 +9,7 @@ const Sidebar = () => {
   const [latestWords, setLatestWords] = useState<any[]>([]);
   const [latestDate, setLatestDate] = useState<string>('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     const fetchLatestWords = async () => {
@@ -45,10 +46,12 @@ const Sidebar = () => {
     const searchWords = async () => {
       if (searchTerm.length === 0) {
         setSearchResults([]);
+        setShowResults(false);
         return;
       }
 
       setIsSearching(true);
+      setShowResults(true);
       try {
         const { data: words, error } = await supabase
           .from('jumble_words')
@@ -79,6 +82,11 @@ const Sidebar = () => {
     }
   };
 
+  const handleResultClick = (word: string) => {
+    setSearchTerm('');
+    setShowResults(false);
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-lg overflow-hidden">
@@ -94,15 +102,22 @@ const Sidebar = () => {
                 className="w-full p-3 border rounded-l-md"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onBlur={() => {
+                  // Delay hiding results to allow click events to fire
+                  setTimeout(() => setShowResults(false), 200);
+                }}
+                onFocus={() => {
+                  if (searchTerm) setShowResults(true);
+                }}
               />
               <button 
                 className="px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5]"
-                onClick={() => {/* Search is automatic */}}
+                onClick={() => setShowResults(true)}
               >
                 SEARCH
               </button>
             </div>
-            {searchTerm.length > 0 && (
+            {showResults && searchTerm.length > 0 && (
               <div className="absolute left-0 right-0 mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-3 text-gray-500">Searching...</div>
@@ -114,7 +129,7 @@ const Sidebar = () => {
                       key={index}
                       to={`/jumble/${word.jumbled_word.toLowerCase()}`}
                       className="block p-3 hover:bg-gray-100 border-b last:border-b-0"
-                      onClick={() => setSearchTerm('')}
+                      onClick={() => handleResultClick(word.jumbled_word)}
                     >
                       <span className="text-[#0275d8] font-semibold">{word.jumbled_word}</span>
                     </Link>
