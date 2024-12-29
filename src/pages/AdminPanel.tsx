@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import PuzzleForm from '@/components/admin/PuzzleForm';
 import AutomaticPuzzleForm from '@/components/admin/AutomaticPuzzleForm';
 import PuzzleList from '@/components/admin/PuzzleList';
@@ -9,6 +10,7 @@ import PuzzleList from '@/components/admin/PuzzleList';
 const AdminPanel = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [fetchingPuzzle, setFetchingPuzzle] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -36,6 +38,32 @@ const AdminPanel = () => {
     checkSession();
   }, [toast]);
 
+  const fetchTodaysPuzzle = async () => {
+    setFetchingPuzzle(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-daily-jumble');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: data.message,
+      });
+
+      // Refresh the puzzle list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error fetching puzzle:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch today's puzzle",
+        variant: "destructive"
+      });
+    } finally {
+      setFetchingPuzzle(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -51,6 +79,16 @@ const AdminPanel = () => {
         <p className="text-gray-600">Manage daily jumble puzzles</p>
       </div>
       
+      <div className="mb-8">
+        <Button 
+          onClick={fetchTodaysPuzzle} 
+          disabled={fetchingPuzzle}
+          className="w-full md:w-auto"
+        >
+          {fetchingPuzzle ? 'Fetching...' : 'Fetch Today\'s Puzzle'}
+        </Button>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <Tabs defaultValue="manual" className="w-full">
