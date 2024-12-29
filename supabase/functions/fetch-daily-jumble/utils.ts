@@ -32,34 +32,54 @@ interface JumbleCallback {
 
 export const extractPuzzleData = (xmlText: string, date: Date) => {
   console.log('Extracting puzzle data from XML');
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
   
-  // Extract all the necessary data from XML
+  // Simple XML parsing using regex since DOMParser is not available in Deno
+  const getTagContent = (xml: string, tag: string): string => {
+    const regex = new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, 's');
+    const match = xml.match(regex);
+    return match ? match[1].trim() : '';
+  };
+
+  // Extract clues
+  const clues = xmlText.match(/<clue[^>]*>[\s\S]*?<\/clue>/g) || [];
+  const getClueValue = (clue: string, tag: string) => getTagContent(clue, tag);
+
+  const c1 = clues[0] ? getClueValue(clues[0], 'j') : '';
+  const c2 = clues[1] ? getClueValue(clues[1], 'j') : '';
+  const c3 = clues[2] ? getClueValue(clues[2], 'j') : '';
+  const c4 = clues[3] ? getClueValue(clues[3], 'j') : '';
+
+  const a1 = clues[0] ? getClueValue(clues[0], 'a') : '';
+  const a2 = clues[1] ? getClueValue(clues[1], 'a') : '';
+  const a3 = clues[2] ? getClueValue(clues[2], 'a') : '';
+  const a4 = clues[3] ? getClueValue(clues[3], 'a') : '';
+
+  // Extract positions
+  const p1 = clues[0] ? getClueValue(clues[0], 'circle') : '';
+  const p2 = clues[1] ? getClueValue(clues[1], 'circle') : '';
+  const p3 = clues[2] ? getClueValue(clues[2], 'circle') : '';
+  const p4 = clues[3] ? getClueValue(clues[3], 'circle') : '';
+
+  // Extract caption and solution
+  const caption = getTagContent(getTagContent(xmlText, 'caption'), 't');
+  const solution = getTagContent(getTagContent(xmlText, 'solution'), 'a');
+  const image = getTagContent(xmlText, 'image');
+
   const puzzleData: JumbleCallback = {
     Date: formatDate(date),
     Clues: {
-      c1: getNodeText(xmlDoc, "c1"),
-      c2: getNodeText(xmlDoc, "c2"),
-      c3: getNodeText(xmlDoc, "c3"),
-      c4: getNodeText(xmlDoc, "c4"),
-      a1: getNodeText(xmlDoc, "a1"),
-      a2: getNodeText(xmlDoc, "a2"),
-      a3: getNodeText(xmlDoc, "a3"),
-      a4: getNodeText(xmlDoc, "a4")
+      c1, c2, c3, c4,
+      a1, a2, a3, a4
     },
     Caption: {
-      v1: getNodeText(xmlDoc, "v1")
+      v1: caption
     },
     Solution: {
-      s1: getNodeText(xmlDoc, "s1")
+      s1: solution
     },
-    Image: getNodeText(xmlDoc, "image"),
+    Image: image,
     CircledLetters: {
-      p1: getNodeText(xmlDoc, "p1"),
-      p2: getNodeText(xmlDoc, "p2"),
-      p3: getNodeText(xmlDoc, "p3"),
-      p4: getNodeText(xmlDoc, "p4")
+      p1, p2, p3, p4
     }
   };
 
@@ -74,11 +94,6 @@ export const formatDate = (date: Date): string => {
   return `${year}${month}${day}`;
 };
 
-const getNodeText = (doc: Document, tagName: string): string => {
-  const node = doc.getElementsByTagName(tagName)[0];
-  return node ? node.textContent || "" : "";
-};
-
 export const extractCircledLetters = (answers: string[], positions: string[]): string => {
   console.log('Extracting circled letters from answers:', answers, 'with positions:', positions);
   let finalJumble = '';
@@ -86,7 +101,7 @@ export const extractCircledLetters = (answers: string[], positions: string[]): s
   // Process each answer with its corresponding positions
   answers.forEach((answer, index) => {
     if (positions[index]) {
-      const positionsList = positions[index].split(';');
+      const positionsList = positions[index].split(',');
       positionsList.forEach(pos => {
         const position = parseInt(pos) - 1; // Convert to 0-based index
         if (!isNaN(position) && position >= 0 && position < answer.length) {
@@ -106,7 +121,21 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
   
   try {
     console.log(`Attempting to fetch puzzle for date ${formattedDate} from URL: ${url}`);
-    const xmlText = await fetchPuzzleXML(url);
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/xml, text/xml, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const xmlText = await response.text();
     console.log('Successfully fetched puzzle XML');
     return xmlText;
   } catch (error) {
