@@ -27,40 +27,42 @@ interface JumbleData {
   Image: string;
 }
 
-function extractValue(xml: string, tag: string): string {
-  const regex = new RegExp(`<${tag}>(.*?)</${tag}>`, 's');
-  const match = xml.match(regex);
-  return match ? match[1].trim() : '';
+function extractValue(xml: string, tag: string, index: number = 0): string {
+  const regex = new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, 'gs');
+  const matches = [...xml.matchAll(regex)];
+  return matches[index] ? matches[index][1].trim() : '';
 }
 
 function parseJumbleXML(xmlText: string): JumbleData {
-  // Extract clues
-  const c1j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
-  const c2j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
-  const c3j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
-  const c4j = extractValue(xmlText, 'j(?:[^>]*>|>)(?:[^<]*<\/j>|<\/j>)');
+  // Extract clues - we need to get both jumbled words and answers
+  const clues = xmlText.match(/<clue[^>]*>[\s\S]*?<\/clue>/g) || [];
   
-  const c1a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
-  const c2a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
-  const c3a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
-  const c4a = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
+  const jumbledWords = clues.map(clue => extractValue(clue, 'j'));
+  const answers = clues.map(clue => extractValue(clue, 'a'));
 
-  // Extract caption and solution
-  const caption = extractValue(xmlText, 't(?:[^>]*>|>)(?:[^<]*<\/t>|<\/t>)');
-  const solution = extractValue(xmlText, 'a(?:[^>]*>|>)(?:[^<]*<\/a>|<\/a>)');
-  const image = extractValue(xmlText, 'image(?:[^>]*>|>)(?:[^<]*<\/image>|<\/image>)');
+  // Extract caption from v1 tag inside caption
+  const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>[\s\S]*?<\/v1>[\s\S]*?<\/caption>/);
+  const caption = captionMatch ? captionMatch[1].trim() : '';
+
+  // Extract solution from s1 tag inside solution
+  const solutionMatch = xmlText.match(/<solution>[\s\S]*?<s1[^>]*>[\s\S]*?<a>(.*?)<\/a>[\s\S]*?<\/s1>[\s\S]*?<\/solution>/);
+  const solution = solutionMatch ? solutionMatch[1].trim() : '';
+
+  // Extract image URL
+  const imageMatch = xmlText.match(/<image>(.*?)<\/image>/);
+  const imageUrl = imageMatch ? imageMatch[1].trim() : '';
 
   return {
     Date: format(new Date(), 'yyMMdd'),
     Clues: {
-      c1: c1j,
-      c2: c2j,
-      c3: c3j,
-      c4: c4j,
-      a1: c1a,
-      a2: c2a,
-      a3: c3a,
-      a4: c4a,
+      c1: jumbledWords[0] || '',
+      c2: jumbledWords[1] || '',
+      c3: jumbledWords[2] || '',
+      c4: jumbledWords[3] || '',
+      a1: answers[0] || '',
+      a2: answers[1] || '',
+      a3: answers[2] || '',
+      a4: answers[3] || '',
     },
     Caption: {
       v1: caption,
@@ -68,7 +70,7 @@ function parseJumbleXML(xmlText: string): JumbleData {
     Solution: {
       s1: solution,
     },
-    Image: image,
+    Image: imageUrl,
   };
 }
 
@@ -84,8 +86,8 @@ Deno.serve(async (req) => {
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
-    // Use the correct URL format
-    const url = `http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`
+    // Use the correct URL format for the XML data
+    const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.xml`
     console.log(`Trying URL: ${url}`)
     
     const response = await fetch(url)
@@ -98,6 +100,7 @@ Deno.serve(async (req) => {
 
     // Parse XML without using DOMParser
     const jsonData = parseJumbleXML(xmlText);
+    console.log('Parsed data:', jsonData)
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
