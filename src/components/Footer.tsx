@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -16,21 +17,33 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/" className="text-gray-300 hover:text-white">Home</Link></li>
               <li><Link to="/" className="text-gray-300 hover:text-white">Latest Answers</Link></li>
-              <li><Link to="/" className="text-gray-300 hover:text-white">How to Play</Link></li>
               <li><Link to="/privacy-policy" className="text-gray-300 hover:text-white">Privacy Policy</Link></li>
+              <li><Link to="/privacy-policy" className="text-gray-300 hover:text-white">Disclaimer</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-xl font-bold mb-4">Connect With Us</h3>
             <div className="flex gap-4">
-              <Link to="#" className="text-gray-300 hover:text-white">Facebook</Link>
-              <Link to="#" className="text-gray-300 hover:text-white">Twitter</Link>
-              <Link to="#" className="text-gray-300 hover:text-white">Email</Link>
+              <Link to="#" className="text-gray-300 hover:text-white">
+                <Facebook size={24} />
+              </Link>
+              <Link to="#" className="text-gray-300 hover:text-white">
+                <Twitter size={24} />
+              </Link>
+              <Link to="#" className="text-gray-300 hover:text-white">
+                <Instagram size={24} />
+              </Link>
+              <Link to="#" className="text-gray-300 hover:text-white">
+                <Youtube size={24} />
+              </Link>
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 JumbleAnswers.com. All rights reserved.</p>
+        <div className="border-t border-gray-700 mt-8 pt-8 text-center">
+          <p className="text-gray-400 text-sm mb-4">
+            Jumble® is a registered trademark of Tribune Media Services, Inc. DailyJumbleAnswers.com is not affiliated with Jumble® or Tribune Media Services Inc, in any way. This site is for entertainment purposes only.
+          </p>
+          <p className="text-gray-400">&copy; 2024 JumbleAnswers.com. All rights reserved.</p>
         </div>
       </div>
     </footer>
