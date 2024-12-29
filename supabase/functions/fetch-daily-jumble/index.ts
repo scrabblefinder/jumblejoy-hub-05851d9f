@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import { format, addYears } from 'https://esm.sh/date-fns@3.3.1'
+import { format } from 'https://esm.sh/date-fns@3.3.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
     // Fetch the puzzle data with the dynamic date
-    const response = await fetch(`http://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`)
+    const response = await fetch(`https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`)
     if (!response.ok) {
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
     }
