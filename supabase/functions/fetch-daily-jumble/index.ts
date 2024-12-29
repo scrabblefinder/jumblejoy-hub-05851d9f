@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
     // Updated URL format to match the correct pattern
-    const url = `https://www.uclick.com/puzzles/tmjmf/tmjmf${dateStr}-data.xml`
+    const url = `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.xml`
     console.log(`Trying URL: ${url}`)
     
     const response = await fetch(url)
