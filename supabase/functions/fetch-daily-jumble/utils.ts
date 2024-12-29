@@ -31,6 +31,7 @@ interface JumbleCallback {
 }
 
 export const extractPuzzleData = (xmlText: string, date: Date) => {
+  console.log('Extracting puzzle data from XML');
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlText, "text/xml");
   
@@ -62,6 +63,7 @@ export const extractPuzzleData = (xmlText: string, date: Date) => {
     }
   };
 
+  console.log('Extracted puzzle data:', puzzleData);
   return puzzleData;
 };
 
@@ -78,6 +80,7 @@ const getNodeText = (doc: Document, tagName: string): string => {
 };
 
 export const extractCircledLetters = (answers: string[], positions: string[]): string => {
+  console.log('Extracting circled letters from answers:', answers, 'with positions:', positions);
   let finalJumble = '';
   
   // Process each answer with its corresponding positions
@@ -93,6 +96,7 @@ export const extractCircledLetters = (answers: string[], positions: string[]): s
     }
   });
   
+  console.log('Generated final jumble:', finalJumble);
   return finalJumble;
 };
 
@@ -100,10 +104,13 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
   const formattedDate = formatDate(date);
   const url = `https://www.uclick.com/puzzles/tmjmf/${formattedDate}-data.xml`;
   
-  const response = await fetch(url);
-  if (!response.ok) {
+  try {
+    console.log(`Attempting to fetch puzzle for date ${formattedDate} from URL: ${url}`);
+    const xmlText = await fetchPuzzleXML(url);
+    console.log('Successfully fetched puzzle XML');
+    return xmlText;
+  } catch (error) {
+    console.error(`Error fetching puzzle for date ${formattedDate}:`, error);
     throw new Error(`Failed to fetch puzzle for date ${formattedDate}`);
   }
-  
-  return await response.text();
 };
