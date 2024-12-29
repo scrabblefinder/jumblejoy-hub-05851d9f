@@ -33,42 +33,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get today's date and format it as YYYYMMDD
+    // Get today's date and format it as YYMMDD
     const today = new Date()
-    const dateStr = format(today, 'yyyyMMdd')
+    const dateStr = format(today, 'yyMMdd')
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
-    // Try different URL formats
-    const urlFormats = [
-      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`,
-      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.json`,
-      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.php`,
-      `https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}.php`
-    ]
-
-    let response = null
-    let error = null
-
-    // Try each URL format until one works
-    for (const url of urlFormats) {
-      try {
-        console.log(`Trying URL: ${url}`)
-        const resp = await fetch(url)
-        if (resp.ok) {
-          response = resp
-          break
-        }
-        error = `Failed to fetch from ${url}: ${resp.statusText}`
-      } catch (e) {
-        error = e.message
-        console.error(`Error fetching from ${url}:`, e)
-        continue
-      }
-    }
-
-    if (!response) {
-      throw new Error(error || 'Failed to fetch puzzle data from all URLs')
+    // Use the correct URL format
+    const url = `http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`
+    console.log(`Trying URL: ${url}`)
+    
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
     }
     
     const text = await response.text()
