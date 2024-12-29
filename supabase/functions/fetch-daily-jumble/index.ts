@@ -57,6 +57,10 @@ Deno.serve(async (req) => {
     // Remove the jsonCallback wrapper and parse the JSON
     const jsonData = JSON.parse(text.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1'));
     console.log('Parsed JSON data:', jsonData);
+
+    // Clean up the solution by removing { } characters
+    const cleanSolution = jsonData.Solution.s1.replace(/[{}]/g, ' ').replace(/\s+/g, ' ').trim();
+    console.log('Cleaned solution:', cleanSolution);
     
     // Connect to Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -80,14 +84,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert new puzzle
+    // Insert new puzzle with cleaned solution
     const { data: puzzle, error: puzzleError } = await supabase
       .from('daily_puzzles')
       .insert({
         date: dbDate,
         caption: jsonData.Caption.v1,
         image_url: jsonData.Image,
-        solution: jsonData.Solution.s1,
+        solution: cleanSolution,
         final_jumble: jsonData.Solution?.j1 || null,
         final_jumble_answer: jsonData.Solution?.s1 || null
       })
