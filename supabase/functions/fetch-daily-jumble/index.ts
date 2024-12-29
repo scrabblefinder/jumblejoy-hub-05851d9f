@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import { format } from 'https://esm.sh/date-fns@3.3.1'
+import { format, addYears } from 'https://esm.sh/date-fns@3.3.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,11 +29,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get today's date in the format YYMMDD
-    const today = new Date()
+    // Get today's date and add 1 year (since the URL uses year 24 for 2024)
+    const today = addYears(new Date(), 1)
+    // Format as 'yyMMdd' for the URL
     const dateStr = format(today, 'yyMMdd')
     
-    // Fetch the XML data
+    console.log(`Fetching puzzle for date: ${dateStr}`)
+    
+    // Fetch the XML data with the dynamic date
     const response = await fetch(`http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`)
     if (!response.ok) {
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
@@ -59,11 +62,14 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (existingPuzzle) {
+      console.log(`Puzzle for ${dbDate} already exists`)
       return new Response(
         JSON.stringify({ message: `Puzzle for ${dbDate} already exists` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log(`Inserting new puzzle for ${dbDate}`)
 
     // Insert the puzzle
     const { data: puzzle, error: puzzleError } = await supabase
@@ -77,7 +83,10 @@ Deno.serve(async (req) => {
       .select()
       .single()
 
-    if (puzzleError) throw puzzleError
+    if (puzzleError) {
+      console.error('Error inserting puzzle:', puzzleError)
+      throw puzzleError
+    }
 
     // Insert the jumble words
     const jumbleWords = [
@@ -91,7 +100,12 @@ Deno.serve(async (req) => {
       .from('jumble_words')
       .insert(jumbleWords)
 
-    if (wordsError) throw wordsError
+    if (wordsError) {
+      console.error('Error inserting jumble words:', wordsError)
+      throw wordsError
+    }
+
+    console.log(`Successfully added puzzle for ${dbDate}`)
 
     return new Response(
       JSON.stringify({ message: 'Puzzle added successfully', puzzle }),
