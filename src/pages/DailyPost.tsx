@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
-import { DailyPuzzle } from '@/integrations/supabase/types/model.types';
+import { DailyPuzzle } from '@/integrations/supabase/types';
 import { format, parseISO } from 'date-fns';
 
 const DailyPost = () => {
@@ -32,15 +32,17 @@ const DailyPost = () => {
           jumble_words (
             id,
             jumbled_word,
-            answer
+            answer,
+            created_at,
+            puzzle_id
           )
         `)
         .eq('date', formattedDate)
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
       if (!data) throw new Error('Puzzle not found');
-      return data;
+      return data as DailyPuzzle;
     },
   });
 
