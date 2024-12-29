@@ -7,8 +7,8 @@ const corsHeaders = {
 }
 
 interface JumbleData {
-  date: { v: string };
-  clues: {
+  Date: string;
+  Clues: {
     c1: string;
     c2: string;
     c3: string;
@@ -18,9 +18,13 @@ interface JumbleData {
     a3: string;
     a4: string;
   };
-  caption: { v1: { t: string } };
-  solution: { s1: { a: string } };
-  image: { src: string };
+  Caption: {
+    v1: string;
+  };
+  Solution: {
+    s1: string;
+  };
+  Image: string;
 }
 
 Deno.serve(async (req) => {
@@ -29,15 +33,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get today's date and add 1 year (since the URL uses year 24 for 2024)
-    const today = addYears(new Date(), 1)
-    // Format as 'yyMMdd' for the URL
-    const dateStr = format(today, 'yyMMdd')
+    // Get today's date and format it as YYYYMMDD
+    const today = new Date()
+    const dateStr = format(today, 'yyyyMMdd')
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
-    // Fetch the XML data with the dynamic date
-    const response = await fetch(`http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`)
+    // Fetch the puzzle data with the dynamic date
+    const response = await fetch(`http://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`)
     if (!response.ok) {
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
     }
@@ -76,9 +79,9 @@ Deno.serve(async (req) => {
       .from('daily_puzzles')
       .insert({
         date: dbDate,
-        caption: jsonData.caption.v1.t,
-        image_url: jsonData.image.src,
-        solution: jsonData.solution.s1.a,
+        caption: jsonData.Caption.v1,
+        image_url: jsonData.Image,
+        solution: jsonData.Solution.s1,
       })
       .select()
       .single()
@@ -90,10 +93,10 @@ Deno.serve(async (req) => {
 
     // Insert the jumble words
     const jumbleWords = [
-      { puzzle_id: puzzle.id, jumbled_word: jsonData.clues.c1, answer: jsonData.clues.a1 },
-      { puzzle_id: puzzle.id, jumbled_word: jsonData.clues.c2, answer: jsonData.clues.a2 },
-      { puzzle_id: puzzle.id, jumbled_word: jsonData.clues.c3, answer: jsonData.clues.a3 },
-      { puzzle_id: puzzle.id, jumbled_word: jsonData.clues.c4, answer: jsonData.clues.a4 },
+      { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c1, answer: jsonData.Clues.a1 },
+      { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c2, answer: jsonData.Clues.a2 },
+      { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c3, answer: jsonData.Clues.a3 },
+      { puzzle_id: puzzle.id, jumbled_word: jsonData.Clues.c4, answer: jsonData.Clues.a4 },
     ]
 
     const { error: wordsError } = await supabase
