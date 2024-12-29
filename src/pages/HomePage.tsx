@@ -150,7 +150,7 @@ const HomePage: React.FC = () => {
                       <PaginationItem>
                         <PaginationPrevious 
                           onClick={() => handlePageChange(currentPage - 1)}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100"
                         />
                       </PaginationItem>
                     )}
@@ -160,7 +160,7 @@ const HomePage: React.FC = () => {
                         <PaginationLink
                           onClick={() => handlePageChange(page)}
                           isActive={currentPage === page}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100"
                         >
                           {page}
                         </PaginationLink>
@@ -171,7 +171,7 @@ const HomePage: React.FC = () => {
                       <PaginationItem>
                         <PaginationNext 
                           onClick={() => handlePageChange(currentPage + 1)}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100"
                         />
                       </PaginationItem>
                     )}
