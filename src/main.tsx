@@ -50,7 +50,7 @@ async function initializePuzzles() {
     const previousPuzzle = puzzles.length > 1 ? puzzles[1] : null;
 
     if (latestPuzzle) {
-      // Process latest puzzle XML data (December 28 - ODPEOTUR)
+      // Process latest puzzle XML data
       const xmlData = {
         date: { v: latestPuzzle.date.replace(/-/g, '') },
         clues: {
@@ -64,11 +64,28 @@ async function initializePuzzles() {
       };
 
       const processedDataLatest = parseJumbleXML(xmlData);
-      updatePuzzleUI({ ...latestPuzzle, finalJumble: processedDataLatest.finalJumble }, 'latest');
+      
+      // Update the final jumble in the database if it's not already set
+      if (!latestPuzzle.final_jumble && processedDataLatest.finalJumble) {
+        const { error: updateError } = await supabase
+          .from('daily_puzzles')
+          .update({ 
+            final_jumble: processedDataLatest.finalJumble,
+            final_jumble_answer: latestPuzzle.solution
+          })
+          .eq('id', latestPuzzle.id);
+
+        if (updateError) console.error('Error updating final jumble:', updateError);
+      }
+
+      updatePuzzleUI({ 
+        ...latestPuzzle, 
+        finalJumble: processedDataLatest.finalJumble || latestPuzzle.final_jumble 
+      }, 'latest');
     }
     
     if (previousPuzzle) {
-      // Process previous puzzle JSON data (December 27 - NKEULTIBANH)
+      // Process previous puzzle JSON data
       const sampleData = {
         "Date": previousPuzzle.date.replace(/-/g, ''),
         "Clues": {
@@ -96,7 +113,24 @@ async function initializePuzzles() {
       };
 
       const processedDataPrevious = parseJumbleCallback(sampleData);
-      updatePuzzleUI({ ...previousPuzzle, finalJumble: processedDataPrevious.finalJumble }, 'previous');
+      
+      // Update the final jumble in the database if it's not already set
+      if (!previousPuzzle.final_jumble && processedDataPrevious.finalJumble) {
+        const { error: updateError } = await supabase
+          .from('daily_puzzles')
+          .update({ 
+            final_jumble: processedDataPrevious.finalJumble,
+            final_jumble_answer: previousPuzzle.solution
+          })
+          .eq('id', previousPuzzle.id);
+
+        if (updateError) console.error('Error updating final jumble:', updateError);
+      }
+
+      updatePuzzleUI({ 
+        ...previousPuzzle, 
+        finalJumble: processedDataPrevious.finalJumble || previousPuzzle.final_jumble 
+      }, 'previous');
     }
 
   } catch (error) {

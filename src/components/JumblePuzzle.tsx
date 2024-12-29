@@ -110,9 +110,14 @@ const JumblePuzzle = ({
                       {finalJumble}
                     </span>
                     <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full">
-                      {countLetters(finalJumble)} letters
+                      Final Jumble - {countLetters(finalJumble)} letters
                     </span>
                   </div>
+                  {solution && (
+                    <div className="mt-2 text-sm text-blue-600">
+                      Solution: {solution}
+                    </div>
+                  )}
                 </Link>
               )}
             </div>

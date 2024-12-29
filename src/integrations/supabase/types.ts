@@ -32,6 +32,8 @@ export type Database = {
           caption: string
           created_at: string
           date: string
+          final_jumble: string | null
+          final_jumble_answer: string | null
           id: string
           image_url: string
           solution: string
@@ -40,6 +42,8 @@ export type Database = {
           caption: string
           created_at?: string
           date: string
+          final_jumble?: string | null
+          final_jumble_answer?: string | null
           id?: string
           image_url: string
           solution: string
@@ -48,6 +52,8 @@ export type Database = {
           caption?: string
           created_at?: string
           date?: string
+          final_jumble?: string | null
+          final_jumble_answer?: string | null
           id?: string
           image_url?: string
           solution?: string
