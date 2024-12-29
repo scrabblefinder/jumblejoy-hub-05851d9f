@@ -30,61 +30,41 @@ interface JumbleCallback {
   };
 }
 
-export const extractPuzzleData = (xmlText: string, date: Date) => {
-  console.log('Extracting puzzle data from XML');
+export const extractPuzzleData = (jsonText: string, date: Date) => {
+  console.log('Extracting puzzle data from JSON callback');
   
-  // Simple XML parsing using regex since DOMParser is not available in Deno
-  const getTagContent = (xml: string, tag: string): string => {
-    const regex = new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, 's');
-    const match = xml.match(regex);
-    return match ? match[1].trim() : '';
-  };
-
-  // Extract clues
-  const clues = xmlText.match(/<clue[^>]*>[\s\S]*?<\/clue>/g) || [];
-  const getClueValue = (clue: string, tag: string) => getTagContent(clue, tag);
-
-  const c1 = clues[0] ? getClueValue(clues[0], 'j') : '';
-  const c2 = clues[1] ? getClueValue(clues[1], 'j') : '';
-  const c3 = clues[2] ? getClueValue(clues[2], 'j') : '';
-  const c4 = clues[3] ? getClueValue(clues[3], 'j') : '';
-
-  const a1 = clues[0] ? getClueValue(clues[0], 'a') : '';
-  const a2 = clues[1] ? getClueValue(clues[1], 'a') : '';
-  const a3 = clues[2] ? getClueValue(clues[2], 'a') : '';
-  const a4 = clues[3] ? getClueValue(clues[3], 'a') : '';
-
-  // Extract positions
-  const p1 = clues[0] ? getClueValue(clues[0], 'circle') : '';
-  const p2 = clues[1] ? getClueValue(clues[1], 'circle') : '';
-  const p3 = clues[2] ? getClueValue(clues[2], 'circle') : '';
-  const p4 = clues[3] ? getClueValue(clues[3], 'circle') : '';
-
-  // Extract caption and solution
-  const caption = getTagContent(getTagContent(xmlText, 'caption'), 't');
-  const solution = getTagContent(getTagContent(xmlText, 'solution'), 'a');
-  const image = getTagContent(xmlText, 'image');
-
-  const puzzleData: JumbleCallback = {
-    Date: formatDate(date),
-    Clues: {
-      c1, c2, c3, c4,
-      a1, a2, a3, a4
-    },
-    Caption: {
-      v1: caption
-    },
-    Solution: {
-      s1: solution
-    },
-    Image: image,
-    CircledLetters: {
-      p1, p2, p3, p4
-    }
-  };
-
-  console.log('Extracted puzzle data:', puzzleData);
-  return puzzleData;
+  try {
+    // Remove the jsonCallback wrapper
+    const jsonString = jsonText.replace(/^jsonCallback\((.*)\)$/, '$1');
+    const data = JSON.parse(jsonString);
+    
+    console.log('Parsed JSON data:', data);
+    
+    return {
+      Date: formatDate(date),
+      Clues: {
+        c1: data.Clues?.c1 || '',
+        c2: data.Clues?.c2 || '',
+        c3: data.Clues?.c3 || '',
+        c4: data.Clues?.c4 || '',
+        a1: data.Clues?.a1 || '',
+        a2: data.Clues?.a2 || '',
+        a3: data.Clues?.a3 || '',
+        a4: data.Clues?.a4 || '',
+      },
+      Caption: {
+        v1: data.Caption?.v1 || '',
+      },
+      Solution: {
+        s1: data.Solution?.s1 || '',
+      },
+      Image: data.Image || '',
+      CircledLetters: data.CircledLetters || {},
+    };
+  } catch (error) {
+    console.error('Error parsing puzzle data:', error);
+    throw new Error(`Failed to parse puzzle data: ${error.message}`);
+  }
 };
 
 export const formatDate = (date: Date): string => {
@@ -98,12 +78,11 @@ export const extractCircledLetters = (answers: string[], positions: string[]): s
   console.log('Extracting circled letters from answers:', answers, 'with positions:', positions);
   let finalJumble = '';
   
-  // Process each answer with its corresponding positions
   answers.forEach((answer, index) => {
     if (positions[index]) {
       const positionsList = positions[index].split(',');
       positionsList.forEach(pos => {
-        const position = parseInt(pos) - 1; // Convert to 0-based index
+        const position = parseInt(pos) - 1;
         if (!isNaN(position) && position >= 0 && position < answer.length) {
           finalJumble += answer[position];
         }
@@ -136,28 +115,7 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
 
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status}`);
-      // Try fetching without cache
-      console.log('Retrying with cache-busting parameter...');
-      const retryUrl = `${url}&nocache=${new Date().getTime()}`;
-      const retryResponse = await fetch(retryUrl, { 
-        headers: {
-          'Accept': 'application/json, text/javascript, */*',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': 'https://www.uclick.com/',
-          'Origin': 'https://www.uclick.com',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        signal: AbortSignal.timeout(10000)
-      });
-
-      if (!retryResponse.ok) {
-        throw new Error(`HTTP error! status: ${retryResponse.status}`);
-      }
-
-      const retryText = await retryResponse.text();
-      console.log('Successfully fetched puzzle data after retry');
-      return retryText;
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const text = await response.text();
@@ -165,6 +123,6 @@ export const fetchPuzzle = async (date: Date): Promise<string> => {
     return text;
   } catch (error) {
     console.error(`Error fetching puzzle for date ${formattedDate}:`, error);
-    throw new Error(`Failed to fetch puzzle for date ${formattedDate}`);
+    throw new Error(`Failed to fetch puzzle for date ${formattedDate}: ${error.message}`);
   }
 };

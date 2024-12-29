@@ -1,19 +1,10 @@
-export interface DailyPuzzle {
-  id: string;
-  date: string;
-  caption: string;
-  image_url: string;
-  solution: string;
-  created_at: string;
-  final_jumble: string | null;
-  final_jumble_answer: string | null;
-  jumble_words: JumbleWord[];
-}
+import { Database } from './database.types';
 
-export interface JumbleWord {
-  id?: string;
-  puzzle_id?: string;
-  jumbled_word: string;
-  answer: string;
-  created_at?: string;
-}
+export type DailyPuzzle = Database['public']['Tables']['daily_puzzles']['Row'] & {
+  jumble_words?: JumbleWord[];
+  finalJumble?: string;
+  final_jumble?: string;
+  final_jumble_answer?: string;
+};
+
+export type JumbleWord = Database['public']['Tables']['jumble_words']['Row'];
