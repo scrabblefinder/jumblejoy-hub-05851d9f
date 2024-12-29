@@ -15,70 +15,69 @@ const HEADERS = {
 };
 
 export const extractPuzzleData = (xmlText: string, date: Date) => {
-  console.log('Extracting puzzle data from XML...');
   console.log('Raw XML:', xmlText);
-  
+
   // Extract clues section
-  const cluesMatch = xmlText.match(/<clues>(.*?)<\/clues>/s);
+  const cluesMatch = xmlText.match(/<clues>([\s\S]*?)<\/clues>/);
   if (!cluesMatch) {
-    console.error('No clues section found in XML');
-    throw new Error('Invalid puzzle data format');
+    console.error('No clues section found');
+    throw new Error('Invalid puzzle format');
   }
-  
+
   const cluesSection = cluesMatch[1];
-  const clues = cluesSection.match(/<c\d+>.*?<\/c\d+>/gs) || [];
-  
-  const jumbledWords = [];
+  console.log('Clues section:', cluesSection);
+
+  // Extract individual clues
+  const clueRegex = /<c\d+>\s*<j>(.*?)<\/j>\s*<a>(.*?)<\/a>/g;
+  const jumbleWords = [];
   const answers = [];
   
-  for (const clue of clues) {
-    const jumbledMatch = clue.match(/<j>(.*?)<\/j>/);
-    const answerMatch = clue.match(/<a>(.*?)<\/a>/);
-    
-    if (jumbledMatch && answerMatch) {
-      jumbledWords.push(jumbledMatch[1].trim());
-      answers.push(answerMatch[1].trim());
-    }
+  let clueMatch;
+  while ((clueMatch = clueRegex.exec(cluesSection)) !== null) {
+    const [, jumbled, answer] = clueMatch;
+    jumbleWords.push(jumbled.trim());
+    answers.push(answer.trim());
   }
-  
-  // Extract caption from nested structure
-  const captionMatch = xmlText.match(/<caption>.*?<v1>.*?<t>(.*?)<\/t>.*?<\/v1>.*?<\/caption>/s);
+
+  console.log('Extracted jumble words:', jumbleWords);
+  console.log('Extracted answers:', answers);
+
+  // Extract caption
+  const captionMatch = xmlText.match(/<caption>[\s\S]*?<v1>[\s\S]*?<t>(.*?)<\/t>/);
   const caption = captionMatch ? captionMatch[1].trim() : '';
-  
-  // Extract solution from nested structure
-  const solutionMatch = xmlText.match(/<solution>.*?<s1.*?>.*?<a>(.*?)<\/a>.*?<\/s1>.*?<\/solution>/s);
+  console.log('Extracted caption:', caption);
+
+  // Extract solution
+  const solutionMatch = xmlText.match(/<solution>[\s\S]*?<s1[^>]*>[\s\S]*?<a>(.*?)<\/a>/);
   const solution = solutionMatch ? solutionMatch[1].trim() : '';
-  
+  console.log('Extracted solution:', solution);
+
   // Extract image URL
   const imageMatch = xmlText.match(/<image>(.*?)<\/image>/);
   const imageUrl = imageMatch ? imageMatch[1].trim() : '';
+  console.log('Extracted image URL:', imageUrl);
 
-  console.log('Extracted data:', {
-    date: format(date, 'yyyy-MM-dd'),
-    caption,
-    solution,
-    jumbleWordsCount: jumbledWords.length,
-    jumbledWords,
-    answers
-  });
-
-  return {
+  // Prepare the data
+  const puzzleData = {
     date: format(date, 'yyyy-MM-dd'),
     caption,
     image_url: imageUrl || 'https://placeholder.com/400x300',
     solution,
-    jumble_words: jumbledWords.map((word, index) => ({
+    jumble_words: jumbleWords.map((word, index) => ({
       jumbled_word: word,
       answer: answers[index]
     }))
   };
+
+  console.log('Final puzzle data:', puzzleData);
+  return puzzleData;
 };
 
 export const fetchPuzzle = async (date: Date) => {
   const dateStr = format(date, 'yyMMdd');
   const url = `http://msn.assets.uclick.com/tmjmf${dateStr}-data.xml`;
   
-  console.log(`Attempting to fetch puzzle for date ${dateStr} from URL: ${url}`);
+  console.log(`Fetching puzzle for date ${dateStr} from URL: ${url}`);
   
   try {
     const response = await fetch(url, { headers: HEADERS });
@@ -87,17 +86,7 @@ export const fetchPuzzle = async (date: Date) => {
       console.error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
       const errorBody = await response.text();
       console.error('Error response body:', errorBody);
-      
-      // Try fetching without cache
-      console.log('Retrying with cache-busting parameter...');
-      const retryUrl = `${url}?t=${new Date().getTime()}`;
-      const retryResponse = await fetch(retryUrl, { headers: HEADERS });
-
-      if (!retryResponse.ok) {
-        throw new Error(`Failed to fetch puzzle data after retry: ${retryResponse.statusText}`);
-      }
-
-      return await retryResponse.text();
+      throw new Error(`Failed to fetch puzzle data: ${response.statusText}`);
     }
 
     const text = await response.text();
