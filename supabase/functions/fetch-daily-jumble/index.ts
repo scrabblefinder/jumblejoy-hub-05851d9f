@@ -55,7 +55,8 @@ Deno.serve(async (req) => {
     console.log('Received response:', text.slice(0, 100) + '...');
 
     // Remove the jsonCallback wrapper and parse the JSON
-    const jsonData = JSON.parse(text.replace(/^jsonCallback\((.*)\)$/, '$1'));
+    const jsonData = JSON.parse(text.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1'));
+    console.log('Parsed JSON data:', jsonData);
     
     // Connect to Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -133,7 +134,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: `Failed to fetch puzzle for date ${error.message}` }),
+      JSON.stringify({ error: `Failed to fetch puzzle: ${error.message}` }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
