@@ -39,8 +39,8 @@ Deno.serve(async (req) => {
     
     console.log(`Fetching puzzle for date: ${dateStr}`)
     
-    // Fetch the puzzle data with the dynamic date
-    const response = await fetch(`https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.json`)
+    // Updated URL to use the correct domain and protocol
+    const response = await fetch(`https://www.uclick.com/puzzles/tmjmf/data/tmjmf${dateStr}-data.php`)
     if (!response.ok) {
       throw new Error(`Failed to fetch puzzle data: ${response.statusText}`)
     }
