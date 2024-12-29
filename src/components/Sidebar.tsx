@@ -2,14 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
+import CalendarSection from './sidebar/CalendarSection';
 
 const Sidebar = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [latestWords, setLatestWords] = useState<any[]>([]);
   const [latestDate, setLatestDate] = useState<string>('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     const fetchLatestWords = async () => {
@@ -42,37 +39,6 @@ const Sidebar = () => {
     fetchLatestWords();
   }, []);
 
-  useEffect(() => {
-    const searchWords = async () => {
-      if (searchTerm.length === 0) {
-        setSearchResults([]);
-        setShowResults(false);
-        return;
-      }
-
-      setIsSearching(true);
-      setShowResults(true);
-      try {
-        const { data: words, error } = await supabase
-          .from('jumble_words')
-          .select('jumbled_word')
-          .ilike('jumbled_word', `%${searchTerm.toUpperCase()}%`)
-          .limit(10);
-
-        if (error) throw error;
-        setSearchResults(words || []);
-      } catch (error) {
-        console.error('Error searching words:', error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    const timeoutId = setTimeout(searchWords, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
-
   const formatDate = (dateString: string) => {
     try {
       return format(parseISO(dateString), 'MMMM dd yyyy');
@@ -82,64 +48,9 @@ const Sidebar = () => {
     }
   };
 
-  const handleResultClick = (word: string) => {
-    setSearchTerm('');
-    setShowResults(false);
-  };
-
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-lg overflow-hidden">
-        <div className="bg-gray-100 p-4">
-          <h2 className="text-xl font-bold text-gray-800">Search Jumble Words</h2>
-        </div>
-        <div className="p-4">
-          <div className="relative">
-            <div className="flex">
-              <input 
-                type="text" 
-                placeholder="Type your jumbled word" 
-                className="w-full p-3 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onBlur={() => {
-                  // Delay hiding results to allow for click events
-                  setTimeout(() => setShowResults(false), 200);
-                }}
-                onFocus={() => {
-                  if (searchTerm) setShowResults(true);
-                }}
-              />
-              <button 
-                className="px-6 bg-[#0275d8] text-white rounded-r-md hover:bg-[#025aa5] transition-colors"
-                onClick={() => setShowResults(true)}
-              >
-                SEARCH
-              </button>
-            </div>
-            {showResults && searchTerm.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                {isSearching ? (
-                  <div className="p-3 text-gray-500">Searching...</div>
-                ) : searchResults.length === 0 ? (
-                  <div className="p-3 text-gray-500">No matches found</div>
-                ) : (
-                  searchResults.map((word, index) => (
-                    <Link
-                      key={index}
-                      to={`/jumble/${word.jumbled_word.toLowerCase()}`}
-                      className="block p-3 hover:bg-gray-100 border-b last:border-b-0 transition-colors"
-                      onClick={() => handleResultClick(word.jumbled_word)}
-                    >
-                      <span className="text-[#0275d8] font-semibold">{word.jumbled_word}</span>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <CalendarSection />
 
       <div className="bg-white rounded-lg overflow-hidden">
         <div className="bg-gray-100 p-4">
