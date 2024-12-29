@@ -1,4 +1,4 @@
-import { DailyPuzzle } from '@/integrations/supabase/types';
+import { DailyPuzzle } from '@/integrations/supabase/types/model.types';
 
 interface ClueContentProps {
   puzzle: DailyPuzzle;

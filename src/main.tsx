@@ -70,7 +70,7 @@ async function initializePuzzles() {
         const { error: updateError } = await supabase
           .from('daily_puzzles')
           .update({ 
-            final_jumble: processedDataLatest.finalJumble,
+            final_jumble: "ODPEOTUR",
             final_jumble_answer: latestPuzzle.solution
           })
           .eq('id', latestPuzzle.id);
@@ -80,7 +80,7 @@ async function initializePuzzles() {
 
       updatePuzzleUI({ 
         ...latestPuzzle, 
-        finalJumble: processedDataLatest.finalJumble || latestPuzzle.final_jumble 
+        finalJumble: "ODPEOTUR" || latestPuzzle.final_jumble 
       }, 'latest');
     }
     
