@@ -22,11 +22,16 @@
     <link rel="icon" type="image/png" href="https://dailyjumbleanswers.com/assets/img/game-icon.png?ezimgfmt=ng%3Awebp%2Fngcb1%2Frs%3Adevice%2Frscb1-1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/src/styles.css" />
-    <base href="/" />
+    <script src="/src/main.js" type="module"></script>
   </head>
-  <body class="bg-white text-gray-800">
-    <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
+  <body class="bg-jumble-background text-jumble-text">
+    <header id="header"></header>
+    <main id="main" class="container mx-auto px-4 py-8">
+      <div class="grid md:grid-cols-3 gap-8">
+        <div id="content" class="md:col-span-2"></div>
+        <div id="sidebar" class="md:col-span-1"></div>
+      </div>
+    </main>
+    <footer id="footer"></footer>
   </body>
 </html>
