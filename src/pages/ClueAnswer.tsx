@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import { Button } from "@/components/ui/button";
 import ClueContent from '@/components/clue/ClueContent';
 import RelatedClues from '@/components/clue/RelatedClues';
+import { useToast } from "@/components/ui/use-toast";
 
 const createSlug = (text: string) => {
   return text
@@ -20,10 +21,13 @@ const createSlug = (text: string) => {
 const ClueAnswer = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['puzzle', slug],
     queryFn: async () => {
+      console.log('Fetching puzzle for slug:', slug);
+      
       const { data, error } = await supabase
         .from('daily_puzzles')
         .select(`
@@ -31,13 +35,36 @@ const ClueAnswer = () => {
           jumble_words (*)
         `);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('No puzzles found');
+        return null;
+      }
+
+      console.log('Found puzzles:', data);
 
       const cleanSlug = createSlug(slug || '');
-      const matchingPuzzle = data?.find(puzzle => {
+      console.log('Clean slug:', cleanSlug);
+      
+      const matchingPuzzle = data.find(puzzle => {
         const puzzleSlug = createSlug(puzzle.caption);
+        console.log('Comparing slugs:', { puzzleSlug, cleanSlug });
         return puzzleSlug === cleanSlug;
       });
+
+      console.log('Matching puzzle:', matchingPuzzle);
+
+      if (!matchingPuzzle) {
+        toast({
+          title: "Puzzle Not Found",
+          description: "We couldn't find the puzzle you're looking for.",
+          variant: "destructive",
+        });
+      }
 
       return matchingPuzzle || null;
     },
@@ -67,7 +94,7 @@ const ClueAnswer = () => {
     );
   }
 
-  if (!puzzle) {
+  if (error || !puzzle) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
@@ -116,9 +143,9 @@ const ClueAnswer = () => {
               </div>
             </div>
 
-            <RelatedClues 
-              clues={relatedPuzzles || []}
-            />
+            {relatedPuzzles && relatedPuzzles.length > 0 && (
+              <RelatedClues clues={relatedPuzzles} />
+            )}
           </div>
         </div>
 
