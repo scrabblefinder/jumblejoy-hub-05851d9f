@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { JumbleWord } from '@/integrations/supabase/types';
+import { Tables } from '@/integrations/supabase/types';
+
+type JumbleWord = Tables<'jumble_words'>;
 
 const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,7 +13,7 @@ const Header = () => {
   const navigate = useNavigate();
 
   const handleSearch = async () => {
-    if (searchTerm.length < 2) {
+    if (searchTerm.length === 0) {
       setShowResults(false);
       setSearchResults([]);
       return;
@@ -60,7 +62,7 @@ const Header = () => {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  if (e.target.value.length >= 2) {
+                  if (e.target.value.length >= 1) {
                     handleSearch();
                   } else {
                     setShowResults(false);
@@ -74,7 +76,7 @@ const Header = () => {
                   setTimeout(() => setShowResults(false), 200);
                 }}
                 onFocus={() => {
-                  if (searchTerm.length >= 2) handleSearch();
+                  if (searchTerm.length >= 1) handleSearch();
                 }}
               />
               <button 
@@ -85,7 +87,7 @@ const Header = () => {
               </button>
             </div>
 
-            {showResults && searchTerm.length >= 2 && (
+            {showResults && searchTerm.length >= 1 && (
               <div className="absolute left-0 right-0 top-full mt-1 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-3 text-gray-500">Searching...</div>
