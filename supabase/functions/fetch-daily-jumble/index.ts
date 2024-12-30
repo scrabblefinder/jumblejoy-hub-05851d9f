@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { date, jsonUrl } = await req.json()
+    const { date } = await req.json()
     
     // Ensure proper date format YYYY-MM-DD
     const formattedDate = date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-$3')
@@ -29,18 +29,14 @@ serve(async (req) => {
     const isSunday = puzzleDate.getDay() === 0;
     console.log('Is Sunday:', isSunday);
     
-    // Base URL components for both Sunday and other days
+    // Base URL components
     const basePrefix = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
+    const timestamp = Date.now();
     
-    // Construct the full URL based on the day
-    let url;
-    if (isSunday) {
-      // Use tmjms for Sundays
-      url = jsonUrl || `${basePrefix}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`;
-    } else {
-      // Use tmjmf for all other days, completely ignore jsonUrl
-      url = `${basePrefix}/tmjmf/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`;
-    }
+    // Construct the URL based on the day
+    const url = isSunday
+      ? `${basePrefix}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`
+      : `${basePrefix}/tmjmf/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
     
     console.log('Attempting to fetch from URL:', url);
 
@@ -59,24 +55,29 @@ serve(async (req) => {
     }
 
     const puzzleData = await response.text();
-    console.log('Received puzzle data:', puzzleData.substring(0, 200) + '...');
+    console.log('Raw response:', puzzleData.substring(0, 200));
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Clean up the response by removing the jsonCallback wrapper
+    const cleanData = puzzleData
+      .replace(/^\/\*\*\//, '') // Remove leading comments
+      .replace(/^jsonCallback\((.*)\);?$/, '$1'); // Remove jsonCallback wrapper
+    
+    console.log('Cleaned data:', cleanData.substring(0, 200));
 
-    // Process the data
+    // Parse the cleaned JSON data
     let jsonData;
     try {
-      // Remove jsonCallback wrapper if present
-      const cleanData = puzzleData.replace(/^jsonCallback\((.*)\);?$/, '$1');
       jsonData = JSON.parse(cleanData);
       console.log('Parsed JSON data structure:', Object.keys(jsonData));
     } catch (error) {
       console.error('Error parsing JSON:', error);
       throw new Error(`Invalid puzzle data format: ${error.message}`);
     }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
     // Sanitize the solution
     const rawSolution = jsonData.Solution?.s1 || '';
