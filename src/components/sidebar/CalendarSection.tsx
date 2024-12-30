@@ -27,10 +27,8 @@ const CalendarSection = () => {
   const handleSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
-      const month = format(selectedDate, 'MMMM').toLowerCase();
-      const day = format(selectedDate, 'dd');
-      const year = format(selectedDate, 'yyyy');
-      navigate(`/daily-jumble-${month}-${day}-${year}-answers`);
+      const formattedDate = format(selectedDate, 'yyyyMMdd');
+      navigate(`/daily-jumble/${formattedDate}`);
     }
   };
 
