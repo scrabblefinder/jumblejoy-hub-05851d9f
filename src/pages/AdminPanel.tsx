@@ -9,6 +9,7 @@ import PuzzleList from '@/components/admin/PuzzleList';
 import DatePicker from '@/components/admin/DatePicker';
 import FetchButtons from '@/components/admin/FetchButtons';
 import PuzzleUrlPreview from '@/components/admin/PuzzleUrlPreview';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AdminPanel = () => {
   const { toast } = useToast();
@@ -17,6 +18,7 @@ const AdminPanel = () => {
   const [date, setDate] = useState<Date>();
   const [dailyJumbleUrl, setDailyJumbleUrl] = useState<string>('');
   const [sundayJumbleUrl, setSundayJumbleUrl] = useState<string>('');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -66,6 +68,15 @@ const AdminPanel = () => {
   }, [date]);
 
   const fetchPuzzle = async (type: 'daily' | 'sunday') => {
+    if (!date) {
+      toast({
+        title: "Error",
+        description: "Please select a date first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setFetchingPuzzle(true);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-daily-jumble', {
@@ -78,18 +89,18 @@ const AdminPanel = () => {
       
       if (error) throw error;
 
+      // Invalidate the puzzles query to refresh the list
+      await queryClient.invalidateQueries({ queryKey: ['admin-puzzles'] });
+
       toast({
         title: "Success",
         description: "Puzzle fetched and saved successfully",
       });
-
-      // Refresh the puzzle list by reloading the page
-      window.location.reload();
     } catch (error) {
       console.error('Error fetching puzzle:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch puzzle",
+        description: error instanceof Error ? error.message : "Failed to fetch puzzle",
         variant: "destructive"
       });
     } finally {
