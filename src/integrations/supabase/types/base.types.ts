@@ -15,5 +15,5 @@ export interface DailyPuzzle {
   created_at: string;
   final_jumble?: string | null;
   final_jumble_answer?: string | null;
-  jumble_words: JumbleWord[];
+  jumble_words?: JumbleWord[];
 }

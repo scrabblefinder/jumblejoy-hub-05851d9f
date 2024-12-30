@@ -117,8 +117,7 @@ const ClueAnswer = () => {
             </div>
 
             <RelatedClues 
-              relatedPuzzles={relatedPuzzles || []} 
-              currentDate={new Date(puzzle.date)} 
+              clues={relatedPuzzles || []}
             />
           </div>
         </div>
