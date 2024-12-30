@@ -13,8 +13,8 @@ serve(async (req) => {
   }
 
   try {
-    const { date, jsonUrl, puzzleType } = await req.json() as RequestBody;
-    console.log('Received request:', { date, jsonUrl, puzzleType });
+    const { date, puzzleType } = await req.json() as RequestBody;
+    console.log('Received request:', { date, puzzleType });
 
     // Validate and format the date
     let formattedDate = date;
@@ -31,8 +31,9 @@ serve(async (req) => {
     const basePrefix = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
     const timestamp = Date.now();
     
-    // Both daily and Sunday puzzles use tmjms
-    const url = `${basePrefix}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
+    // Use tmjms for Sunday puzzles and tmjmf for daily puzzles
+    const puzzleCode = puzzleType === 'sunday' ? 'tmjms' : 'tmjmf';
+    const url = `${basePrefix}/${puzzleCode}/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
     
     console.log('Fetching puzzle from URL:', url);
     
