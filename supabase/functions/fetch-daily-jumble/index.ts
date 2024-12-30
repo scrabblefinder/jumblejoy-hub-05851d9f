@@ -61,10 +61,10 @@ serve(async (req) => {
     // Insert jumble words
     if (data.Clues) {
       const jumbleWords = [
-        { jumbled_word: data.Clues.c1?.j || data.Clues.c1, answer: data.Clues.c1?.a || data.Clues.a1 },
-        { jumbled_word: data.Clues.c2?.j || data.Clues.c2, answer: data.Clues.c2?.a || data.Clues.a2 },
-        { jumbled_word: data.Clues.c3?.j || data.Clues.c3, answer: data.Clues.c3?.a || data.Clues.a3 },
-        { jumbled_word: data.Clues.c4?.j || data.Clues.c4, answer: data.Clues.c4?.a || data.Clues.a4 }
+        { jumbled_word: data.Clues.c1, answer: data.Clues.a1 },
+        { jumbled_word: data.Clues.c2, answer: data.Clues.a2 },
+        { jumbled_word: data.Clues.c3, answer: data.Clues.a3 },
+        { jumbled_word: data.Clues.c4, answer: data.Clues.a4 }
       ].filter(word => word.jumbled_word && word.answer)
 
       if (jumbleWords.length > 0) {
@@ -107,59 +107,38 @@ function calculateFinalJumble(data: any): string {
   if (!data?.Clues) return '';
 
   try {
-    // Handle December 29 format (with circle property)
-    if (data.Clues.c1?.circle) {
-      console.log('Using December 29 format for final jumble calculation');
-      const clues = [
-        { answer: data.Clues.c1.a, circle: data.Clues.c1.circle },
-        { answer: data.Clues.c2.a, circle: data.Clues.c2.circle },
-        { answer: data.Clues.c3.a, circle: data.Clues.c3.circle },
-        { answer: data.Clues.c4.a, circle: data.Clues.c4.circle }
-      ];
-
-      console.log('Processing clues:', clues);
-
-      const jumbledParts = clues.map(({ answer, circle }) => {
-        if (!answer || !circle) {
-          console.log('Missing answer or circle data for clue');
-          return '';
-        }
-        const positions = circle.split(',').map(Number);
-        const letters = positions.map(p => answer[p - 1]).join('');
-        console.log(`Extracted letters from ${answer} at positions ${positions}: ${letters}`);
-        return letters;
-      }).filter(Boolean);
-
-      const result = jumbledParts.join('');
-      console.log('Final jumble result:', result);
-      return result;
-    }
-
-    // Handle December 27 format (with o1, o2, etc. properties)
-    console.log('Using December 27 format for final jumble calculation');
-    const words = [
-      { answer: data.Clues.a1, positions: data.Clues.o1 },
-      { answer: data.Clues.a2, positions: data.Clues.o2 },
-      { answer: data.Clues.a3, positions: data.Clues.o3 },
-      { answer: data.Clues.a4, positions: data.Clues.o4 }
+    console.log('Calculating final jumble from data:', data.Clues);
+    
+    // Extract answers and positions
+    const answers = [
+      { word: data.Clues.a1, positions: data.Clues.o1 },
+      { word: data.Clues.a2, positions: data.Clues.o2 },
+      { word: data.Clues.a3, positions: data.Clues.o3 },
+      { word: data.Clues.a4, positions: data.Clues.o4 }
     ];
 
-    console.log('Processing words:', words);
-
-    const jumbledParts = words.map(({ answer, positions }) => {
-      if (!answer || !positions) {
-        console.log('Missing answer or positions data for word');
+    // For each answer, get the letters at the specified positions and join them
+    const jumbledParts = answers.map(({ word, positions }) => {
+      if (!word || !positions) {
+        console.log(`Missing word or positions for answer`);
         return '';
       }
-      const pos = positions.split(',').map(Number);
-      const letters = pos.map(p => answer[p - 1]).join('');
-      console.log(`Extracted letters from ${answer} at positions ${positions}: ${letters}`);
+
+      // Convert positions string like "1,4,5" to array of numbers and subtract 1 for zero-based indexing
+      const pos = positions.split(',').map(p => parseInt(p) - 1);
+      
+      // Get letters at those positions
+      const letters = pos.map(p => word[p]).join('');
+      console.log(`From word ${word} at positions ${positions} got letters: ${letters}`);
+      
       return letters;
     }).filter(Boolean);
 
-    const result = jumbledParts.join('');
-    console.log('Final jumble result:', result);
-    return result;
+    // Join all parts to create final jumble
+    const finalJumble = jumbledParts.join('');
+    console.log('Final jumble calculated:', finalJumble);
+    
+    return finalJumble;
   } catch (error) {
     console.error('Error calculating final jumble:', error);
     return '';
