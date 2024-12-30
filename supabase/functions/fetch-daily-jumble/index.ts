@@ -1,7 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { corsHeaders } from '../_shared/cors.ts'
-import { fetchPuzzleXML } from './puzzle-fetcher.ts'
 
 // Function to sanitize text to only allow letters and spaces
 function sanitizeAnswer(text: string): string {
@@ -15,65 +14,96 @@ serve(async (req) => {
 
   try {
     const { date, jsonUrl } = await req.json()
+    
+    // Ensure proper date format YYYY-MM-DD
     const formattedDate = date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-$3')
     console.log('Formatted date:', formattedDate)
+    
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
+      throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
     
     // Check if the date is a Sunday
     const puzzleDate = new Date(formattedDate);
     const isSunday = puzzleDate.getDay() === 0;
+    console.log('Is Sunday:', isSunday);
     
-    // Use different base URLs based on the day
-    const baseUrl = isSunday 
-      ? 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d'
-      : 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjmf/d';
+    // Base URL components
+    const basePrefix = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
+    const gamePath = isSunday ? 'tmjms' : 'tmjmf';
     
-    const url = jsonUrl || `${baseUrl}/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`
-    
-    console.log('Fetching puzzle from URL:', url)
-    const puzzleData = await fetchPuzzleXML(url)
-    console.log('Received puzzle data:', puzzleData.substring(0, 200) + '...')
+    // Construct the full URL
+    const url = jsonUrl || `${basePrefix}/${gamePath}/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`;
+    console.log('Attempting to fetch from URL:', url);
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json, text/javascript, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.uclick.com/',
+        'Origin': 'https://www.uclick.com'
+      }
+    });
+
+    if (!response.ok) {
+      console.error(`HTTP error! status: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch puzzle data: ${response.status} ${response.statusText}`);
+    }
+
+    const puzzleData = await response.text();
+    console.log('Received puzzle data:', puzzleData.substring(0, 200) + '...');
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const data = JSON.parse(puzzleData)
-    console.log('Parsed puzzle data:', data)
+    // Process the data
+    let jsonData;
+    try {
+      // Remove jsonCallback wrapper if present
+      const cleanData = puzzleData.replace(/^jsonCallback\((.*)\);?$/, '$1');
+      jsonData = JSON.parse(cleanData);
+      console.log('Parsed JSON data structure:', Object.keys(jsonData));
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      throw new Error(`Invalid puzzle data format: ${error.message}`);
+    }
 
     // Sanitize the solution
-    const rawSolution = data.Solution?.s1 || ''
-    const cleanSolution = sanitizeAnswer(rawSolution)
-    console.log('Cleaned solution:', cleanSolution)
+    const rawSolution = jsonData.Solution?.s1 || '';
+    const cleanSolution = sanitizeAnswer(rawSolution);
+    console.log('Cleaned solution:', cleanSolution);
 
     // Calculate final jumble from all available clues
-    const finalJumble = calculateFinalJumble(data)
-    console.log('Calculated final jumble:', finalJumble)
+    const finalJumble = calculateFinalJumble(jsonData);
+    console.log('Calculated final jumble:', finalJumble);
 
     const { data: puzzle, error: puzzleError } = await supabaseAdmin
       .from('daily_puzzles')
       .insert({
         date: formattedDate,
-        caption: sanitizeAnswer(data.Caption?.v1 || ''),
-        image_url: data.Image || '',
+        caption: sanitizeAnswer(jsonData.Caption?.v1 || ''),
+        image_url: jsonData.Image || '',
         solution: cleanSolution,
         final_jumble: finalJumble,
         final_jumble_answer: cleanSolution
       })
       .select()
-      .single()
+      .single();
 
-    if (puzzleError) throw puzzleError
+    if (puzzleError) throw puzzleError;
 
-    if (data.Clues) {
+    if (jsonData.Clues) {
       const jumbleWords = [
-        { jumbled_word: data.Clues.c1, answer: sanitizeAnswer(data.Clues.a1) },
-        { jumbled_word: data.Clues.c2, answer: sanitizeAnswer(data.Clues.a2) },
-        { jumbled_word: data.Clues.c3, answer: sanitizeAnswer(data.Clues.a3) },
-        { jumbled_word: data.Clues.c4, answer: sanitizeAnswer(data.Clues.a4) },
-        { jumbled_word: data.Clues.c5, answer: sanitizeAnswer(data.Clues.a5) },
-        { jumbled_word: data.Clues.c6, answer: sanitizeAnswer(data.Clues.a6) }
-      ].filter(word => word.jumbled_word && word.answer)
+        { jumbled_word: jsonData.Clues.c1, answer: sanitizeAnswer(jsonData.Clues.a1) },
+        { jumbled_word: jsonData.Clues.c2, answer: sanitizeAnswer(jsonData.Clues.a2) },
+        { jumbled_word: jsonData.Clues.c3, answer: sanitizeAnswer(jsonData.Clues.a3) },
+        { jumbled_word: jsonData.Clues.c4, answer: sanitizeAnswer(jsonData.Clues.a4) },
+        { jumbled_word: jsonData.Clues.c5, answer: sanitizeAnswer(jsonData.Clues.a5) },
+        { jumbled_word: jsonData.Clues.c6, answer: sanitizeAnswer(jsonData.Clues.a6) }
+      ].filter(word => word.jumbled_word && word.answer);
 
       if (jumbleWords.length > 0) {
         const { error: wordsError } = await supabaseAdmin
@@ -84,9 +114,9 @@ serve(async (req) => {
               jumbled_word: word.jumbled_word,
               answer: word.answer
             }))
-          )
+          );
 
-        if (wordsError) throw wordsError
+        if (wordsError) throw wordsError;
       }
     }
 
@@ -96,19 +126,19 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
       }
-    )
+    );
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: `Failed to fetch or process puzzle: ${error.message}` }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
       }
-    )
+    );
   }
-})
+});
 
 // Helper function to calculate final jumble from all available clues
 function calculateFinalJumble(data: any): string {
