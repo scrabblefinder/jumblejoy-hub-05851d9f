@@ -1,9 +1,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 interface RequestBody {
   date?: string;
-  jsonUrl?: string;
   puzzleType: 'daily' | 'sunday';
 }
 
@@ -31,8 +34,8 @@ serve(async (req) => {
     const basePrefix = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
     const timestamp = Date.now();
     
-    // Use tmjms for Sunday puzzles and tmjmf for daily puzzles
-    const puzzleCode = puzzleType === 'sunday' ? 'tmjms' : 'tmjmf';
+    // Use tmjmf for daily puzzles and tmjms for Sunday puzzles
+    const puzzleCode = puzzleType === 'daily' ? 'tmjmf' : 'tmjms';
     const url = `${basePrefix}/${puzzleCode}/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
     
     console.log('Fetching puzzle from URL:', url);
