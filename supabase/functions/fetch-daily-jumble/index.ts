@@ -49,6 +49,7 @@ serve(async (req) => {
     let puzzleData;
     try {
       puzzleData = JSON.parse(jsonStr);
+      console.log('Parsed puzzle data:', puzzleData);
     } catch (error) {
       throw new Error(`Invalid puzzle data format: ${error.message}`);
     }
@@ -66,9 +67,20 @@ serve(async (req) => {
       .eq('date', formattedDate)
       .single();
 
-    // Extract final jumble data
+    // Extract puzzle data
+    const caption = puzzleData.Caption?.v1?.t || '';
+    const imageUrl = puzzleData.Image || '';
+    const solution = puzzleData.Solution?.s1?.a || '';
     const finalJumble = puzzleData.FinalJumble?.j || null;
     const finalJumbleAnswer = puzzleData.FinalJumble?.a || null;
+
+    console.log('Extracted puzzle data:', {
+      caption,
+      imageUrl,
+      solution,
+      finalJumble,
+      finalJumbleAnswer
+    });
 
     let puzzleRecord;
     if (existingPuzzle) {
@@ -77,9 +89,9 @@ serve(async (req) => {
       const { data: updatedPuzzle, error: updateError } = await supabaseClient
         .from('daily_puzzles')
         .update({
-          caption: puzzleData.Caption?.v1?.t || '',
-          image_url: puzzleData.Image || '',
-          solution: puzzleData.Solution?.s1?.a || '',
+          caption,
+          image_url: imageUrl,
+          solution,
           final_jumble: finalJumble,
           final_jumble_answer: finalJumbleAnswer
         })
@@ -99,9 +111,9 @@ serve(async (req) => {
         .from('daily_puzzles')
         .insert({
           date: formattedDate,
-          caption: puzzleData.Caption?.v1?.t || '',
-          image_url: puzzleData.Image || '',
-          solution: puzzleData.Solution?.s1?.a || '',
+          caption,
+          image_url: imageUrl,
+          solution,
           final_jumble: finalJumble,
           final_jumble_answer: finalJumbleAnswer
         })
@@ -136,19 +148,23 @@ serve(async (req) => {
     const seenWords = new Set(); // Track unique combinations of puzzle_id and jumbled_word
     
     if (puzzleData.Clues) {
-      const clues = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
-      for (const clue of clues) {
-        if (puzzleData.Clues[clue]) {
-          const jumbledWord = puzzleData.Clues[clue].j || '';
+      // Convert clues object to array of entries for easier processing
+      const clueEntries = Object.entries(puzzleData.Clues);
+      console.log('Processing clues:', clueEntries);
+
+      for (const [key, value] of clueEntries) {
+        // Only process clue entries (c1, c2, etc.)
+        if (key.startsWith('c') && /^\d+$/.test(key.slice(1))) {
+          const jumbledWord = value.j || '';
+          const answer = value.a || '';
           const key = `${puzzleRecord.id}-${jumbledWord}`;
           
-          // Only add if we haven't seen this combination before
-          if (!seenWords.has(key)) {
+          if (jumbledWord && answer && !seenWords.has(key)) {
             seenWords.add(key);
             jumbleWords.push({
               puzzle_id: puzzleRecord.id,
               jumbled_word: jumbledWord,
-              answer: puzzleData.Clues[clue].a || ''
+              answer: answer
             });
           }
         }
