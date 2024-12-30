@@ -26,7 +26,10 @@ const ClueAnswer = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('daily_puzzles')
-        .select('*');
+        .select(`
+          *,
+          jumble_words (*)
+        `);
       
       if (error) throw error;
 
