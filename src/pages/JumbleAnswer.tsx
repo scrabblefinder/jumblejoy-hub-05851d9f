@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from 'date-fns';
+import MetaTags from '../components/MetaTags';
 
 const JumbleAnswer = () => {
   const { word } = useParams();
@@ -75,6 +76,10 @@ const JumbleAnswer = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <MetaTags 
+        title={`${word?.toUpperCase()} Jumble Answer - JumbleAnswers.com`}
+        description={`On this page you may find the ${word?.toUpperCase()} jumble answer. This puzzle belongs to the popular Daily Jumble puzzle.`}
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">

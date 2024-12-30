@@ -8,6 +8,7 @@ import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
 import { DailyPuzzle } from '@/integrations/supabase/types';
 import { format, parseISO } from 'date-fns';
+import MetaTags from '../components/MetaTags';
 
 const DailyPost = () => {
   const { date } = useParams();
@@ -94,6 +95,10 @@ const DailyPost = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <MetaTags 
+        title={`Daily Jumble ${formattedDate} Answers`}
+        description={`Please find all the Daily Jumble ${formattedDate} Answers and Solutions in our website.`}
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">

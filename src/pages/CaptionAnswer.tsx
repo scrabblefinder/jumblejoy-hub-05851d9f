@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import { Button } from "@/components/ui/button";
 import ClueContent from '@/components/clue/ClueContent';
 import RelatedClues from '@/components/clue/RelatedClues';
-import { DailyPuzzle } from '@/integrations/supabase/types';
+import MetaTags from '../components/MetaTags';
 
 const createSlug = (text: string) => {
   return text
@@ -91,6 +91,12 @@ const CaptionAnswer = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
+        {puzzle && (
+          <MetaTags 
+            title={`${puzzle.caption} — Jumble Answer`}
+            description={`${puzzle.caption} — Jumble Answer on our website.`}
+          />
+        )}
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="bg-[#2f75d9] text-white p-4">
             <h1 className="text-2xl font-bold text-center">Clue Solution</h1>

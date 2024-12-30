@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/pagination";
 
 const ITEMS_PER_PAGE = 5;
+import MetaTags from '../components/MetaTags';
 
 const HomePage: React.FC = () => {
   const [puzzles, setPuzzles] = useState<any[]>([]);
@@ -120,8 +121,11 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <MetaTags 
+        title="Daily Jumble Answers - JumbleAnswers.com"
+        description="Here you may find all the latest daily jumble answers and solutions. Jumble is one of the most popular word games."
+      />
       <Header />
-      
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">

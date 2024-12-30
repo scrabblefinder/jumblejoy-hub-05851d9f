@@ -57,7 +57,7 @@ const Header = () => {
             <div className="flex">
               <input 
                 type="text" 
-                placeholder="Search jumbled word..."
+                placeholder="Search for a jumbled word..."
                 className="w-64 p-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300"
                 value={searchTerm}
                 onChange={(e) => {
