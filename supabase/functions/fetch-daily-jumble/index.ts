@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,7 @@ const corsHeaders = {
 
 interface RequestBody {
   date?: string;
+  jsonUrl: string;
   puzzleType: 'daily' | 'sunday';
 }
 
@@ -16,8 +18,8 @@ serve(async (req) => {
   }
 
   try {
-    const { date, puzzleType } = await req.json() as RequestBody;
-    console.log('Received request:', { date, puzzleType });
+    const { date, jsonUrl, puzzleType } = await req.json() as RequestBody;
+    console.log('Received request:', { date, puzzleType, jsonUrl });
 
     // Validate and format the date
     let formattedDate = date;
@@ -30,17 +32,9 @@ serve(async (req) => {
       throw new Error('Invalid date format. Expected YYYY-MM-DD');
     }
 
-    // Base URL components
-    const basePrefix = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
-    const timestamp = Date.now();
+    console.log('Fetching puzzle from URL:', jsonUrl);
     
-    // Use tmjmf for daily puzzles and tmjms for Sunday puzzles
-    const puzzleCode = puzzleType === 'daily' ? 'tmjmf' : 'tmjms';
-    const url = `${basePrefix}/${puzzleCode}/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
-    
-    console.log('Fetching puzzle from URL:', url);
-    
-    const response = await fetch(url);
+    const response = await fetch(jsonUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch puzzle: ${response.statusText}`);
     }
@@ -59,8 +53,71 @@ serve(async (req) => {
       throw new Error(`Invalid puzzle data format: ${error.message}`);
     }
 
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Extract final jumble data
+    const finalJumble = puzzleData.FinalJumble?.j || null;
+    const finalJumbleAnswer = puzzleData.FinalJumble?.a || null;
+
+    // First, insert the puzzle
+    const { data: puzzleRecord, error: puzzleError } = await supabaseClient
+      .from('daily_puzzles')
+      .insert({
+        date: formattedDate,
+        caption: puzzleData.Caption?.v1?.t || '',
+        image_url: puzzleData.Image || '',
+        solution: puzzleData.Solution?.s1?.a || '',
+        final_jumble: finalJumble,
+        final_jumble_answer: finalJumbleAnswer
+      })
+      .select()
+      .single();
+
+    if (puzzleError) {
+      console.error('Error inserting puzzle:', puzzleError);
+      throw puzzleError;
+    }
+
+    console.log('Inserted puzzle:', puzzleRecord);
+
+    // Then insert the jumbled words
+    const jumbleWords = [];
+    if (puzzleData.Clues) {
+      const clues = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
+      for (const clue of clues) {
+        if (puzzleData.Clues[clue]) {
+          jumbleWords.push({
+            puzzle_id: puzzleRecord.id,
+            jumbled_word: puzzleData.Clues[clue].j || '',
+            answer: puzzleData.Clues[clue].a || ''
+          });
+        }
+      }
+    }
+
+    if (jumbleWords.length > 0) {
+      const { error: wordsError } = await supabaseClient
+        .from('jumble_words')
+        .insert(jumbleWords);
+
+      if (wordsError) {
+        console.error('Error inserting jumble words:', wordsError);
+        throw wordsError;
+      }
+
+      console.log('Inserted jumble words:', jumbleWords);
+    }
+
     return new Response(
-      JSON.stringify(puzzleData),
+      JSON.stringify({ 
+        message: 'Puzzle saved successfully',
+        puzzle: puzzleRecord,
+        jumbleWords 
+      }),
       {
         headers: {
           ...corsHeaders,
