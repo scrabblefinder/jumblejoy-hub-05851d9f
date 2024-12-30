@@ -109,21 +109,20 @@ function calculateFinalJumble(data: any): string {
   try {
     console.log('Calculating final jumble from data:', data.Clues);
     
-    // Extract answers and positions
+    // Extract ALL answers and positions (up to 6 clues)
     const answers = [
       { word: data.Clues.a1, positions: data.Clues.o1 },
       { word: data.Clues.a2, positions: data.Clues.o2 },
       { word: data.Clues.a3, positions: data.Clues.o3 },
-      { word: data.Clues.a4, positions: data.Clues.o4 }
-    ];
+      { word: data.Clues.a4, positions: data.Clues.o4 },
+      { word: data.Clues.a5, positions: data.Clues.o5 },
+      { word: data.Clues.a6, positions: data.Clues.o6 }
+    ].filter(answer => answer.word && answer.positions); // Only process clues that exist
+
+    console.log('Processing answers:', answers);
 
     // For each answer, get the letters at the specified positions and join them
     const jumbledParts = answers.map(({ word, positions }) => {
-      if (!word || !positions) {
-        console.log(`Missing word or positions for answer`);
-        return '';
-      }
-
       // Convert positions string like "1,4,5" to array of numbers and subtract 1 for zero-based indexing
       const pos = positions.split(',').map(p => parseInt(p) - 1);
       
@@ -132,7 +131,7 @@ function calculateFinalJumble(data: any): string {
       console.log(`From word ${word} at positions ${positions} got letters: ${letters}`);
       
       return letters;
-    }).filter(Boolean);
+    });
 
     // Join all parts to create final jumble
     const finalJumble = jumbledParts.join('');
