@@ -1,2 +1,3 @@
-// Re-export types from base.types.ts
-export * from './base.types';
+import { JumbleWord, DailyPuzzle } from './base.types';
+
+export type { JumbleWord, DailyPuzzle };
