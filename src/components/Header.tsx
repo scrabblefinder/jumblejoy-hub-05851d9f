@@ -101,7 +101,7 @@ const Header = () => {
                       onClick={() => handleResultClick(word.jumbled_word)}
                     >
                       <span className="text-[#2f75d9] font-semibold">{word.jumbled_word}</span>
-                      <span className="text-gray-600"> → {word.answer}</span>
+                      <span className="text-gray-500 text-sm ml-2">Click to reveal answer</span>
                     </button>
                   ))
                 )}
