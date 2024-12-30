@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import { Button } from "@/components/ui/button";
+import { format, parseISO } from 'date-fns';
 
 const JumbleAnswer = () => {
   const { word } = useParams();
@@ -67,6 +68,11 @@ const JumbleAnswer = () => {
     (w) => w.jumbled_word !== data.jumbled_word
   ) || [];
 
+  // Format the date properly
+  const formattedDate = data.daily_puzzles?.date 
+    ? format(parseISO(data.daily_puzzles.date), 'MMMM d, yyyy')
+    : '';
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
@@ -107,12 +113,7 @@ const JumbleAnswer = () => {
                       <div className="mt-8 text-left">
                         <h3 className="text-xl font-semibold text-gray-800 mb-2">From Puzzle:</h3>
                         <p className="text-gray-600">
-                          {new Date(data.daily_puzzles.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          {formattedDate}
                         </p>
                         <button 
                           onClick={handleCaptionClick}
