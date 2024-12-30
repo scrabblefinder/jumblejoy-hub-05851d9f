@@ -18,7 +18,16 @@ serve(async (req) => {
     const formattedDate = date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-$3')
     console.log('Formatted date:', formattedDate)
     
-    const url = jsonUrl || `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`
+    // Check if the date is a Sunday
+    const puzzleDate = new Date(formattedDate);
+    const isSunday = puzzleDate.getDay() === 0;
+    
+    // Use different base URLs based on the day
+    const baseUrl = isSunday 
+      ? 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d'
+      : 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjmf/d';
+    
+    const url = jsonUrl || `${baseUrl}/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`
     
     console.log('Fetching puzzle from URL:', url)
     const puzzleData = await fetchPuzzleXML(url)
