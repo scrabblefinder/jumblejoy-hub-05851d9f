@@ -2,15 +2,13 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, Download } from 'lucide-react';
-import { cn } from "@/lib/utils";
 import PuzzleForm from '@/components/admin/PuzzleForm';
 import AutomaticPuzzleForm from '@/components/admin/AutomaticPuzzleForm';
 import PuzzleList from '@/components/admin/PuzzleList';
+import DatePicker from '@/components/admin/DatePicker';
+import FetchButtons from '@/components/admin/FetchButtons';
+import PuzzleUrlPreview from '@/components/admin/PuzzleUrlPreview';
 
 const AdminPanel = () => {
   const { toast } = useToast();
@@ -53,10 +51,13 @@ const AdminPanel = () => {
       const timestamp = Date.now();
       const baseUrl = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
       
-      // Daily Jumble URL
-      setDailyJumbleUrl(`${baseUrl}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
+      // Check if it's a Sunday
+      const isSunday = date.getDay() === 0;
       
-      // Sunday Jumble URL (same format as daily)
+      // Daily Jumble URL (use tmjmf for non-Sunday puzzles)
+      setDailyJumbleUrl(`${baseUrl}/${isSunday ? 'tmjms' : 'tmjmf'}/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
+      
+      // Sunday Jumble URL (always uses tmjms)
       setSundayJumbleUrl(`${baseUrl}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
     } else {
       setDailyJumbleUrl('');
@@ -113,72 +114,19 @@ const AdminPanel = () => {
         </div>
         
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "justify-start text-left font-normal w-full sm:w-[240px]",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              onClick={() => fetchPuzzle('daily')}
-              disabled={fetchingPuzzle}
-              className="flex items-center gap-2 bg-[#0275d8] hover:bg-[#025aa5]"
-            >
-              <Download className="h-4 w-4" />
-              {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Daily Jumble for ${format(date, 'PPP')}` : 'Fetch Latest Daily Jumble'}
-            </Button>
-
-            <Button 
-              onClick={() => fetchPuzzle('sunday')}
-              disabled={fetchingPuzzle}
-              className="flex items-center gap-2 bg-[#0275d8] hover:bg-[#025aa5]"
-            >
-              <Download className="h-4 w-4" />
-              {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Sunday Jumble for ${format(date, 'PPP')}` : 'Fetch Latest Sunday Jumble'}
-            </Button>
-          </div>
+          <DatePicker date={date} setDate={setDate} />
+          <FetchButtons 
+            date={date}
+            fetchingPuzzle={fetchingPuzzle}
+            onFetch={fetchPuzzle}
+          />
         </div>
 
-        {(dailyJumbleUrl || sundayJumbleUrl) && (
-          <div className="mb-8 p-4 bg-white rounded-lg shadow">
-            <div className="space-y-4">
-              {dailyJumbleUrl && (
-                <div>
-                  <p className="text-sm text-gray-600">Daily Jumble URL:</p>
-                  <code className="block mt-1 p-2 bg-gray-50 rounded text-sm break-all">
-                    {dailyJumbleUrl}
-                  </code>
-                </div>
-              )}
-              {sundayJumbleUrl && (
-                <div>
-                  <p className="text-sm text-gray-600">Sunday Jumble URL:</p>
-                  <code className="block mt-1 p-2 bg-gray-50 rounded text-sm break-all">
-                    {sundayJumbleUrl}
-                  </code>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <PuzzleUrlPreview 
+          date={date}
+          dailyJumbleUrl={dailyJumbleUrl}
+          sundayJumbleUrl={sundayJumbleUrl}
+        />
 
         <div className="grid md:grid-cols-2 gap-8">
           <div>
