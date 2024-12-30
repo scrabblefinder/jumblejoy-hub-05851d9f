@@ -42,8 +42,12 @@ serve(async (req) => {
     const text = await response.text();
     console.log('Raw response:', text);
 
-    // Remove the jsonCallback wrapper
-    const jsonStr = text.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1');
+    // Remove the jsonCallback wrapper and any comments
+    const jsonStr = text
+      .replace(/\/\*.*?\*\//, '') // Remove comments
+      .replace(/^jsonCallback\((.*)\)$/, '$1') // Remove jsonCallback wrapper
+      .trim();
+    
     console.log('Cleaned JSON:', jsonStr);
 
     let puzzleData;
@@ -51,6 +55,7 @@ serve(async (req) => {
       puzzleData = JSON.parse(jsonStr);
       console.log('Parsed puzzle data:', puzzleData);
     } catch (error) {
+      console.error('JSON parse error:', error);
       throw new Error(`Invalid puzzle data format: ${error.message}`);
     }
 
@@ -67,10 +72,13 @@ serve(async (req) => {
       .eq('date', formattedDate)
       .single();
 
-    // Extract puzzle data
-    const caption = puzzleData.Caption?.v1?.t || '';
+    // Extract puzzle data with detailed logging
+    console.log('Raw Caption data:', puzzleData.Caption);
+    console.log('Raw Solution data:', puzzleData.Solution);
+    
+    const caption = puzzleData.Caption?.v1 || '';
     const imageUrl = puzzleData.Image || '';
-    const solution = puzzleData.Solution?.s1?.a || '';
+    const solution = puzzleData.Solution?.s1 || '';
     const finalJumble = puzzleData.FinalJumble?.j || null;
     const finalJumbleAnswer = puzzleData.FinalJumble?.a || null;
 
@@ -143,24 +151,26 @@ serve(async (req) => {
       }
     }
 
-    // Then insert the new jumbled words, ensuring uniqueness
+    // Process jumble words with detailed logging
     const jumbleWords = [];
-    const seenWords = new Set(); // Track unique combinations of puzzle_id and jumbled_word
+    const seenWords = new Set();
     
     if (puzzleData.Clues) {
-      // Convert clues object to array of entries for easier processing
-      const clueEntries = Object.entries(puzzleData.Clues);
-      console.log('Processing clues:', clueEntries);
-
-      for (const [key, value] of clueEntries) {
-        // Only process clue entries (c1, c2, etc.)
+      console.log('Raw Clues data:', puzzleData.Clues);
+      
+      // Process each clue
+      for (const key in puzzleData.Clues) {
         if (key.startsWith('c') && /^\d+$/.test(key.slice(1))) {
-          const jumbledWord = value.j || '';
-          const answer = value.a || '';
-          const key = `${puzzleRecord.id}-${jumbledWord}`;
+          const clue = puzzleData.Clues[key];
+          console.log(`Processing clue ${key}:`, clue);
           
-          if (jumbledWord && answer && !seenWords.has(key)) {
-            seenWords.add(key);
+          const jumbledWord = clue.j || '';
+          const answer = clue.a || '';
+          const uniqueKey = `${puzzleRecord.id}-${jumbledWord}`;
+          
+          if (jumbledWord && answer && !seenWords.has(uniqueKey)) {
+            console.log(`Adding jumble word: ${jumbledWord} -> ${answer}`);
+            seenWords.add(uniqueKey);
             jumbleWords.push({
               puzzle_id: puzzleRecord.id,
               jumbled_word: jumbledWord,
@@ -171,8 +181,9 @@ serve(async (req) => {
       }
     }
 
+    console.log('Final jumble words to insert:', jumbleWords);
+
     if (jumbleWords.length > 0) {
-      console.log('Inserting jumble words:', jumbleWords);
       const { error: wordsError } = await supabaseClient
         .from('jumble_words')
         .insert(jumbleWords);
