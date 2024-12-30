@@ -1,10 +1,11 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { processPuzzleData } from './puzzle-processor.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 interface RequestBody {
   date?: string;
@@ -14,7 +15,7 @@ interface RequestBody {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -32,8 +33,8 @@ serve(async (req) => {
       throw new Error('Invalid date format. Expected YYYY-MM-DD');
     }
 
+    // Fetch puzzle data
     console.log('Fetching puzzle from URL:', jsonUrl);
-    
     const response = await fetch(jsonUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch puzzle: ${response.statusText}`);
@@ -42,10 +43,10 @@ serve(async (req) => {
     const text = await response.text();
     console.log('Raw response:', text);
 
-    // Remove the jsonCallback wrapper and any comments
+    // Clean and parse JSON data
     const jsonStr = text
-      .replace(/\/\*.*?\*\//, '') // Remove comments
-      .replace(/^jsonCallback\((.*)\)$/, '$1') // Remove jsonCallback wrapper
+      .replace(/\/\*.*?\*\//, '')
+      .replace(/^jsonCallback\((.*)\)$/, '$1')
       .trim();
     
     console.log('Cleaned JSON:', jsonStr);
@@ -65,139 +66,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Check if puzzle already exists for this date
-    const { data: existingPuzzle } = await supabaseClient
-      .from('daily_puzzles')
-      .select('id')
-      .eq('date', formattedDate)
-      .single();
-
-    // Extract puzzle data with detailed logging
-    console.log('Raw Caption data:', puzzleData.Caption);
-    console.log('Raw Solution data:', puzzleData.Solution);
-    
-    const caption = puzzleData.Caption?.v1 || '';
-    const imageUrl = puzzleData.Image || '';
-    const solution = puzzleData.Solution?.s1 || '';
-    const finalJumble = puzzleData.FinalJumble?.j || null;
-    const finalJumbleAnswer = puzzleData.FinalJumble?.a || null;
-
-    console.log('Extracted puzzle data:', {
-      caption,
-      imageUrl,
-      solution,
-      finalJumble,
-      finalJumbleAnswer
-    });
-
-    let puzzleRecord;
-    if (existingPuzzle) {
-      // Update existing puzzle
-      console.log('Updating existing puzzle for date:', formattedDate);
-      const { data: updatedPuzzle, error: updateError } = await supabaseClient
-        .from('daily_puzzles')
-        .update({
-          caption,
-          image_url: imageUrl,
-          solution,
-          final_jumble: finalJumble,
-          final_jumble_answer: finalJumbleAnswer
-        })
-        .eq('id', existingPuzzle.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error('Error updating puzzle:', updateError);
-        throw updateError;
-      }
-      puzzleRecord = updatedPuzzle;
-    } else {
-      // Insert new puzzle
-      console.log('Inserting new puzzle for date:', formattedDate);
-      const { data: newPuzzle, error: insertError } = await supabaseClient
-        .from('daily_puzzles')
-        .insert({
-          date: formattedDate,
-          caption,
-          image_url: imageUrl,
-          solution,
-          final_jumble: finalJumble,
-          final_jumble_answer: finalJumbleAnswer
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error inserting puzzle:', insertError);
-        throw insertError;
-      }
-      puzzleRecord = newPuzzle;
-    }
-
-    console.log('Puzzle record:', puzzleRecord);
-
-    // Delete existing jumble words for this puzzle
-    if (puzzleRecord.id) {
-      console.log('Deleting existing jumble words for puzzle:', puzzleRecord.id);
-      const { error: deleteError } = await supabaseClient
-        .from('jumble_words')
-        .delete()
-        .eq('puzzle_id', puzzleRecord.id);
-
-      if (deleteError) {
-        console.error('Error deleting existing jumble words:', deleteError);
-        throw deleteError;
-      }
-    }
-
-    // Process jumble words with detailed logging
-    const jumbleWords = [];
-    const seenWords = new Set();
-    
-    if (puzzleData.Clues) {
-      console.log('Raw Clues data:', puzzleData.Clues);
-      
-      // Process each clue
-      for (const key in puzzleData.Clues) {
-        if (key.startsWith('c') && /^\d+$/.test(key.slice(1))) {
-          const clue = puzzleData.Clues[key];
-          console.log(`Processing clue ${key}:`, clue);
-          
-          const jumbledWord = clue.j || '';
-          const answer = clue.a || '';
-          const uniqueKey = `${puzzleRecord.id}-${jumbledWord}`;
-          
-          if (jumbledWord && answer && !seenWords.has(uniqueKey)) {
-            console.log(`Adding jumble word: ${jumbledWord} -> ${answer}`);
-            seenWords.add(uniqueKey);
-            jumbleWords.push({
-              puzzle_id: puzzleRecord.id,
-              jumbled_word: jumbledWord,
-              answer: answer
-            });
-          }
-        }
-      }
-    }
-
-    console.log('Final jumble words to insert:', jumbleWords);
-
-    if (jumbleWords.length > 0) {
-      const { error: wordsError } = await supabaseClient
-        .from('jumble_words')
-        .insert(jumbleWords);
-
-      if (wordsError) {
-        console.error('Error inserting jumble words:', wordsError);
-        throw wordsError;
-      }
-    }
+    // Process puzzle data
+    const { puzzle, jumbleWords } = await processPuzzleData(
+      puzzleData,
+      formattedDate,
+      supabaseClient
+    );
 
     return new Response(
       JSON.stringify({ 
         message: 'Puzzle saved successfully',
-        puzzle: puzzleRecord,
+        puzzle,
         jumbleWords 
       }),
       {
@@ -206,7 +85,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
       },
-    )
+    );
   } catch (error) {
     console.error('Error:', error);
     return new Response(
@@ -218,6 +97,6 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
       },
-    )
+    );
   }
-})
+});
