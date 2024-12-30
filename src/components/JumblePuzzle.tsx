@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { format, parse } from 'date-fns';
-import { JumbleWord } from '@/integrations/supabase/types';
+import { JumbleWord } from '@/integrations/supabase/types/base.types';
 
 interface JumblePuzzleProps {
   date: string;

@@ -4,7 +4,7 @@ import { supabase } from '../integrations/supabase/client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
-import { DailyPuzzle } from '@/integrations/supabase/types';
+import { DailyPuzzle } from '@/integrations/supabase/types/base.types';
 
 const CaptionAnswer = () => {
   const { caption } = useParams();
@@ -69,3 +69,4 @@ const CaptionAnswer = () => {
 };
 
 export default CaptionAnswer;
+

@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
-import { DailyPuzzle } from '@/integrations/supabase/types';
+import { DailyPuzzle } from '@/integrations/supabase/types/base.types';
 import { format, parseISO } from 'date-fns';
 import MetaTags from '../components/MetaTags';
 

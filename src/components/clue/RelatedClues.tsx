@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { DailyPuzzle } from '@/integrations/supabase/types';
+import { DailyPuzzle } from '@/integrations/supabase/types/base.types';
 
 const RelatedClues = ({ clues }: { clues: DailyPuzzle[] }) => {
   return (
