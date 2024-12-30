@@ -11,6 +11,9 @@ import { renderHeader } from './components/Header.js';
 import { renderFooter } from './components/Footer.js';
 import { renderSidebar } from './components/Sidebar.js';
 import { renderHomePage } from './pages/HomePage.js';
+import { renderDailyPost } from './pages/DailyPost.js';
+import { renderJumbleAnswer } from './pages/JumbleAnswer.js';
+import { renderClueAnswer } from './pages/ClueAnswer.js';
 
 // Router setup
 const routes = {
