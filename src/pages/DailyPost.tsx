@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Sidebar from '../components/Sidebar';
 import JumblePuzzle from '../components/JumblePuzzle';
 import { Button } from "@/components/ui/button";
 import { DailyPuzzle } from '@/integrations/supabase/types';
@@ -47,24 +48,24 @@ const DailyPost = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-jumble-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-jumble-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2f75d9]"></div>
       </div>
     );
   }
 
   if (error || !puzzle) {
     return (
-      <div className="min-h-screen flex flex-col bg-jumble-background">
+      <div className="min-h-screen flex flex-col bg-white">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 text-center">
-            <h1 className="text-2xl font-bold text-jumble-text mb-4">Puzzle Not Found</h1>
-            <p className="text-jumble-text/60 mb-8">Sorry, we couldn't find the puzzle for this date.</p>
+          <div className="bg-white shadow-lg rounded-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
+            <p className="text-gray-600 mb-8">Sorry, we couldn't find the puzzle for this date.</p>
             <Button
               variant="outline"
               onClick={() => window.history.back()}
-              className="text-jumble-primary hover:text-jumble-primary/80"
+              className="bg-[#2f75d9] text-white hover:bg-[#2f75d9]/90 transition-colors"
             >
               ← Go Back
             </Button>
@@ -92,32 +93,40 @@ const DailyPost = () => {
   const dateUrl = formatUrlDate(puzzle.date);
 
   return (
-    <div className="min-h-screen flex flex-col bg-jumble-background">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold text-jumble-text mb-6 text-center">
-          Daily Jumble {formattedDate} Answers
-        </h1>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">
+              Daily Jumble {formattedDate} Answers
+            </h1>
 
-        <JumblePuzzle
-          date={formattedDate}
-          dateUrl={dateUrl}
-          words={puzzle.jumble_words || []}
-          caption={puzzle.caption}
-          imageUrl={puzzle.image_url}
-          solution={puzzle.solution}
-          isExpanded={true}
-        />
+            <JumblePuzzle
+              date={formattedDate}
+              dateUrl={dateUrl}
+              words={puzzle.jumble_words || []}
+              caption={puzzle.caption}
+              imageUrl={puzzle.image_url}
+              solution={puzzle.solution}
+              finalJumble={puzzle.final_jumble}
+              isExpanded={true}
+            />
 
-        <div className="mt-8 mb-4 container mx-auto px-4">
-          <Button
-            variant="outline"
-            onClick={() => window.history.back()}
-            className="text-jumble-primary hover:text-jumble-primary/80"
-          >
-            ← Go Back
-          </Button>
+            <div className="mt-8 mb-4">
+              <Button
+                onClick={() => window.history.back()}
+                className="bg-[#2f75d9] text-white hover:bg-[#2f75d9]/90 transition-colors"
+              >
+                ← Go Back
+              </Button>
+            </div>
+          </div>
+          
+          <div className="md:col-span-1">
+            <Sidebar />
+          </div>
         </div>
       </main>
 
