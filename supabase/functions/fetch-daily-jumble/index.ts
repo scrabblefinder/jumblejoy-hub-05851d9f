@@ -24,17 +24,18 @@ serve(async (req) => {
       throw new Error('Invalid date format. Expected YYYY-MM-DD');
     }
     
-    // Check if the date is a Sunday
+    // Check if the date is a Sunday or Monday
     const puzzleDate = new Date(formattedDate);
-    const isSunday = puzzleDate.getDay() === 0;
-    console.log('Is Sunday:', isSunday);
+    const dayOfWeek = puzzleDate.getDay();
+    const isSundayOrMonday = dayOfWeek === 0 || dayOfWeek === 1;
+    console.log('Is Sunday or Monday:', isSundayOrMonday);
     
     // Base URL components
     const basePrefix = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
     const timestamp = Date.now();
     
     // Construct the URL based on the day
-    const url = isSunday
+    const url = isSundayOrMonday
       ? `${basePrefix}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`
       : `${basePrefix}/tmjmf/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`;
     
