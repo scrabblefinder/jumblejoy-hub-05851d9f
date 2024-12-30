@@ -39,7 +39,7 @@ const DailyPost = () => {
           )
         `)
         .eq('date', formattedDate)
-        .single();
+        .maybeSingle();  // Changed from .single() to .maybeSingle()
 
       if (error) throw error;
       if (!data) throw new Error('Puzzle not found');
