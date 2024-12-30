@@ -38,7 +38,7 @@ serve(async (req) => {
       // Use tmjms for Sundays
       url = jsonUrl || `${basePrefix}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`;
     } else {
-      // Use tmjmf for all other days, ignore jsonUrl parameter
+      // Use tmjmf for all other days, completely ignore jsonUrl
       url = `${basePrefix}/tmjmf/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`;
     }
     
