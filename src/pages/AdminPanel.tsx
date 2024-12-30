@@ -17,7 +17,8 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [fetchingPuzzle, setFetchingPuzzle] = useState(false);
   const [date, setDate] = useState<Date>();
-  const [jsonUrl, setJsonUrl] = useState<string>('');
+  const [dailyJumbleUrl, setDailyJumbleUrl] = useState<string>('');
+  const [sundayJumbleUrl, setSundayJumbleUrl] = useState<string>('');
 
   useEffect(() => {
     const checkSession = async () => {
@@ -45,24 +46,32 @@ const AdminPanel = () => {
     checkSession();
   }, [toast]);
 
-  // Update JSON URL when date changes
+  // Update URLs when date changes
   useEffect(() => {
     if (date) {
       const formattedDate = format(date, 'yyyy-MM-dd');
       const timestamp = Date.now();
-      setJsonUrl(`https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
+      const baseUrl = 'https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g';
+      
+      // Daily Jumble URL
+      setDailyJumbleUrl(`${baseUrl}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
+      
+      // Sunday Jumble URL (same format as daily)
+      setSundayJumbleUrl(`${baseUrl}/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${timestamp}`);
     } else {
-      setJsonUrl('');
+      setDailyJumbleUrl('');
+      setSundayJumbleUrl('');
     }
   }, [date]);
 
-  const fetchPuzzle = async (selectedDate?: Date) => {
+  const fetchPuzzle = async (type: 'daily' | 'sunday') => {
     setFetchingPuzzle(true);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-daily-jumble', {
         body: { 
-          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
-          jsonUrl: jsonUrl
+          date: date ? format(date, 'yyyy-MM-dd') : undefined,
+          jsonUrl: type === 'daily' ? dailyJumbleUrl : sundayJumbleUrl,
+          puzzleType: type
         }
       });
       
@@ -127,22 +136,47 @@ const AdminPanel = () => {
             </PopoverContent>
           </Popover>
 
-          <Button 
-            onClick={() => fetchPuzzle(date)}
-            disabled={fetchingPuzzle}
-            className="flex items-center gap-2 bg-[#0275d8] hover:bg-[#025aa5]"
-          >
-            <Download className="h-4 w-4" />
-            {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Puzzle for ${format(date, 'PPP')}` : 'Fetch Latest Puzzle'}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button 
+              onClick={() => fetchPuzzle('daily')}
+              disabled={fetchingPuzzle}
+              className="flex items-center gap-2 bg-[#0275d8] hover:bg-[#025aa5]"
+            >
+              <Download className="h-4 w-4" />
+              {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Daily Jumble for ${format(date, 'PPP')}` : 'Fetch Latest Daily Jumble'}
+            </Button>
+
+            <Button 
+              onClick={() => fetchPuzzle('sunday')}
+              disabled={fetchingPuzzle}
+              className="flex items-center gap-2 bg-[#0275d8] hover:bg-[#025aa5]"
+            >
+              <Download className="h-4 w-4" />
+              {fetchingPuzzle ? 'Fetching Puzzle...' : date ? `Fetch Sunday Jumble for ${format(date, 'PPP')}` : 'Fetch Latest Sunday Jumble'}
+            </Button>
+          </div>
         </div>
 
-        {jsonUrl && (
+        {(dailyJumbleUrl || sundayJumbleUrl) && (
           <div className="mb-8 p-4 bg-white rounded-lg shadow">
-            <p className="text-sm text-gray-600">JSON URL:</p>
-            <code className="block mt-1 p-2 bg-gray-50 rounded text-sm break-all">
-              {jsonUrl}
-            </code>
+            <div className="space-y-4">
+              {dailyJumbleUrl && (
+                <div>
+                  <p className="text-sm text-gray-600">Daily Jumble URL:</p>
+                  <code className="block mt-1 p-2 bg-gray-50 rounded text-sm break-all">
+                    {dailyJumbleUrl}
+                  </code>
+                </div>
+              )}
+              {sundayJumbleUrl && (
+                <div>
+                  <p className="text-sm text-gray-600">Sunday Jumble URL:</p>
+                  <code className="block mt-1 p-2 bg-gray-50 rounded text-sm break-all">
+                    {sundayJumbleUrl}
+                  </code>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
