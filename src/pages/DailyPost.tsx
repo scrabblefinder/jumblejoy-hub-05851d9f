@@ -99,10 +99,6 @@ const DailyPost = () => {
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">
-              Daily Jumble {formattedDate} Answers
-            </h1>
-
             <JumblePuzzle
               date={formattedDate}
               dateUrl={dateUrl}
