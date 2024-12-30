@@ -59,32 +59,78 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Check if puzzle already exists for this date
+    const { data: existingPuzzle } = await supabaseClient
+      .from('daily_puzzles')
+      .select('id')
+      .eq('date', formattedDate)
+      .single();
+
     // Extract final jumble data
     const finalJumble = puzzleData.FinalJumble?.j || null;
     const finalJumbleAnswer = puzzleData.FinalJumble?.a || null;
 
-    // First, insert the puzzle
-    const { data: puzzleRecord, error: puzzleError } = await supabaseClient
-      .from('daily_puzzles')
-      .insert({
-        date: formattedDate,
-        caption: puzzleData.Caption?.v1?.t || '',
-        image_url: puzzleData.Image || '',
-        solution: puzzleData.Solution?.s1?.a || '',
-        final_jumble: finalJumble,
-        final_jumble_answer: finalJumbleAnswer
-      })
-      .select()
-      .single();
+    let puzzleRecord;
+    if (existingPuzzle) {
+      // Update existing puzzle
+      console.log('Updating existing puzzle for date:', formattedDate);
+      const { data: updatedPuzzle, error: updateError } = await supabaseClient
+        .from('daily_puzzles')
+        .update({
+          caption: puzzleData.Caption?.v1?.t || '',
+          image_url: puzzleData.Image || '',
+          solution: puzzleData.Solution?.s1?.a || '',
+          final_jumble: finalJumble,
+          final_jumble_answer: finalJumbleAnswer
+        })
+        .eq('id', existingPuzzle.id)
+        .select()
+        .single();
 
-    if (puzzleError) {
-      console.error('Error inserting puzzle:', puzzleError);
-      throw puzzleError;
+      if (updateError) {
+        console.error('Error updating puzzle:', updateError);
+        throw updateError;
+      }
+      puzzleRecord = updatedPuzzle;
+    } else {
+      // Insert new puzzle
+      console.log('Inserting new puzzle for date:', formattedDate);
+      const { data: newPuzzle, error: insertError } = await supabaseClient
+        .from('daily_puzzles')
+        .insert({
+          date: formattedDate,
+          caption: puzzleData.Caption?.v1?.t || '',
+          image_url: puzzleData.Image || '',
+          solution: puzzleData.Solution?.s1?.a || '',
+          final_jumble: finalJumble,
+          final_jumble_answer: finalJumbleAnswer
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error inserting puzzle:', insertError);
+        throw insertError;
+      }
+      puzzleRecord = newPuzzle;
     }
 
-    console.log('Inserted puzzle:', puzzleRecord);
+    console.log('Puzzle record:', puzzleRecord);
 
-    // Then insert the jumbled words
+    // Delete existing jumble words for this puzzle
+    if (puzzleRecord.id) {
+      const { error: deleteError } = await supabaseClient
+        .from('jumble_words')
+        .delete()
+        .eq('puzzle_id', puzzleRecord.id);
+
+      if (deleteError) {
+        console.error('Error deleting existing jumble words:', deleteError);
+        throw deleteError;
+      }
+    }
+
+    // Then insert the new jumbled words
     const jumbleWords = [];
     if (puzzleData.Clues) {
       const clues = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
