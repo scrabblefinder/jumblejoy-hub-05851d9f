@@ -9,7 +9,10 @@ import RelatedClues from '@/components/clue/RelatedClues';
 import { useToast } from "@/components/ui/use-toast";
 
 const createSlug = (text: string) => {
-  if (!text) return '';
+  if (!text) {
+    console.log('Warning: Empty text provided to createSlug');
+    return '';
+  }
   
   // First, normalize the text by removing special characters and converting to lowercase
   const normalized = text
@@ -18,7 +21,7 @@ const createSlug = (text: string) => {
     .trim()
     .replace(/\s+/g, '-'); // Replace spaces with hyphens
   
-  // Return the full slug without truncation
+  console.log('Created slug:', normalized, 'from text:', text);
   return normalized;
 };
 
@@ -30,6 +33,11 @@ const ClueAnswer = () => {
   const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['puzzle', slug],
     queryFn: async () => {
+      if (!slug) {
+        console.error('No slug provided');
+        throw new Error('No caption provided');
+      }
+      
       console.log('Fetching puzzle for slug:', slug);
       
       const { data, error } = await supabase
@@ -46,37 +54,39 @@ const ClueAnswer = () => {
 
       if (!data || data.length === 0) {
         console.log('No puzzles found');
-        return null;
+        throw new Error('No puzzles found');
       }
 
       // Log all puzzles and their slugs for debugging
-      data.forEach(puzzle => {
-        const puzzleSlug = createSlug(puzzle.caption);
-        console.log('Puzzle caption:', puzzle.caption);
-        console.log('Generated slug:', puzzleSlug);
-      });
-
-      const cleanSlug = createSlug(decodeURIComponent(slug || ''));
-      console.log('URL slug:', slug);
-      console.log('Clean slug:', cleanSlug);
+      console.log('Found', data.length, 'puzzles');
+      const decodedSlug = decodeURIComponent(slug);
+      console.log('Decoded URL slug:', decodedSlug);
       
+      // Find the puzzle with matching caption
       const matchingPuzzle = data.find(puzzle => {
         const puzzleSlug = createSlug(puzzle.caption);
-        console.log('Comparing slugs:', { puzzleSlug, cleanSlug });
-        return puzzleSlug === cleanSlug;
+        console.log('Comparing slugs:', {
+          puzzleSlug,
+          decodedSlug,
+          caption: puzzle.caption,
+          matches: puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug)
+        });
+        // Use includes instead of exact match to handle truncated slugs
+        return puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug);
       });
 
-      console.log('Matching puzzle:', matchingPuzzle);
-
       if (!matchingPuzzle) {
+        console.error('No matching puzzle found for slug:', decodedSlug);
         toast({
           title: "Puzzle Not Found",
           description: "We couldn't find the puzzle you're looking for.",
           variant: "destructive",
         });
+        return null;
       }
 
-      return matchingPuzzle || null;
+      console.log('Found matching puzzle:', matchingPuzzle);
+      return matchingPuzzle;
     },
   });
 
