@@ -31,7 +31,7 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
     }
 
     const text = await response.text();
-    console.log('Raw response:', text);
+    console.log('Raw response:', text.substring(0, 200) + '...'); // Log first 200 chars
     
     // Check if the response is empty
     if (!text) {
@@ -46,7 +46,7 @@ export async function fetchPuzzleXML(url: string): Promise<string> {
         .replace(/^jsonCallback\((.*)\);?$/, '$1'); // Remove jsonCallback wrapper
     }
     
-    console.log('Processed JSON string:', jsonString);
+    console.log('Processed JSON string:', jsonString.substring(0, 200) + '...'); // Log first 200 chars
     
     // Validate JSON
     try {

@@ -17,11 +17,11 @@ serve(async (req) => {
     console.log('Formatted date:', formattedDate)
     
     // Use the provided JSON URL or construct one based on the date
-    const url = jsonUrl || `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json`
+    const url = jsonUrl || `https://gamedata.services.amuniversal.com/c/uupuz/l/U2FsdGVkX1+b5Y+X7zaEFHSWJrCGS0ZTfgh8ArjtJXrQId7t4Y1oVKwUDKd4WyEo%0A/g/tmjms/d/${formattedDate}/data.json?callback=jsonCallback&_=${Date.now()}`
     
     console.log('Fetching puzzle from URL:', url)
     const puzzleData = await fetchPuzzleXML(url)
-    console.log('Received puzzle data:', puzzleData)
+    console.log('Received puzzle data:', puzzleData.substring(0, 200) + '...') // Log first 200 chars
 
     // Create Supabase client
     const supabaseAdmin = createClient(
@@ -64,7 +64,9 @@ serve(async (req) => {
         { jumbled_word: data.Clues.c1, answer: data.Clues.a1 },
         { jumbled_word: data.Clues.c2, answer: data.Clues.a2 },
         { jumbled_word: data.Clues.c3, answer: data.Clues.a3 },
-        { jumbled_word: data.Clues.c4, answer: data.Clues.a4 }
+        { jumbled_word: data.Clues.c4, answer: data.Clues.a4 },
+        { jumbled_word: data.Clues.c5, answer: data.Clues.a5 },
+        { jumbled_word: data.Clues.c6, answer: data.Clues.a6 }
       ].filter(word => word.jumbled_word && word.answer)
 
       if (jumbleWords.length > 0) {
