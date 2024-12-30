@@ -9,13 +9,17 @@ import RelatedClues from '@/components/clue/RelatedClues';
 import { useToast } from "@/components/ui/use-toast";
 
 const createSlug = (text: string) => {
-  return text
+  if (!text) return '';
+  
+  // First, normalize the text by removing special characters and converting to lowercase
+  const normalized = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-    .replace(/^-+|-+$/g, '') // Remove leading and trailing hyphens
-    .trim();
+    .trim()
+    .replace(/\s+/g, '-'); // Replace spaces with hyphens
+  
+  // Return the full slug without truncation
+  return normalized;
 };
 
 const ClueAnswer = () => {
@@ -45,9 +49,15 @@ const ClueAnswer = () => {
         return null;
       }
 
-      console.log('Found puzzles:', data);
+      // Log all puzzles and their slugs for debugging
+      data.forEach(puzzle => {
+        const puzzleSlug = createSlug(puzzle.caption);
+        console.log('Puzzle caption:', puzzle.caption);
+        console.log('Generated slug:', puzzleSlug);
+      });
 
-      const cleanSlug = createSlug(slug || '');
+      const cleanSlug = createSlug(decodeURIComponent(slug || ''));
+      console.log('URL slug:', slug);
       console.log('Clean slug:', cleanSlug);
       
       const matchingPuzzle = data.find(puzzle => {
