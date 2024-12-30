@@ -119,6 +119,7 @@ serve(async (req) => {
 
     // Delete existing jumble words for this puzzle
     if (puzzleRecord.id) {
+      console.log('Deleting existing jumble words for puzzle:', puzzleRecord.id);
       const { error: deleteError } = await supabaseClient
         .from('jumble_words')
         .delete()
@@ -130,22 +131,32 @@ serve(async (req) => {
       }
     }
 
-    // Then insert the new jumbled words
+    // Then insert the new jumbled words, ensuring uniqueness
     const jumbleWords = [];
+    const seenWords = new Set(); // Track unique combinations of puzzle_id and jumbled_word
+    
     if (puzzleData.Clues) {
       const clues = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
       for (const clue of clues) {
         if (puzzleData.Clues[clue]) {
-          jumbleWords.push({
-            puzzle_id: puzzleRecord.id,
-            jumbled_word: puzzleData.Clues[clue].j || '',
-            answer: puzzleData.Clues[clue].a || ''
-          });
+          const jumbledWord = puzzleData.Clues[clue].j || '';
+          const key = `${puzzleRecord.id}-${jumbledWord}`;
+          
+          // Only add if we haven't seen this combination before
+          if (!seenWords.has(key)) {
+            seenWords.add(key);
+            jumbleWords.push({
+              puzzle_id: puzzleRecord.id,
+              jumbled_word: jumbledWord,
+              answer: puzzleData.Clues[clue].a || ''
+            });
+          }
         }
       }
     }
 
     if (jumbleWords.length > 0) {
+      console.log('Inserting jumble words:', jumbleWords);
       const { error: wordsError } = await supabaseClient
         .from('jumble_words')
         .insert(jumbleWords);
@@ -154,8 +165,6 @@ serve(async (req) => {
         console.error('Error inserting jumble words:', wordsError);
         throw wordsError;
       }
-
-      console.log('Inserted jumble words:', jumbleWords);
     }
 
     return new Response(
