@@ -31,7 +31,7 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       }
 
       try {
-        console.log('Fetching puzzles with slug:', slug);
+        console.log('Fetching puzzles for slug:', slug);
         
         // First fetch all puzzles
         const { data: puzzles, error: puzzlesError } = await supabase
@@ -49,15 +49,17 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
         }
 
         // Find puzzle with matching caption slug
+        const requestSlug = createSlug(slug);
+        console.log('Looking for puzzle with slug:', requestSlug);
+        
         const matchingPuzzle = puzzles.find(puzzle => {
           const puzzleSlug = createSlug(puzzle.caption);
-          const requestSlug = createSlug(slug);
-          console.log('Comparing slugs:', { puzzleSlug, requestSlug });
+          console.log('Comparing with puzzle:', { caption: puzzle.caption, puzzleSlug });
           return puzzleSlug === requestSlug;
         });
 
         if (!matchingPuzzle) {
-          console.error('No matching puzzle found for slug:', slug);
+          console.error('No matching puzzle found for slug:', requestSlug);
           throw new Error('Puzzle not found');
         }
 
