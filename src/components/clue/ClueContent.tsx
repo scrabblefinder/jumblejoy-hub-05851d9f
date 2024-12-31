@@ -53,14 +53,8 @@ const ClueContent = () => {
 
       return matchingPuzzle;
     },
-    retry: false,
-    onError: (error) => {
-      console.error('Error in puzzle query:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to fetch puzzle",
-        variant: "destructive",
-      });
+    meta: {
+      errorMessage: "Failed to fetch puzzle"
     }
   });
 
