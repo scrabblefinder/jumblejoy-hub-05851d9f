@@ -5,22 +5,93 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const JumbleWord = () => {
   const { word } = useParams();
+  const { toast } = useToast();
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['jumble', word],
     queryFn: async () => {
-      if (!word) throw new Error('No word provided');
+      if (!word) {
+        toast({
+          title: "Error",
+          description: "No word provided",
+          variant: "destructive",
+        });
+        throw new Error('No word provided');
+      }
       
-      const { data, error } = await supabase.functions.invoke('get-jumble', {
-        body: { word: word }
-      });
+      console.log('Fetching jumble word:', word);
       
-      if (error) throw error;
-      if (!data) throw new Error('Word not found');
-      return data;
+      const { data: jumbleData, error } = await supabase
+        .from('jumble_words')
+        .select(`
+          *,
+          daily_puzzles (
+            date,
+            caption,
+            solution,
+            jumble_words (*)
+          )
+        `)
+        .eq('jumbled_word', word.toUpperCase())
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch jumble data",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      if (!jumbleData) {
+        // If not found in jumble_words, check final_jumble
+        const { data: puzzleData, error: puzzleError } = await supabase
+          .from('daily_puzzles')
+          .select(`
+            date,
+            caption,
+            solution,
+            final_jumble,
+            final_jumble_answer,
+            jumble_words (*)
+          `)
+          .eq('final_jumble', word.toUpperCase())
+          .maybeSingle();
+
+        if (puzzleError) {
+          console.error('Puzzle fetch error:', puzzleError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch puzzle data",
+            variant: "destructive",
+          });
+          throw puzzleError;
+        }
+
+        if (!puzzleData) {
+          toast({
+            title: "Not Found",
+            description: "This jumble word was not found",
+            variant: "destructive",
+          });
+          return null;
+        }
+
+        return {
+          jumbled_word: puzzleData.final_jumble,
+          answer: puzzleData.final_jumble_answer,
+          daily_puzzles: puzzleData
+        };
+      }
+
+      console.log('Found jumble data:', jumbleData);
+      return jumbleData;
     },
   });
 
@@ -38,7 +109,17 @@ const JumbleWord = () => {
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 text-center">
-            <div className="text-red-500">{(error as Error)?.message || 'An error occurred'}</div>
+            <h1 className="text-2xl font-bold text-red-500 mb-4">Jumble Word Not Found</h1>
+            <p className="text-gray-200 mb-6">
+              We couldn't find the jumble word you're looking for. It might have been removed or never existed.
+            </p>
+            <Link
+              to="/"
+              className="inline-flex items-center px-6 py-3 rounded-lg bg-jumble-primary 
+                       text-jumble-text hover:bg-jumble-primary/80 transition-colors"
+            >
+              Back to Daily Puzzle
+            </Link>
           </div>
         </main>
         <Footer />
