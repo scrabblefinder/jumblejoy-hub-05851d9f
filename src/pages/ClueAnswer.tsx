@@ -27,7 +27,7 @@ const ClueAnswer = () => {
       }
 
       try {
-        // First fetch all puzzles
+        // First fetch all puzzles to find the matching one by caption
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select('*');
@@ -43,7 +43,10 @@ const ClueAnswer = () => {
         }
 
         // Find the puzzle with matching caption-based slug
-        const matchingPuzzle = puzzles.find(p => createSlug(p.caption) === slug);
+        const matchingPuzzle = puzzles.find(p => {
+          const puzzleSlug = createSlug(p.caption);
+          return puzzleSlug === slug;
+        });
 
         if (!matchingPuzzle) {
           console.error('No matching puzzle found for slug:', slug);
