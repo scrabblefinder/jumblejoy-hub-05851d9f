@@ -14,14 +14,11 @@ const createSlug = (text: string) => {
     return '';
   }
   
-  // First, normalize the text by removing special characters and converting to lowercase
-  const normalized = text
+  return text
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/[^a-z0-9\s-]/g, '')
     .trim()
-    .replace(/\s+/g, '-'); // Replace spaces with hyphens
-  
-  return normalized;
+    .replace(/\s+/g, '-');
 };
 
 const ClueAnswer = () => {
@@ -41,54 +38,66 @@ const ClueAnswer = () => {
         return null;
       }
 
-      const { data, error } = await supabase
+      // First, get all puzzles and find the one matching our slug
+      const { data: puzzles, error: puzzlesError } = await supabase
         .from('daily_puzzles')
-        .select(`
-          *,
-          jumble_words (*)
-        `);
+        .select('*');
       
-      if (error) {
-        console.error('Supabase error:', error);
+      if (puzzlesError) {
+        console.error('Supabase error:', puzzlesError);
         toast({
           title: "Error",
-          description: "Failed to fetch puzzle data",
+          description: "Failed to fetch puzzles",
           variant: "destructive",
         });
-        throw error;
+        throw puzzlesError;
       }
 
-      if (!data || data.length === 0) {
-        toast({
-          title: "Error",
-          description: "No puzzles found in database",
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      // Decode and clean the URL slug
-      const decodedSlug = decodeURIComponent(slug).toLowerCase();
-      
-      // Find puzzle where either the URL contains the puzzle slug or vice versa
-      const matchingPuzzle = data.find(puzzle => {
-        if (!puzzle.caption) return false;
-        
-        const puzzleSlug = createSlug(puzzle.caption);
-        // Check if either slug contains the other
-        return puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug);
+      // Find the puzzle with a matching caption-based slug
+      const matchingPuzzle = puzzles.find(p => {
+        const puzzleSlug = createSlug(p.caption);
+        return puzzleSlug === slug;
       });
 
       if (!matchingPuzzle) {
         toast({
-          title: "Puzzle Not Found",
-          description: "We couldn't find the puzzle you're looking for",
+          title: "Error",
+          description: "Puzzle not found",
           variant: "destructive",
         });
         return null;
       }
 
-      return matchingPuzzle;
+      // Now fetch the complete puzzle data including jumble words
+      const { data: fullPuzzle, error: fullPuzzleError } = await supabase
+        .from('daily_puzzles')
+        .select(`
+          *,
+          jumble_words (*)
+        `)
+        .eq('id', matchingPuzzle.id)
+        .maybeSingle();
+      
+      if (fullPuzzleError) {
+        console.error('Supabase error:', fullPuzzleError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch puzzle details",
+          variant: "destructive",
+        });
+        throw fullPuzzleError;
+      }
+
+      if (!fullPuzzle) {
+        toast({
+          title: "Error",
+          description: "Puzzle details not found",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      return fullPuzzle;
     },
   });
 
