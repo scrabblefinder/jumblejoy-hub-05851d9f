@@ -26,13 +26,13 @@ const ClueAnswer = () => {
         return null;
       }
 
-      // Fetch all puzzles and find the one matching our slug
+      // First fetch all puzzles to find the matching one by caption
       const { data: puzzles, error: puzzlesError } = await supabase
         .from('daily_puzzles')
         .select('*');
       
       if (puzzlesError) {
-        console.error('Supabase error:', puzzlesError);
+        console.error('Error fetching puzzles:', puzzlesError);
         toast({
           title: "Error",
           description: "Failed to fetch puzzles",
@@ -41,13 +41,11 @@ const ClueAnswer = () => {
         throw puzzlesError;
       }
 
-      // Find the puzzle with a matching caption-based slug
-      const matchingPuzzle = puzzles.find(p => {
-        const puzzleSlug = createSlug(p.caption);
-        return puzzleSlug === slug;
-      });
+      // Find the puzzle with matching caption-based slug
+      const matchingPuzzle = puzzles?.find(p => createSlug(p.caption) === slug);
 
       if (!matchingPuzzle) {
+        console.error('No matching puzzle found for slug:', slug);
         toast({
           title: "Error",
           description: "Puzzle not found",
@@ -56,7 +54,7 @@ const ClueAnswer = () => {
         return null;
       }
 
-      // Now fetch the complete puzzle data including jumble words
+      // Now fetch the complete puzzle data with jumble words
       const { data: fullPuzzle, error: fullPuzzleError } = await supabase
         .from('daily_puzzles')
         .select(`
@@ -64,16 +62,26 @@ const ClueAnswer = () => {
           jumble_words (*)
         `)
         .eq('id', matchingPuzzle.id)
-        .single();
+        .maybeSingle();
 
       if (fullPuzzleError) {
-        console.error('Supabase error:', fullPuzzleError);
+        console.error('Error fetching full puzzle:', fullPuzzleError);
         toast({
           title: "Error",
           description: "Failed to fetch puzzle details",
           variant: "destructive",
         });
         throw fullPuzzleError;
+      }
+
+      if (!fullPuzzle) {
+        console.error('No full puzzle data found for id:', matchingPuzzle.id);
+        toast({
+          title: "Error",
+          description: "Puzzle details not found",
+          variant: "destructive",
+        });
+        return null;
       }
 
       return fullPuzzle;
