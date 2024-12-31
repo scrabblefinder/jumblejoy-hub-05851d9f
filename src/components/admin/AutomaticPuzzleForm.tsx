@@ -36,11 +36,10 @@ interface JumbleCallback {
 }
 
 const cleanCaption = (caption: string): string => {
-  // Remove special characters and extra spaces, but keep single spaces between words
   return caption
-    .replace(/[^\w\s]/g, ' ')  // Replace special chars with space
-    .replace(/\s+/g, ' ')      // Replace multiple spaces with single space
-    .trim();                   // Remove leading/trailing spaces
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 };
 
 const AutomaticPuzzleForm = () => {
@@ -48,21 +47,16 @@ const AutomaticPuzzleForm = () => {
   const { toast } = useToast();
 
   const parseCallbackFormat = (input: string): JumbleCallback => {
-    // Remove the jsonCallback wrapper if present
     const cleanJson = input.replace(/^\/\*\*\/jsonCallback\((.*)\)$/, '$1');
     return JSON.parse(cleanJson);
   };
 
   const formatSolution = (solution: string): string => {
-    // Remove any existing { } and extra spaces
     return solution.replace(/{\s*}/g, ' ').trim();
   };
 
-  const calculateFinalJumble = (clues: any): string => {
-    // Extract circled letters from answer words based on positions
+  const calculateFinalJumble = (clues: any): { jumble: string, answer: string } => {
     const jumbledParts = [];
-    
-    // Get circled letters from each answer word using position arrays
     const answers = [clues.a1, clues.a2, clues.a3, clues.a4];
     const positions = [clues.o1, clues.o2, clues.o3, clues.o4];
     
@@ -73,19 +67,16 @@ const AutomaticPuzzleForm = () => {
       jumbledParts.push(letters);
     }
     
-    // Combine all parts to create the final jumbled word
-    return jumbledParts.join('');
+    return {
+      jumble: jumbledParts.join(''),
+      answer: formatSolution(clues.s1)
+    };
   };
 
   const transformToDbFormat = (callback: JumbleCallback) => {
-    // Format date from YYYYMMDD to YYYY-MM-DD
     const formattedDate = `${callback.Date.slice(0, 4)}-${callback.Date.slice(4, 6)}-${callback.Date.slice(6, 8)}`;
-    
-    // Clean the caption before saving
     const cleanedCaption = cleanCaption(callback.Caption.v1);
-    
-    // Calculate the final jumble
-    const finalJumble = calculateFinalJumble(callback.Clues);
+    const { jumble: finalJumble, answer: finalJumbleAnswer } = calculateFinalJumble(callback.Clues);
     
     return {
       date: formattedDate,
@@ -93,6 +84,7 @@ const AutomaticPuzzleForm = () => {
       image_url: callback.Image,
       solution: formatSolution(callback.Solution.s1),
       final_jumble: finalJumble,
+      final_jumble_answer: finalJumbleAnswer,
       jumbled_words: [
         { jumbled_word: callback.Clues.c1, answer: callback.Clues.a1 },
         { jumbled_word: callback.Clues.c2, answer: callback.Clues.a2 },
@@ -107,7 +99,6 @@ const AutomaticPuzzleForm = () => {
       const callbackData = parseCallbackFormat(data.jsonData);
       const puzzleData = transformToDbFormat(callbackData);
       
-      // Check if puzzle already exists for this date
       const { data: existingPuzzle } = await supabase
         .from('daily_puzzles')
         .select()
@@ -123,7 +114,6 @@ const AutomaticPuzzleForm = () => {
         return;
       }
 
-      // First insert the puzzle
       const { data: newPuzzle, error: puzzleError } = await supabase
         .from('daily_puzzles')
         .insert({
@@ -131,14 +121,14 @@ const AutomaticPuzzleForm = () => {
           caption: puzzleData.caption,
           image_url: puzzleData.image_url,
           solution: puzzleData.solution,
-          final_jumble: puzzleData.final_jumble
+          final_jumble: puzzleData.final_jumble,
+          final_jumble_answer: puzzleData.final_jumble_answer
         })
         .select()
         .single();
 
       if (puzzleError) throw puzzleError;
 
-      // Then insert the jumbled words
       const jumbleWords = puzzleData.jumbled_words.map(word => ({
         puzzle_id: newPuzzle.id,
         jumbled_word: word.jumbled_word,
