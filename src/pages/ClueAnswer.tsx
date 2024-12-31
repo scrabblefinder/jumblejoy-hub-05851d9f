@@ -6,11 +6,11 @@ import Footer from '../components/Footer';
 import { Button } from "@/components/ui/button";
 import ClueContent from '@/components/clue/ClueContent';
 import RelatedClues from '@/components/clue/RelatedClues';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const createSlug = (text: string) => {
   if (!text) {
-    console.log('Warning: Empty text provided to createSlug');
+    console.error('Warning: Empty text provided to createSlug');
     return '';
   }
   
@@ -21,7 +21,6 @@ const createSlug = (text: string) => {
     .trim()
     .replace(/\s+/g, '-'); // Replace spaces with hyphens
   
-  console.log('Created slug:', normalized, 'from text:', text);
   return normalized;
 };
 
@@ -34,11 +33,9 @@ const ClueAnswer = () => {
     queryKey: ['puzzle', slug],
     queryFn: async () => {
       if (!slug) {
-        console.error('No slug provided');
-        throw new Error('No caption provided');
+        console.error('No slug parameter in URL');
+        return null;
       }
-      
-      console.log('Fetching puzzle for slug:', slug);
       
       const { data, error } = await supabase
         .from('daily_puzzles')
@@ -53,39 +50,31 @@ const ClueAnswer = () => {
       }
 
       if (!data || data.length === 0) {
-        console.log('No puzzles found');
-        throw new Error('No puzzles found');
-      }
-
-      // Log all puzzles and their slugs for debugging
-      console.log('Found', data.length, 'puzzles');
-      const decodedSlug = decodeURIComponent(slug);
-      console.log('Decoded URL slug:', decodedSlug);
-      
-      // Find the puzzle with matching caption
-      const matchingPuzzle = data.find(puzzle => {
-        const puzzleSlug = createSlug(puzzle.caption);
-        console.log('Comparing slugs:', {
-          puzzleSlug,
-          decodedSlug,
-          caption: puzzle.caption,
-          matches: puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug)
-        });
-        // Use includes instead of exact match to handle truncated slugs
-        return puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug);
-      });
-
-      if (!matchingPuzzle) {
-        console.error('No matching puzzle found for slug:', decodedSlug);
-        toast({
-          title: "Puzzle Not Found",
-          description: "We couldn't find the puzzle you're looking for.",
-          variant: "destructive",
-        });
+        console.log('No puzzles found in database');
         return null;
       }
 
-      console.log('Found matching puzzle:', matchingPuzzle);
+      // Decode and clean the URL slug
+      const decodedSlug = decodeURIComponent(slug).toLowerCase();
+      console.log('Looking for puzzle with slug containing:', decodedSlug);
+      
+      // Find puzzle where either the URL contains the puzzle slug or vice versa
+      const matchingPuzzle = data.find(puzzle => {
+        const puzzleSlug = createSlug(puzzle.caption);
+        const isMatch = puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug);
+        
+        if (isMatch) {
+          console.log('Found matching puzzle:', puzzle.caption);
+        }
+        
+        return isMatch;
+      });
+
+      if (!matchingPuzzle) {
+        console.log('No matching puzzle found for slug:', decodedSlug);
+        return null;
+      }
+
       return matchingPuzzle;
     },
   });
@@ -114,22 +103,22 @@ const ClueAnswer = () => {
     );
   }
 
-  if (error || !puzzle) {
+  if (!puzzle) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
-            <p className="text-gray-600">Sorry, we couldn't find the puzzle you're looking for.</p>
-          </div>
-          <div className="mt-4">
+            <p className="text-gray-600 mb-4">
+              Sorry, we couldn't find the puzzle you're looking for. The URL might be incomplete or incorrect.
+            </p>
             <Button
               variant="outline"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/')}
               className="text-[#0275d8] hover:text-[#025aa5]"
             >
-              ← Go Back
+              ← Go to Homepage
             </Button>
           </div>
         </main>
