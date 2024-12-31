@@ -31,13 +31,9 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       }
 
       try {
-        console.log('Fetching puzzles to match slug:', slug);
+        console.log('Fetching puzzles with slug:', slug);
         
-        // Normalize the request slug
-        const normalizedRequestSlug = createSlug(slug);
-        console.log('Normalized request slug:', normalizedRequestSlug);
-        
-        // Fetch all puzzles
+        // First fetch all puzzles
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select('*, jumble_words (*)');
@@ -48,19 +44,20 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
         }
 
         if (!puzzles || puzzles.length === 0) {
-          console.error('No puzzles found in database');
+          console.error('No puzzles found');
           throw new Error('No puzzles found');
         }
 
-        // Find the puzzle with matching caption-based slug
-        const matchingPuzzle = puzzles.find(p => {
-          const puzzleSlug = createSlug(p.caption);
-          console.log('Comparing slugs:', { puzzleSlug, normalizedRequestSlug });
-          return puzzleSlug === normalizedRequestSlug;
+        // Find puzzle with matching caption slug
+        const matchingPuzzle = puzzles.find(puzzle => {
+          const puzzleSlug = createSlug(puzzle.caption);
+          const requestSlug = createSlug(slug);
+          console.log('Comparing slugs:', { puzzleSlug, requestSlug });
+          return puzzleSlug === requestSlug;
         });
 
         if (!matchingPuzzle) {
-          console.error('No matching puzzle found for slug:', normalizedRequestSlug);
+          console.error('No matching puzzle found for slug:', slug);
           throw new Error('Puzzle not found');
         }
 
