@@ -26,81 +26,60 @@ const ClueAnswer = () => {
         return null;
       }
 
-      // First fetch all puzzles to find the matching one by caption
-      const { data: puzzles, error: puzzlesError } = await supabase
-        .from('daily_puzzles')
-        .select('*');
-      
-      if (puzzlesError) {
-        console.error('Error fetching puzzles:', puzzlesError);
+      try {
+        // First fetch all puzzles
+        const { data: puzzles, error: puzzlesError } = await supabase
+          .from('daily_puzzles')
+          .select('*');
+        
+        if (puzzlesError) {
+          console.error('Error fetching puzzles:', puzzlesError);
+          throw puzzlesError;
+        }
+
+        if (!puzzles || puzzles.length === 0) {
+          console.error('No puzzles found');
+          throw new Error('No puzzles found');
+        }
+
+        // Find the puzzle with matching caption-based slug
+        const matchingPuzzle = puzzles.find(p => createSlug(p.caption) === slug);
+
+        if (!matchingPuzzle) {
+          console.error('No matching puzzle found for slug:', slug);
+          throw new Error('Puzzle not found');
+        }
+
+        // Now fetch the complete puzzle data with jumble words using the UUID
+        const { data: fullPuzzle, error: fullPuzzleError } = await supabase
+          .from('daily_puzzles')
+          .select(`
+            *,
+            jumble_words (*)
+          `)
+          .eq('id', matchingPuzzle.id)
+          .maybeSingle();
+
+        if (fullPuzzleError) {
+          console.error('Error fetching full puzzle:', fullPuzzleError);
+          throw fullPuzzleError;
+        }
+
+        if (!fullPuzzle) {
+          console.error('No full puzzle data found for id:', matchingPuzzle.id);
+          throw new Error('Puzzle details not found');
+        }
+
+        return fullPuzzle;
+      } catch (err) {
+        console.error('Error in puzzle query:', err);
         toast({
           title: "Error",
-          description: "Failed to fetch puzzles",
-          variant: "destructive",
-        });
-        throw puzzlesError;
-      }
-
-      // Find the puzzle with matching caption-based slug
-      const matchingPuzzle = puzzles?.find(p => createSlug(p.caption) === slug);
-
-      if (!matchingPuzzle) {
-        console.error('No matching puzzle found for slug:', slug);
-        toast({
-          title: "Error",
-          description: "Puzzle not found",
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      // Now fetch the complete puzzle data with jumble words
-      const { data: fullPuzzle, error: fullPuzzleError } = await supabase
-        .from('daily_puzzles')
-        .select(`
-          *,
-          jumble_words (*)
-        `)
-        .eq('id', matchingPuzzle.id)
-        .maybeSingle();
-
-      if (fullPuzzleError) {
-        console.error('Error fetching full puzzle:', fullPuzzleError);
-        toast({
-          title: "Error",
-          description: "Failed to fetch puzzle details",
-          variant: "destructive",
-        });
-        throw fullPuzzleError;
-      }
-
-      if (!fullPuzzle) {
-        console.error('No full puzzle data found for id:', matchingPuzzle.id);
-        toast({
-          title: "Error",
-          description: "Puzzle details not found",
+          description: err.message || "Failed to fetch puzzle",
           variant: "destructive",
         });
         return null;
       }
-
-      return fullPuzzle;
-    },
-  });
-
-  const { data: relatedPuzzles } = useQuery({
-    queryKey: ['related_puzzles', puzzle?.date],
-    enabled: !!puzzle?.date,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('daily_puzzles')
-        .select('*')
-        .eq('date', puzzle.date)
-        .neq('id', puzzle.id)
-        .limit(3);
-      
-      if (error) throw error;
-      return data;
     },
   });
 
@@ -161,8 +140,8 @@ const ClueAnswer = () => {
               </div>
             </div>
 
-            {relatedPuzzles && relatedPuzzles.length > 0 && (
-              <RelatedClues clues={relatedPuzzles} />
+            {puzzle.jumble_words && puzzle.jumble_words.length > 0 && (
+              <RelatedClues clues={puzzle.jumble_words} />
             )}
           </div>
         </div>
