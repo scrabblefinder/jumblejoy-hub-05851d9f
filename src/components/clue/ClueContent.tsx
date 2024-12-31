@@ -32,6 +32,7 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
 
       console.log('Fetching puzzles to match slug:', slug);
       
+      // Fetch all puzzles and filter by caption
       const { data: puzzles, error: puzzlesError } = await supabase
         .from('daily_puzzles')
         .select(`
