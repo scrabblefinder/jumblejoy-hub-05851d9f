@@ -1,10 +1,8 @@
 import { DailyPuzzle } from '@/integrations/supabase/types/model.types';
 import { Link } from 'react-router-dom';
-import { createSlug } from '@/utils/slugUtils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useParams } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
 const countLetters = (word: string) => {
   return word.replace(/\s/g, '').length;
@@ -16,7 +14,6 @@ interface ClueContentProps {
 
 const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
   const { slug } = useParams();
-  const { toast } = useToast();
 
   const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['puzzle', slug],
@@ -41,7 +38,7 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
             jumble_words (*)
           `)
           .eq('slug', slug)
-          .single();
+          .maybeSingle();
         
         if (puzzleError) {
           console.error('Error fetching puzzle:', puzzleError);
