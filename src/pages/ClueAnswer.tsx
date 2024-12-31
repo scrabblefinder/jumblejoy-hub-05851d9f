@@ -27,9 +27,9 @@ const ClueAnswer = () => {
       }
 
       try {
-        console.log('Fetching puzzle by caption...');
+        console.log('Fetching puzzles to match slug:', slug);
         
-        // Fetch the puzzle directly by matching the caption that would create this slug
+        // First fetch all puzzles to find the matching one by caption
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
           .select(`
