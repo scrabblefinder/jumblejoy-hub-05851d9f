@@ -30,12 +30,26 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       try {
         console.log('Fetching puzzle for slug:', slug);
         
-        // Use the new slug field to fetch the puzzle directly
+        // Use explicit column selection and proper error handling
         const { data: puzzle, error: puzzleError } = await supabase
           .from('daily_puzzles')
           .select(`
-            *,
-            jumble_words (*)
+            id,
+            date,
+            caption,
+            image_url,
+            solution,
+            created_at,
+            final_jumble,
+            final_jumble_answer,
+            slug,
+            jumble_words (
+              id,
+              puzzle_id,
+              jumbled_word,
+              answer,
+              created_at
+            )
           `)
           .eq('slug', slug)
           .maybeSingle();
