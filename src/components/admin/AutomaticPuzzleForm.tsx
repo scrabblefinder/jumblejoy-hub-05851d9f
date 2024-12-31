@@ -35,6 +35,14 @@ interface JumbleCallback {
   Image: string;
 }
 
+const cleanCaption = (caption: string): string => {
+  // Remove special characters and extra spaces, but keep single spaces between words
+  return caption
+    .replace(/[^\w\s]/g, ' ')  // Replace special chars with space
+    .replace(/\s+/g, ' ')      // Replace multiple spaces with single space
+    .trim();                   // Remove leading/trailing spaces
+};
+
 const AutomaticPuzzleForm = () => {
   const { register, handleSubmit, reset } = useForm<AutomaticPuzzleFormData>();
   const { toast } = useToast();
@@ -73,12 +81,15 @@ const AutomaticPuzzleForm = () => {
     // Format date from YYYYMMDD to YYYY-MM-DD
     const formattedDate = `${callback.Date.slice(0, 4)}-${callback.Date.slice(4, 6)}-${callback.Date.slice(6, 8)}`;
     
+    // Clean the caption before saving
+    const cleanedCaption = cleanCaption(callback.Caption.v1);
+    
     // Calculate the final jumble
     const finalJumble = calculateFinalJumble(callback.Clues);
     
     return {
       date: formattedDate,
-      caption: callback.Caption.v1,
+      caption: cleanedCaption,
       image_url: callback.Image,
       solution: formatSolution(callback.Solution.s1),
       final_jumble: finalJumble,
