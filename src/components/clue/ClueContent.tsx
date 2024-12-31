@@ -30,13 +30,13 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
         return propsPuzzle;
       }
 
-      console.log('Fetching puzzle for slug:', slug);
+      console.log('Fetching puzzles to match slug:', slug);
       
-      // Remove trailing dashes and normalize the slug
+      // Normalize the request slug by removing trailing dashes and converting to lowercase
       const normalizedRequestSlug = slug.toLowerCase().replace(/-+$/, '');
       console.log('Normalized request slug:', normalizedRequestSlug);
       
-      // Fetch all puzzles and find matching one by caption
+      // Fetch all puzzles
       const { data: puzzles, error: puzzlesError } = await supabase
         .from('daily_puzzles')
         .select(`
@@ -50,6 +50,7 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       }
 
       if (!puzzles || puzzles.length === 0) {
+        console.error('No puzzles found in database');
         throw new Error('No puzzles found');
       }
 
