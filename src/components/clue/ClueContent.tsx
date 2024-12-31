@@ -1,18 +1,89 @@
 import { DailyPuzzle } from '@/integrations/supabase/types/model.types';
 import { Link } from 'react-router-dom';
 import { createSlug } from '@/utils/slugUtils';
-
-interface ClueContentProps {
-  puzzle: DailyPuzzle;
-}
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useParams } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const countLetters = (word: string) => {
   return word.replace(/\s/g, '').length;
 };
 
-const ClueContent = ({ puzzle }: ClueContentProps) => {
-  const slug = createSlug(puzzle.caption);
-  
+const ClueContent = () => {
+  const { slug } = useParams();
+  const { toast } = useToast();
+
+  const { data: puzzle, isLoading, error } = useQuery({
+    queryKey: ['puzzle', slug],
+    queryFn: async () => {
+      if (!slug) {
+        throw new Error('No slug provided');
+      }
+
+      console.log('Fetching puzzles to match slug:', slug);
+      
+      const { data: puzzles, error: puzzlesError } = await supabase
+        .from('daily_puzzles')
+        .select(`
+          *,
+          jumble_words (*)
+        `);
+      
+      if (puzzlesError) {
+        console.error('Error fetching puzzles:', puzzlesError);
+        throw puzzlesError;
+      }
+
+      if (!puzzles || puzzles.length === 0) {
+        throw new Error('No puzzles found');
+      }
+
+      // Find the puzzle with matching caption-based slug
+      const normalizedSlug = slug.toLowerCase().replace(/-+$/, ''); // Remove trailing dashes
+      const matchingPuzzle = puzzles.find(p => {
+        const puzzleSlug = createSlug(p.caption);
+        console.log('Comparing slugs:', { puzzleSlug, normalizedSlug });
+        return puzzleSlug === normalizedSlug;
+      });
+
+      if (!matchingPuzzle) {
+        throw new Error('Puzzle not found');
+      }
+
+      return matchingPuzzle;
+    },
+    retry: false,
+    onError: (error) => {
+      console.error('Error in puzzle query:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch puzzle",
+        variant: "destructive",
+      });
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="w-3/4 animate-pulse">
+        <div className="bg-gray-100 h-40 rounded-lg mb-6"></div>
+        <div className="bg-gray-100 h-40 rounded-lg"></div>
+      </div>
+    );
+  }
+
+  if (error || !puzzle) {
+    return (
+      <div className="w-3/4">
+        <div className="bg-red-50 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold text-red-800">Error</h2>
+          <p className="text-red-600">{error?.message || 'Failed to load puzzle'}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-3/4">
       {/* Clue Section */}
@@ -27,7 +98,7 @@ const ClueContent = ({ puzzle }: ClueContentProps) => {
             })}
           </span>
         </div>
-        <Link to={`/clue/${slug}`} className="hover:text-blue-600">
+        <Link to={`/clue/${createSlug(puzzle.caption)}`} className="hover:text-blue-600">
           <p className="text-xl text-[#0275d8] font-bold mb-4">{puzzle.caption}</p>
         </Link>
       </div>
