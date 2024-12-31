@@ -27,7 +27,7 @@ const ClueContent = ({ puzzle }: ClueContentProps) => {
             })}
           </span>
         </div>
-        <Link to={`/clue/${puzzle.id}`} className="hover:text-blue-600">
+        <Link to={`/clue/${slug}`} className="hover:text-blue-600">
           <p className="text-xl text-[#0275d8] font-bold mb-4">{puzzle.caption}</p>
         </Link>
       </div>

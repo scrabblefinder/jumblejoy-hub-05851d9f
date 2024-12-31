@@ -7,19 +7,7 @@ import { Button } from "@/components/ui/button";
 import ClueContent from '@/components/clue/ClueContent';
 import RelatedClues from '@/components/clue/RelatedClues';
 import { useToast } from "@/hooks/use-toast";
-
-const createSlug = (text: string) => {
-  if (!text) {
-    console.error('Warning: Empty text provided to createSlug');
-    return '';
-  }
-  
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
-};
+import { createSlug } from '@/utils/slugUtils';
 
 const ClueAnswer = () => {
   const { slug } = useParams();
@@ -38,7 +26,7 @@ const ClueAnswer = () => {
         return null;
       }
 
-      // First, get all puzzles and find the one matching our slug
+      // Fetch all puzzles and find the one matching our slug
       const { data: puzzles, error: puzzlesError } = await supabase
         .from('daily_puzzles')
         .select('*');
@@ -76,8 +64,8 @@ const ClueAnswer = () => {
           jumble_words (*)
         `)
         .eq('id', matchingPuzzle.id)
-        .maybeSingle();
-      
+        .single();
+
       if (fullPuzzleError) {
         console.error('Supabase error:', fullPuzzleError);
         toast({
@@ -86,15 +74,6 @@ const ClueAnswer = () => {
           variant: "destructive",
         });
         throw fullPuzzleError;
-      }
-
-      if (!fullPuzzle) {
-        toast({
-          title: "Error",
-          description: "Puzzle details not found",
-          variant: "destructive",
-        });
-        return null;
       }
 
       return fullPuzzle;
