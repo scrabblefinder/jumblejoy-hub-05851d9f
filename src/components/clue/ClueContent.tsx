@@ -58,9 +58,11 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       });
 
       if (!matchingPuzzle) {
+        console.error('No matching puzzle found for slug:', normalizedSlug);
         throw new Error('Puzzle not found');
       }
 
+      console.log('Found matching puzzle:', matchingPuzzle);
       return matchingPuzzle;
     },
     meta: {
