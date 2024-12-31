@@ -25,35 +25,49 @@ const CaptionAnswer = () => {
         return null;
       }
 
-      const { data, error } = await supabase
-        .from('daily_puzzles')
-        .select(`
-          *,
-          jumble_words (*)
-        `)
-        .eq('id', id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Supabase error:', error);
+      try {
+        console.log('Fetching puzzle for slug:', id);
+        
+        const { data, error } = await supabase
+          .from('daily_puzzles')
+          .select(`
+            *,
+            jumble_words (*)
+          `)
+          .eq('slug', id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Supabase error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch puzzle data",
+            variant: "destructive",
+          });
+          throw error;
+        }
+
+        if (!data) {
+          console.log('No puzzle found for slug:', id);
+          toast({
+            title: "Error",
+            description: "Puzzle not found",
+            variant: "destructive",
+          });
+          return null;
+        }
+
+        console.log('Found puzzle:', data);
+        return data;
+      } catch (err) {
+        console.error('Error in puzzle query:', err);
         toast({
           title: "Error",
-          description: "Failed to fetch puzzle data",
+          description: err.message || "Failed to fetch puzzle",
           variant: "destructive",
         });
-        throw error;
+        throw err;
       }
-
-      if (!data) {
-        toast({
-          title: "Error",
-          description: "Puzzle not found",
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      return data;
     },
   });
 
