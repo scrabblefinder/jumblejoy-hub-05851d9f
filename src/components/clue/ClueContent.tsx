@@ -10,15 +10,24 @@ const countLetters = (word: string) => {
   return word.replace(/\s/g, '').length;
 };
 
-const ClueContent = () => {
+interface ClueContentProps {
+  puzzle?: DailyPuzzle;
+}
+
+const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
   const { slug } = useParams();
   const { toast } = useToast();
 
   const { data: puzzle, isLoading, error } = useQuery({
     queryKey: ['puzzle', slug],
     queryFn: async () => {
-      if (!slug) {
-        throw new Error('No slug provided');
+      if (!slug && !propsPuzzle) {
+        throw new Error('No puzzle identifier provided');
+      }
+
+      // If puzzle is passed as prop, use it directly
+      if (propsPuzzle) {
+        return propsPuzzle;
       }
 
       console.log('Fetching puzzles to match slug:', slug);
