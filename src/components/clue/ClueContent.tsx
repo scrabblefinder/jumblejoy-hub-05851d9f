@@ -30,7 +30,6 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       try {
         console.log('Fetching puzzle for slug:', slug);
         
-        // Use explicit column selection and proper error handling
         const { data: puzzle, error: puzzleError } = await supabase
           .from('daily_puzzles')
           .select(`
