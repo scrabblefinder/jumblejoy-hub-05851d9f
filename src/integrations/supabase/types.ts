@@ -36,6 +36,7 @@ export type Database = {
           final_jumble_answer: string | null
           id: string
           image_url: string
+          slug: string | null
           solution: string
         }
         Insert: {
@@ -46,6 +47,7 @@ export type Database = {
           final_jumble_answer?: string | null
           id?: string
           image_url: string
+          slug?: string | null
           solution: string
         }
         Update: {
@@ -56,6 +58,7 @@ export type Database = {
           final_jumble_answer?: string | null
           id?: string
           image_url?: string
+          slug?: string | null
           solution?: string
         }
         Relationships: []

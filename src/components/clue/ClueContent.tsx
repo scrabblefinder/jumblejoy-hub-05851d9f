@@ -31,40 +31,30 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       }
 
       try {
-        console.log('Fetching puzzles for slug:', slug);
+        console.log('Fetching puzzle for slug:', slug);
         
-        // First fetch all puzzles
-        const { data: puzzles, error: puzzlesError } = await supabase
+        // Use the new slug field to fetch the puzzle directly
+        const { data: puzzle, error: puzzleError } = await supabase
           .from('daily_puzzles')
-          .select('*, jumble_words (*)');
+          .select(`
+            *,
+            jumble_words (*)
+          `)
+          .eq('slug', slug)
+          .single();
         
-        if (puzzlesError) {
-          console.error('Error fetching puzzles:', puzzlesError);
-          throw puzzlesError;
+        if (puzzleError) {
+          console.error('Error fetching puzzle:', puzzleError);
+          throw puzzleError;
         }
 
-        if (!puzzles || puzzles.length === 0) {
-          console.error('No puzzles found');
-          throw new Error('No puzzles found');
-        }
-
-        // Find puzzle with matching caption slug
-        const requestSlug = createSlug(slug);
-        console.log('Looking for puzzle with slug:', requestSlug);
-        
-        const matchingPuzzle = puzzles.find(puzzle => {
-          const puzzleSlug = createSlug(puzzle.caption);
-          console.log('Comparing with puzzle:', { caption: puzzle.caption, puzzleSlug });
-          return puzzleSlug === requestSlug;
-        });
-
-        if (!matchingPuzzle) {
-          console.error('No matching puzzle found for slug:', requestSlug);
+        if (!puzzle) {
+          console.error('No puzzle found for slug:', slug);
           throw new Error('Puzzle not found');
         }
 
-        console.log('Found matching puzzle:', matchingPuzzle);
-        return matchingPuzzle;
+        console.log('Found puzzle:', puzzle);
+        return puzzle;
       } catch (err) {
         console.error('Error in puzzle query:', err);
         throw err;
@@ -109,7 +99,7 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
             })}
           </span>
         </div>
-        <Link to={`/clue/${createSlug(puzzle.caption)}`} className="hover:text-blue-600">
+        <Link to={`/clue/${puzzle.slug}`} className="hover:text-blue-600">
           <p className="text-xl text-[#0275d8] font-bold mb-4">{puzzle.caption}</p>
         </Link>
       </div>
