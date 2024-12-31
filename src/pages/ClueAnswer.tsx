@@ -33,10 +33,14 @@ const ClueAnswer = () => {
     queryKey: ['puzzle', slug],
     queryFn: async () => {
       if (!slug) {
-        console.error('No slug parameter in URL');
+        toast({
+          title: "Error",
+          description: "No puzzle identifier provided",
+          variant: "destructive",
+        });
         return null;
       }
-      
+
       const { data, error } = await supabase
         .from('daily_puzzles')
         .select(`
@@ -46,32 +50,41 @@ const ClueAnswer = () => {
       
       if (error) {
         console.error('Supabase error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch puzzle data",
+          variant: "destructive",
+        });
         throw error;
       }
 
       if (!data || data.length === 0) {
-        console.log('No puzzles found in database');
+        toast({
+          title: "Error",
+          description: "No puzzles found in database",
+          variant: "destructive",
+        });
         return null;
       }
 
       // Decode and clean the URL slug
       const decodedSlug = decodeURIComponent(slug).toLowerCase();
-      console.log('Looking for puzzle with slug containing:', decodedSlug);
       
       // Find puzzle where either the URL contains the puzzle slug or vice versa
       const matchingPuzzle = data.find(puzzle => {
+        if (!puzzle.caption) return false;
+        
         const puzzleSlug = createSlug(puzzle.caption);
-        const isMatch = puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug);
-        
-        if (isMatch) {
-          console.log('Found matching puzzle:', puzzle.caption);
-        }
-        
-        return isMatch;
+        // Check if either slug contains the other
+        return puzzleSlug.includes(decodedSlug) || decodedSlug.includes(puzzleSlug);
       });
 
       if (!matchingPuzzle) {
-        console.log('No matching puzzle found for slug:', decodedSlug);
+        toast({
+          title: "Puzzle Not Found",
+          description: "We couldn't find the puzzle you're looking for",
+          variant: "destructive",
+        });
         return null;
       }
 
