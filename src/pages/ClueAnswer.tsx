@@ -27,6 +27,8 @@ const ClueAnswer = () => {
       }
 
       try {
+        console.log('Fetching puzzle with slug:', slug);
+        
         // First fetch all puzzles to find the matching one by caption
         const { data: puzzles, error: puzzlesError } = await supabase
           .from('daily_puzzles')
@@ -43,15 +45,19 @@ const ClueAnswer = () => {
         }
 
         // Find the puzzle with matching caption-based slug
+        const normalizedSlug = slug.replace(/-+$/, ''); // Remove trailing dashes
         const matchingPuzzle = puzzles.find(p => {
           const puzzleSlug = createSlug(p.caption);
-          return puzzleSlug === slug;
+          console.log('Comparing slugs:', { puzzleSlug, normalizedSlug });
+          return puzzleSlug === normalizedSlug;
         });
 
         if (!matchingPuzzle) {
-          console.error('No matching puzzle found for slug:', slug);
+          console.error('No matching puzzle found for slug:', normalizedSlug);
           throw new Error('Puzzle not found');
         }
+
+        console.log('Found matching puzzle:', matchingPuzzle);
 
         // Now fetch the complete puzzle data with jumble words using the UUID
         const { data: fullPuzzle, error: fullPuzzleError } = await supabase
@@ -73,6 +79,7 @@ const ClueAnswer = () => {
           throw new Error('Puzzle details not found');
         }
 
+        console.log('Successfully fetched full puzzle:', fullPuzzle);
         return fullPuzzle;
       } catch (err) {
         console.error('Error in puzzle query:', err);
