@@ -83,6 +83,23 @@ const ClueAnswer = () => {
     },
   });
 
+  // Fetch related puzzles separately
+  const { data: relatedPuzzles } = useQuery({
+    queryKey: ['related_puzzles', puzzle?.date],
+    enabled: !!puzzle?.date,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('daily_puzzles')
+        .select('*')
+        .eq('date', puzzle.date)
+        .neq('id', puzzle.id)
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -140,8 +157,8 @@ const ClueAnswer = () => {
               </div>
             </div>
 
-            {puzzle.jumble_words && puzzle.jumble_words.length > 0 && (
-              <RelatedClues clues={puzzle.jumble_words} />
+            {relatedPuzzles && relatedPuzzles.length > 0 && (
+              <RelatedClues clues={relatedPuzzles} />
             )}
           </div>
         </div>
