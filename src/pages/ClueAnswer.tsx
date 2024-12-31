@@ -27,7 +27,7 @@ const ClueAnswer = () => {
       }
 
       try {
-        console.log('Fetching puzzle with slug:', slug);
+        console.log('Fetching puzzles to match slug:', slug);
         
         // First fetch all puzzles to find the matching one by caption
         const { data: puzzles, error: puzzlesError } = await supabase
@@ -45,7 +45,7 @@ const ClueAnswer = () => {
         }
 
         // Find the puzzle with matching caption-based slug
-        const normalizedSlug = slug.replace(/-+$/, ''); // Remove trailing dashes
+        const normalizedSlug = slug.toLowerCase().replace(/-+$/, ''); // Remove trailing dashes
         const matchingPuzzle = puzzles.find(p => {
           const puzzleSlug = createSlug(p.caption);
           console.log('Comparing slugs:', { puzzleSlug, normalizedSlug });
@@ -88,7 +88,7 @@ const ClueAnswer = () => {
           description: err.message || "Failed to fetch puzzle",
           variant: "destructive",
         });
-        return null;
+        throw err;
       }
     },
   });
