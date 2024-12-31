@@ -1,44 +1,103 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import Sidebar from '../components/Sidebar';
-import { DailyPuzzle } from '@/integrations/supabase/types/base.types';
+import { Button } from "@/components/ui/button";
+import ClueContent from '@/components/clue/ClueContent';
+import RelatedClues from '@/components/clue/RelatedClues';
+import { useToast } from "@/hooks/use-toast";
 
 const CaptionAnswer = () => {
-  const { caption } = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['caption', caption],
+  const { data: puzzle, isLoading, error } = useQuery({
+    queryKey: ['puzzle', id],
     queryFn: async () => {
-      if (!caption) throw new Error('No caption provided');
+      if (!id) {
+        toast({
+          title: "Error",
+          description: "No puzzle identifier provided",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('daily_puzzles')
+        .select(`
+          *,
+          jumble_words (*)
+        `)
+        .eq('id', id)
+        .maybeSingle();
       
-      const { data, error } = await supabase.functions.invoke('get-caption', {
-        body: { caption: caption }
-      });
+      if (error) {
+        console.error('Supabase error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch puzzle data",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      if (!data) {
+        toast({
+          title: "Error",
+          description: "Puzzle not found",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      return data;
+    },
+  });
+
+  const { data: relatedPuzzles } = useQuery({
+    queryKey: ['related_puzzles', puzzle?.date],
+    enabled: !!puzzle?.date,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('daily_puzzles')
+        .select('*')
+        .eq('date', puzzle.date)
+        .neq('id', puzzle.id)
+        .limit(3);
       
       if (error) throw error;
-      if (!data) throw new Error('Caption not found');
       return data;
     },
   });
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2f75d9]"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0275d8]"></div>
       </div>
     );
   }
 
-  if (error || !data) {
+  if (!puzzle) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="container mx-auto px-4 py-8 flex-grow">
-          <div className="bg-white shadow-lg rounded-lg p-8 text-center">
-            <div className="text-red-500">{(error as Error)?.message || 'An error occurred'}</div>
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Puzzle Not Found</h1>
+            <p className="text-gray-600 mb-4">
+              Sorry, we couldn't find the puzzle you're looking for. The URL might be incomplete or incorrect.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="text-[#0275d8] hover:text-[#025aa5]"
+            >
+              ← Go to Homepage
+            </Button>
           </div>
         </main>
         <Footer />
@@ -47,19 +106,44 @@ const CaptionAnswer = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="bg-white shadow-lg rounded-lg p-8">
-          <h1 className="text-2xl font-bold text-center">Caption Answer</h1>
-          <p className="text-xl text-center mt-4">{data.answer}</p>
-          <Link
-            to="/"
-            className="inline-flex items-center px-6 py-3 rounded-lg bg-[#2f75d9] text-white hover:bg-[#2f75d9]/80 transition-colors mt-6"
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-[#0275d8] text-white p-4">
+            <h1 className="text-2xl font-bold text-center">Clue Solution</h1>
+          </div>
+          
+          <div className="p-8">
+            <div className="flex gap-8">
+              <ClueContent puzzle={puzzle} />
+
+              <div className="w-1/4">
+                <div className="sticky top-4">
+                  <img 
+                    src={puzzle.image_url}
+                    alt="Puzzle Clue"
+                    className="w-full rounded-lg shadow-lg"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {relatedPuzzles && relatedPuzzles.length > 0 && (
+              <RelatedClues clues={relatedPuzzles} />
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="text-[#0275d8] hover:text-[#025aa5]"
           >
-            Back to Daily Puzzle
-          </Link>
+            ← Go Back
+          </Button>
         </div>
       </main>
 
@@ -69,4 +153,3 @@ const CaptionAnswer = () => {
 };
 
 export default CaptionAnswer;
-

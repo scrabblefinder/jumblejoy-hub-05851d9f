@@ -20,7 +20,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/jumble/:word" element={<JumbleAnswer />} />
-          <Route path="/clue/:slug" element={<CaptionAnswer />} />
+          <Route path="/clue/:id" element={<CaptionAnswer />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/daily-jumble/:date" element={<DailyPost />} />
           <Route 

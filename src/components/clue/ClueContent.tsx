@@ -1,4 +1,6 @@
 import { DailyPuzzle } from '@/integrations/supabase/types/model.types';
+import { Link } from 'react-router-dom';
+import { createSlug } from '@/utils/slugUtils';
 
 interface ClueContentProps {
   puzzle: DailyPuzzle;
@@ -9,6 +11,8 @@ const countLetters = (word: string) => {
 };
 
 const ClueContent = ({ puzzle }: ClueContentProps) => {
+  const slug = createSlug(puzzle.caption);
+  
   return (
     <div className="w-3/4">
       {/* Clue Section */}
@@ -23,7 +27,9 @@ const ClueContent = ({ puzzle }: ClueContentProps) => {
             })}
           </span>
         </div>
-        <p className="text-xl text-[#0275d8] font-bold mb-4">{puzzle.caption}</p>
+        <Link to={`/clue/${puzzle.id}`} className="hover:text-blue-600">
+          <p className="text-xl text-[#0275d8] font-bold mb-4">{puzzle.caption}</p>
+        </Link>
       </div>
 
       {/* Solution Section */}
