@@ -32,7 +32,11 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
 
       console.log('Fetching puzzle for slug:', slug);
       
-      // Fetch the puzzle by matching the caption-based slug
+      // Remove trailing dashes and normalize the slug
+      const normalizedRequestSlug = slug.toLowerCase().replace(/-+$/, '');
+      console.log('Normalized request slug:', normalizedRequestSlug);
+      
+      // Fetch all puzzles and find matching one by caption
       const { data: puzzles, error: puzzlesError } = await supabase
         .from('daily_puzzles')
         .select(`
@@ -52,13 +56,12 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
       // Find the puzzle with matching caption-based slug
       const matchingPuzzle = puzzles.find(p => {
         const puzzleSlug = createSlug(p.caption);
-        const normalizedRequestSlug = slug.toLowerCase();
         console.log('Comparing slugs:', { puzzleSlug, normalizedRequestSlug });
         return puzzleSlug === normalizedRequestSlug;
       });
 
       if (!matchingPuzzle) {
-        console.error('No matching puzzle found for slug:', slug);
+        console.error('No matching puzzle found for normalized slug:', normalizedRequestSlug);
         throw new Error('Puzzle not found');
       }
 
