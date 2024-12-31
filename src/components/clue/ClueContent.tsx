@@ -30,44 +30,46 @@ const ClueContent = ({ puzzle: propsPuzzle }: ClueContentProps) => {
         return propsPuzzle;
       }
 
-      console.log('Fetching puzzles to match slug:', slug);
-      
-      // Normalize the request slug by removing trailing dashes and converting to lowercase
-      const normalizedRequestSlug = slug.toLowerCase().replace(/-+$/, '');
-      console.log('Normalized request slug:', normalizedRequestSlug);
-      
-      // Fetch all puzzles
-      const { data: puzzles, error: puzzlesError } = await supabase
-        .from('daily_puzzles')
-        .select(`
-          *,
-          jumble_words (*)
-        `);
-      
-      if (puzzlesError) {
-        console.error('Error fetching puzzles:', puzzlesError);
-        throw puzzlesError;
+      try {
+        console.log('Fetching puzzles to match slug:', slug);
+        
+        // Normalize the request slug
+        const normalizedRequestSlug = createSlug(slug);
+        console.log('Normalized request slug:', normalizedRequestSlug);
+        
+        // Fetch all puzzles
+        const { data: puzzles, error: puzzlesError } = await supabase
+          .from('daily_puzzles')
+          .select('*, jumble_words (*)');
+        
+        if (puzzlesError) {
+          console.error('Error fetching puzzles:', puzzlesError);
+          throw puzzlesError;
+        }
+
+        if (!puzzles || puzzles.length === 0) {
+          console.error('No puzzles found in database');
+          throw new Error('No puzzles found');
+        }
+
+        // Find the puzzle with matching caption-based slug
+        const matchingPuzzle = puzzles.find(p => {
+          const puzzleSlug = createSlug(p.caption);
+          console.log('Comparing slugs:', { puzzleSlug, normalizedRequestSlug });
+          return puzzleSlug === normalizedRequestSlug;
+        });
+
+        if (!matchingPuzzle) {
+          console.error('No matching puzzle found for slug:', normalizedRequestSlug);
+          throw new Error('Puzzle not found');
+        }
+
+        console.log('Found matching puzzle:', matchingPuzzle);
+        return matchingPuzzle;
+      } catch (err) {
+        console.error('Error in puzzle query:', err);
+        throw err;
       }
-
-      if (!puzzles || puzzles.length === 0) {
-        console.error('No puzzles found in database');
-        throw new Error('No puzzles found');
-      }
-
-      // Find the puzzle with matching caption-based slug
-      const matchingPuzzle = puzzles.find(p => {
-        const puzzleSlug = createSlug(p.caption);
-        console.log('Comparing slugs:', { puzzleSlug, normalizedRequestSlug });
-        return puzzleSlug === normalizedRequestSlug;
-      });
-
-      if (!matchingPuzzle) {
-        console.error('No matching puzzle found for normalized slug:', normalizedRequestSlug);
-        throw new Error('Puzzle not found');
-      }
-
-      console.log('Found matching puzzle:', matchingPuzzle);
-      return matchingPuzzle;
     },
     meta: {
       errorMessage: "Failed to fetch puzzle"
