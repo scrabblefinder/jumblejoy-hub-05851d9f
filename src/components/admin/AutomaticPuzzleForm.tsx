@@ -62,7 +62,9 @@ const AutomaticPuzzleForm = () => {
     
     for (let i = 0; i < answers.length; i++) {
       const word = answers[i];
-      const pos = positions[i].split(',').map(Number);
+      // Split positions by comma and convert to numbers, then sort to maintain letter order
+      const pos = positions[i].split(',').map(Number).sort((a, b) => a - b);
+      // Extract letters from the word based on positions (1-based index)
       const letters = pos.map(p => word[p - 1]).join('');
       jumbledParts.push(letters);
     }
